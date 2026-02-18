@@ -4,9 +4,6 @@ Thumbs.db
 
 # Logs
 *.log
-sync-stderr.log
-sync-stdout.log
-sync.log
 
 # Environment files (real ones, not examples)
 .env
@@ -18,9 +15,6 @@ node_modules/
 
 # Large archives
 *.zip
-
-# Git LFS objects inside nested repos
-**/.git/lfs/
 
 # Python
 __pycache__/
@@ -41,3 +35,7 @@ out/
 
 # Claude internal
 .claude/projects/
+
+# Backup files
+*.bak
+*~

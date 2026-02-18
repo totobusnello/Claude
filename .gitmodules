@@ -1,6 +1,3 @@
-[submodule "Toto-Code"]
-	path = Toto-Code
-	url = https://github.com/totobusnello/Toto-Code.git
 [submodule "Projetos/Area-Campolim-Sorocaba"]
 	path = Projetos/Area-Campolim-Sorocaba
 	url = https://github.com/totobusnello/Area-Campolim-Sorocaba.git
@@ -19,6 +16,12 @@
 [submodule "claude-project-template"]
 	path = claude-project-template
 	url = https://github.com/totobusnello/claude-project-template.git
-[submodule "skills/d3js-visualization"]
-	path = skills/d3js-visualization
-	url = https://github.com/chrisvoncsefalvay/claude-d3js-skill.git
+[submodule "Projetos/Frooty"]
+	path = Projetos/Frooty
+	url = https://github.com/totobusnello/Frooty.git
+[submodule "Projetos/Future-Farm"]
+	path = Projetos/Future-Farm
+	url = https://github.com/totobusnello/Future-Farm.git
+[submodule "templates-powerpoint"]
+	path = templates-powerpoint
+	url = https://github.com/totobusnello/powerpoint-templates.git

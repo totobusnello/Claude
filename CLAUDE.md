@@ -212,8 +212,8 @@ Skills são ativadas automaticamente quando você menciona:
 
 ## PowerPoint Templates
 
-93 templates profissionais em `templates/powerpoint/allpowerpointtemplates/`.
-Catalogo completo em `templates/powerpoint/README.md`.
+93 templates profissionais em `templates-powerpoint/allpowerpointtemplates/` (submodule).
+Catalogo completo em `templates-powerpoint/README.md`.
 
 ### Quando usar
 - Qualquer pedido de apresentacao, deck, slides, powerpoint
@@ -254,12 +254,38 @@ Quando iniciar um novo projeto, Claude deve:
 
 ---
 
+## Workspace Structure
+
+```
+~/Claude/                          (source of truth)
+├── skills/          → synced to ~/.claude/skills/    (60 categories)
+├── agents/          → synced to ~/.claude/agents/    (14 categories + standalone)
+├── commands/        → synced to ~/.claude/commands/  (27 categories)
+├── prompts/         → synced to ~/.claude/prompts/   (41 files)
+├── templates-powerpoint/  (submodule: 93 PowerPoint templates)
+├── Projetos/              (submodules: repos individuais)
+├── docs/                  (reference docs: MCP setup, optimization)
+├── scripts/               (sync and automation scripts)
+├── CATALOG.md             (skills/agents catalog)
+└── INDEX.md               (master index)
+```
+
+## Sync Flow
+
+- **Source of truth**: `~/Claude/{skills,agents,commands,prompts}`
+- **Deployment target**: `~/.claude/{skills,agents,commands,prompts}`
+- **Sync script**: `scripts/sync-all-to-home.sh`
+- **Auto-sync**: runs nightly via launchd (23h)
+- **Manual sync**: `~/Claude/scripts/sync-all-repos.sh`
+
 ## Installed Extensions Summary
 
-- **273 Skills** em `~/.claude/skills/`
-- **134 Agents** em `~/.claude/agents/`
-- **INDEX.md** em `~/.claude/INDEX.md` com catálogo completo
+- **60 Skill Categories** em `skills/` (synced to `~/.claude/skills/`)
+- **134+ Agents** em `agents/` (synced to `~/.claude/agents/`)
+- **27 Command Categories** em `commands/` (synced to `~/.claude/commands/`)
+- **41 Prompt Templates** em `prompts/` (synced to `~/.claude/prompts/`)
+- **INDEX.md** catalogo completo
 
 ---
 
-*Para ver o catálogo completo: `cat ~/.claude/INDEX.md`*
+*Para ver o catalogo completo: `cat INDEX.md` ou `cat ~/.claude/INDEX.md`*
