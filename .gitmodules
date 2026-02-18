@@ -1,0 +1,24 @@
+[submodule "Toto-Code"]
+	path = Toto-Code
+	url = https://github.com/totobusnello/Toto-Code.git
+[submodule "Projetos/Area-Campolim-Sorocaba"]
+	path = Projetos/Area-Campolim-Sorocaba
+	url = https://github.com/totobusnello/Area-Campolim-Sorocaba.git
+[submodule "Projetos/Area-Manuel_Nobrega"]
+	path = Projetos/Area-Manuel_Nobrega
+	url = https://github.com/totobusnello/Area-Manuel_Nobrega.git
+[submodule "Projetos/GalapagosApp"]
+	path = Projetos/GalapagosApp
+	url = https://github.com/totobusnello/GalapagosApp.git
+[submodule "Projetos/Granix-App"]
+	path = Projetos/Granix-App
+	url = https://github.com/totobusnello/Granix-App.git
+[submodule "Projetos/daily-tech-digest"]
+	path = Projetos/daily-tech-digest
+	url = https://github.com/totobusnello/daily-tech-digest.git
+[submodule "claude-project-template"]
+	path = claude-project-template
+	url = https://github.com/totobusnello/claude-project-template.git
+[submodule "skills/d3js-visualization"]
+	path = skills/d3js-visualization
+	url = https://github.com/chrisvoncsefalvay/claude-d3js-skill.git

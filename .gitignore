@@ -1,0 +1,43 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+sync-stderr.log
+sync-stdout.log
+sync.log
+
+# Environment files (real ones, not examples)
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Large archives
+*.zip
+
+# Git LFS objects inside nested repos
+**/.git/lfs/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+.next/
+.nuxt/
+out/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude internal
+.claude/projects/
