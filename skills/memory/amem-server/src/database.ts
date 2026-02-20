@@ -1,4 +1,4 @@
-import initSqlJs, { Database as SqlJsDatabase } from "sql.js";
+import Database from "better-sqlite3";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs";
@@ -19,42 +19,28 @@ export interface MemoryNote {
 }
 
 export class MemoryDatabase {
-  private db!: SqlJsDatabase;
-  private dbPath: string;
-  private ready: boolean = false;
-  private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private db: Database.Database;
 
   constructor(dbPath?: string) {
-    this.dbPath = dbPath || path.join(
+    const resolvedPath = dbPath || path.join(
       process.env.HOME || "~",
       ".claude", "memory", "amem.db"
     );
-  }
 
-  async init(): Promise<void> {
-    if (this.ready) return;
-
-    const dir = path.dirname(this.dbPath);
+    // Ensure directory exists
+    const dir = path.dirname(resolvedPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    const SQL = await initSqlJs();
-
-    // Load existing DB or create new
-    if (fs.existsSync(this.dbPath)) {
-      const buffer = fs.readFileSync(this.dbPath);
-      this.db = new SQL.Database(buffer);
-    } else {
-      this.db = new SQL.Database();
-    }
-
-    this.createTables();
-    this.ready = true;
+    this.db = new Database(resolvedPath);
+    this.db.pragma("journal_mode = WAL");
+    this.db.pragma("foreign_keys = ON");
+    this.init();
   }
 
-  private createTables(): void {
-    this.db.run(`
+  private init(): void {
+    this.db.exec(`
       CREATE TABLE IF NOT EXISTS memories (
         id TEXT PRIMARY KEY,
         content TEXT NOT NULL,
@@ -68,26 +54,45 @@ export class MemoryDatabase {
         last_accessed TEXT NOT NULL,
         retrieval_count INTEGER DEFAULT 0,
         evolution_history TEXT DEFAULT '[]'
-      )
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category);
+      CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at);
+      CREATE INDEX IF NOT EXISTS idx_memories_accessed ON memories(last_accessed);
     `);
 
-    this.db.run(`CREATE INDEX IF NOT EXISTS idx_memories_category ON memories(category)`);
-    this.db.run(`CREATE INDEX IF NOT EXISTS idx_memories_created ON memories(created_at)`);
-    this.db.run(`CREATE INDEX IF NOT EXISTS idx_memories_accessed ON memories(last_accessed)`);
-  }
+    // FTS5 for keyword search fallback
+    this.db.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
+        id UNINDEXED,
+        content,
+        keywords,
+        tags,
+        context,
+        content='memories',
+        content_rowid='rowid'
+      );
+    `);
 
-  private save(): void {
-    // Debounced save - batches rapid writes
-    if (this.saveTimer) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.saveNow();
-    }, 100);
-  }
+    // Triggers to keep FTS in sync
+    this.db.exec(`
+      CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN
+        INSERT INTO memories_fts(id, content, keywords, tags, context)
+        VALUES (new.id, new.content, new.keywords, new.tags, new.context);
+      END;
 
-  private saveNow(): void {
-    const data = this.db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(this.dbPath, buffer);
+      CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN
+        INSERT INTO memories_fts(memories_fts, id, content, keywords, tags, context)
+        VALUES ('delete', old.id, old.content, old.keywords, old.tags, old.context);
+      END;
+
+      CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN
+        INSERT INTO memories_fts(memories_fts, id, content, keywords, tags, context)
+        VALUES ('delete', old.id, old.content, old.keywords, old.tags, old.context);
+        INSERT INTO memories_fts(id, content, keywords, tags, context)
+        VALUES (new.id, new.content, new.keywords, new.tags, new.context);
+      END;
+    `);
   }
 
   add(note: Partial<MemoryNote> & { content: string }): MemoryNote {
@@ -107,48 +112,36 @@ export class MemoryDatabase {
       evolution_history: [],
     };
 
-    this.db.run(
-      `INSERT INTO memories (id, content, keywords, context, tags, category, links,
+    this.db.prepare(`
+      INSERT INTO memories (id, content, keywords, context, tags, category, links,
         created_at, updated_at, last_accessed, retrieval_count, evolution_history)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        memory.id,
-        memory.content,
-        JSON.stringify(memory.keywords),
-        memory.context,
-        JSON.stringify(memory.tags),
-        memory.category,
-        JSON.stringify(memory.links),
-        memory.created_at,
-        memory.updated_at,
-        memory.last_accessed,
-        memory.retrieval_count,
-        JSON.stringify(memory.evolution_history),
-      ]
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      memory.id,
+      memory.content,
+      JSON.stringify(memory.keywords),
+      memory.context,
+      JSON.stringify(memory.tags),
+      memory.category,
+      JSON.stringify(memory.links),
+      memory.created_at,
+      memory.updated_at,
+      memory.last_accessed,
+      memory.retrieval_count,
+      JSON.stringify(memory.evolution_history),
     );
 
-    this.save();
     return memory;
   }
 
   get(id: string): MemoryNote | null {
-    const stmt = this.db.prepare("SELECT * FROM memories WHERE id = ?");
-    stmt.bind([id]);
-
-    if (!stmt.step()) {
-      stmt.free();
-      return null;
-    }
-
-    const row = stmt.getAsObject();
-    stmt.free();
+    const row = this.db.prepare("SELECT * FROM memories WHERE id = ?").get(id) as any;
+    if (!row) return null;
 
     // Update access stats
-    this.db.run(
-      `UPDATE memories SET last_accessed = ?, retrieval_count = retrieval_count + 1 WHERE id = ?`,
-      [new Date().toISOString(), id]
-    );
-    this.save();
+    this.db.prepare(`
+      UPDATE memories SET last_accessed = ?, retrieval_count = retrieval_count + 1 WHERE id = ?
+    `).run(new Date().toISOString(), id);
 
     return this.parseRow(row);
   }
@@ -198,73 +191,36 @@ export class MemoryDatabase {
 
     values.push(id);
 
-    this.db.run(`UPDATE memories SET ${sets.join(", ")} WHERE id = ?`, values);
-    this.save();
-
+    this.db.prepare(`UPDATE memories SET ${sets.join(", ")} WHERE id = ?`).run(...values);
     return this.get(id);
   }
 
   delete(id: string): boolean {
-    const before = this.db.getRowsModified();
-    this.db.run("DELETE FROM memories WHERE id = ?", [id]);
-    const after = this.db.getRowsModified();
-    this.save();
-    return after > 0;
+    const result = this.db.prepare("DELETE FROM memories WHERE id = ?").run(id);
+    return result.changes > 0;
   }
 
   searchFTS(query: string, limit: number = 10): MemoryNote[] {
-    // sql.js doesn't support FTS5, use LIKE-based search instead
-    const terms = query.split(/\s+/).filter(Boolean);
-    if (terms.length === 0) return [];
-
-    const conditions = terms.map(() =>
-      "(content LIKE ? OR keywords LIKE ? OR tags LIKE ? OR context LIKE ?)"
-    ).join(" AND ");
-
-    const params: string[] = [];
-    for (const term of terms) {
-      const like = `%${term}%`;
-      params.push(like, like, like, like);
-    }
-
-    const rows: any[] = [];
-    const stmt = this.db.prepare(
-      `SELECT * FROM memories WHERE ${conditions} ORDER BY created_at DESC LIMIT ?`
-    );
-    stmt.bind([...params, limit]);
-
-    while (stmt.step()) {
-      rows.push(stmt.getAsObject());
-    }
-    stmt.free();
+    const rows = this.db.prepare(`
+      SELECT m.* FROM memories m
+      JOIN memories_fts fts ON m.id = fts.id
+      WHERE memories_fts MATCH ?
+      ORDER BY rank
+      LIMIT ?
+    `).all(query, limit) as any[];
 
     return rows.map((r) => this.parseRow(r));
   }
 
   getAll(): MemoryNote[] {
-    const rows: any[] = [];
-    const stmt = this.db.prepare("SELECT * FROM memories ORDER BY created_at DESC");
-
-    while (stmt.step()) {
-      rows.push(stmt.getAsObject());
-    }
-    stmt.free();
-
+    const rows = this.db.prepare("SELECT * FROM memories ORDER BY created_at DESC").all() as any[];
     return rows.map((r) => this.parseRow(r));
   }
 
   getByCategory(category: string): MemoryNote[] {
-    const rows: any[] = [];
-    const stmt = this.db.prepare(
+    const rows = this.db.prepare(
       "SELECT * FROM memories WHERE category = ? ORDER BY created_at DESC"
-    );
-    stmt.bind([category]);
-
-    while (stmt.step()) {
-      rows.push(stmt.getAsObject());
-    }
-    stmt.free();
-
+    ).all(category) as any[];
     return rows.map((r) => this.parseRow(r));
   }
 
@@ -273,16 +229,9 @@ export class MemoryDatabase {
     if (!memory || memory.links.length === 0) return [];
 
     const placeholders = memory.links.map(() => "?").join(",");
-    const rows: any[] = [];
-    const stmt = this.db.prepare(
+    const rows = this.db.prepare(
       `SELECT * FROM memories WHERE id IN (${placeholders})`
-    );
-    stmt.bind(memory.links);
-
-    while (stmt.step()) {
-      rows.push(stmt.getAsObject());
-    }
-    stmt.free();
+    ).all(...memory.links) as any[];
 
     return rows.map((r) => this.parseRow(r));
   }
@@ -294,79 +243,51 @@ export class MemoryDatabase {
     least_accessed: MemoryNote[];
     stale_count: number;
   } {
-    // Total count
-    const totalStmt = this.db.prepare("SELECT COUNT(*) as c FROM memories");
-    totalStmt.step();
-    const total = (totalStmt.getAsObject() as any).c as number;
-    totalStmt.free();
+    const total = (this.db.prepare("SELECT COUNT(*) as c FROM memories").get() as any).c;
 
-    // Categories
-    const by_category: Record<string, number> = {};
-    const catStmt = this.db.prepare(
+    const categories = this.db.prepare(
       "SELECT category, COUNT(*) as c FROM memories GROUP BY category"
-    );
-    while (catStmt.step()) {
-      const row = catStmt.getAsObject() as any;
-      by_category[row.category as string] = row.c as number;
+    ).all() as any[];
+    const by_category: Record<string, number> = {};
+    for (const cat of categories) {
+      by_category[cat.category] = cat.c;
     }
-    catStmt.free();
 
-    // Most accessed
-    const mostRows: any[] = [];
-    const mostStmt = this.db.prepare(
+    const most_accessed = (this.db.prepare(
       "SELECT * FROM memories ORDER BY retrieval_count DESC LIMIT 5"
-    );
-    while (mostStmt.step()) {
-      mostRows.push(mostStmt.getAsObject());
-    }
-    mostStmt.free();
-    const most_accessed = mostRows.map((r) => this.parseRow(r));
+    ).all() as any[]).map((r) => this.parseRow(r));
 
-    // Least accessed
-    const leastRows: any[] = [];
-    const leastStmt = this.db.prepare(
+    const least_accessed = (this.db.prepare(
       "SELECT * FROM memories ORDER BY retrieval_count ASC LIMIT 5"
-    );
-    while (leastStmt.step()) {
-      leastRows.push(leastStmt.getAsObject());
-    }
-    leastStmt.free();
-    const least_accessed = leastRows.map((r) => this.parseRow(r));
+    ).all() as any[]).map((r) => this.parseRow(r));
 
-    // Stale count
     const staleDate = new Date();
     staleDate.setDate(staleDate.getDate() - 90);
-    const staleStmt = this.db.prepare(
+    const stale_count = (this.db.prepare(
       "SELECT COUNT(*) as c FROM memories WHERE last_accessed < ?"
-    );
-    staleStmt.bind([staleDate.toISOString()]);
-    staleStmt.step();
-    const stale_count = (staleStmt.getAsObject() as any).c as number;
-    staleStmt.free();
+    ).get(staleDate.toISOString()) as any).c;
 
     return { total, by_category, most_accessed, least_accessed, stale_count };
   }
 
   private parseRow(row: any): MemoryNote {
     return {
-      id: row.id as string,
-      content: row.content as string,
-      keywords: JSON.parse((row.keywords as string) || "[]"),
-      context: (row.context as string) || "",
-      tags: JSON.parse((row.tags as string) || "[]"),
-      category: (row.category as string) || "general",
-      links: JSON.parse((row.links as string) || "[]"),
-      created_at: row.created_at as string,
-      updated_at: row.updated_at as string,
-      last_accessed: row.last_accessed as string,
-      retrieval_count: (row.retrieval_count as number) || 0,
-      evolution_history: JSON.parse((row.evolution_history as string) || "[]"),
+      id: row.id,
+      content: row.content,
+      keywords: JSON.parse(row.keywords || "[]"),
+      context: row.context || "",
+      tags: JSON.parse(row.tags || "[]"),
+      category: row.category || "general",
+      links: JSON.parse(row.links || "[]"),
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      last_accessed: row.last_accessed,
+      retrieval_count: row.retrieval_count || 0,
+      evolution_history: JSON.parse(row.evolution_history || "[]"),
     };
   }
 
   close(): void {
-    if (this.saveTimer) clearTimeout(this.saveTimer);
-    this.saveNow();
     this.db.close();
   }
 }

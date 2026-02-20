@@ -11,7 +11,7 @@ import { MemoryDatabase, MemoryNote } from "./database.js";
 import { VectorStore } from "./vector.js";
 import { TOOL_DEFINITIONS } from "./tools.js";
 
-// Initialize components (lazy init in main())
+// Initialize components
 const db = new MemoryDatabase(process.env.AMEM_DB_PATH);
 const vector = new VectorStore(process.env.AMEM_VECTOR_PATH);
 
@@ -360,7 +360,6 @@ async function handleList(args: { category?: string; limit?: number }) {
 
 // Start server
 async function main() {
-  await db.init();
   await vector.init();
   const transport = new StdioServerTransport();
   await server.connect(transport);

@@ -1,6 +1,6 @@
 {
   "name": "amem-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Agentic Memory MCP Server - Evolutive memory with semantic search",
   "type": "module",
   "main": "dist/index.js",
@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
-    "sql.js": "^1.10.0",
+    "better-sqlite3": "^11.0.0",
     "uuid": "^9.0.0",
     "vectra": "^0.9.0"
   },
   "devDependencies": {
-    "@types/sql.js": "^1.4.0",
+    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^20.0.0",
     "@types/uuid": "^9.0.0",
     "typescript": "^5.4.0"
