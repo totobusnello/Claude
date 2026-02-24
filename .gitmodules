@@ -25,3 +25,6 @@
 [submodule "templates-powerpoint"]
 	path = templates-powerpoint
 	url = https://github.com/totobusnello/powerpoint-templates.git
+[submodule "Projetos/agent-orchestrator"]
+	path = Projetos/agent-orchestrator
+	url = https://github.com/ComposioHQ/agent-orchestrator.git

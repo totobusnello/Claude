@@ -35,6 +35,7 @@ out/
 
 # Claude internal
 .claude/projects/
+agent-orchestrator.yaml
 
 # Backup files
 *.bak
