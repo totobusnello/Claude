@@ -149,4 +149,26 @@ export const TOOL_DEFINITIONS = [
       },
     },
   },
+  {
+    name: "amem_consolidate",
+    description:
+      "Analyze all memories for consolidation opportunities. Clusters similar memories and suggests actions: MERGE (>0.9 similarity, near-duplicates), GENERALIZE (0.8-0.9, same theme), or LINK (0.7-0.8, related). Use when memory count exceeds 20+ or stale_count is high. After reviewing clusters, execute suggested actions via amem_update/amem_delete/amem_add.",
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        category: {
+          type: "string",
+          description: "Filter consolidation to a specific category (optional)",
+        },
+        similarity_threshold: {
+          type: "number",
+          description: "Minimum similarity score to form clusters (default: 0.7, range: 0.5-0.95)",
+        },
+        max_clusters: {
+          type: "number",
+          description: "Maximum number of clusters to return (default: 5)",
+        },
+      },
+    },
+  },
 ];

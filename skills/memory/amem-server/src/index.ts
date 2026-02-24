@@ -10,14 +10,15 @@ import {
 import { MemoryDatabase, MemoryNote } from "./database.js";
 import { VectorStore } from "./vector.js";
 import { TOOL_DEFINITIONS } from "./tools.js";
+import { initEmbedder, ProviderChoice } from "./embeddings.js";
 
-// Initialize components
-const db = new MemoryDatabase(process.env.AMEM_DB_PATH);
-const vector = new VectorStore(process.env.AMEM_VECTOR_PATH);
+// These are initialized in main() after async embedder detection
+let db: MemoryDatabase;
+let vector: VectorStore;
 
 // Create MCP server
 const server = new Server(
-  { name: "amem-server", version: "1.0.0" },
+  { name: "amem-server", version: "2.0.0" },
   { capabilities: { tools: {} } }
 );
 
@@ -46,6 +47,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         return handleDelete(args as any);
       case "amem_list":
         return handleList(args as any);
+      case "amem_consolidate":
+        return handleConsolidate(args as any);
       default:
         return {
           content: [{ type: "text", text: `Unknown tool: ${name}` }],
@@ -295,6 +298,8 @@ async function handleStats() {
       text: JSON.stringify({
         ...dbStats,
         vector_items: vectorStats.itemCount,
+        embedding_provider: vector.getProviderName(),
+        embedding_dimensions: vector.getDimensions(),
         most_accessed: dbStats.most_accessed.map((m) => ({
           id: m.id,
           content_preview: m.content.slice(0, 60),
@@ -358,12 +363,159 @@ async function handleList(args: { category?: string; limit?: number }) {
   };
 }
 
+// === Consolidation Handler (Evolution 3) ===
+
+async function handleConsolidate(args: {
+  category?: string;
+  similarity_threshold?: number;
+  max_clusters?: number;
+}) {
+  const threshold = args.similarity_threshold ?? 0.7;
+  const maxClusters = args.max_clusters ?? 5;
+
+  // Fetch all memories (or by category)
+  const memories = args.category
+    ? db.getByCategory(args.category)
+    : db.getAll();
+
+  if (memories.length < 2) {
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify({
+          message: "Not enough memories to consolidate",
+          total_memories: memories.length,
+        }, null, 2),
+      }],
+    };
+  }
+
+  // Build clusters by finding neighbors for each memory
+  const clustered = new Set<string>();
+  const clusters: Array<{
+    action: "MERGE" | "GENERALIZE" | "LINK";
+    reason: string;
+    memories: Array<{
+      id: string;
+      content_preview: string;
+      category: string;
+      tags: string[];
+      similarity: number;
+    }>;
+  }> = [];
+
+  for (const memory of memories) {
+    if (clustered.has(memory.id)) continue;
+    if (clusters.length >= maxClusters) break;
+
+    // Search for similar memories
+    const similar = await vector.search(memory.content, 10);
+    const neighbors = similar.filter(
+      (s) =>
+        s.id !== memory.id &&
+        s.score >= threshold &&
+        !clustered.has(s.id)
+    );
+
+    if (neighbors.length === 0) continue;
+
+    // Determine cluster action based on highest similarity
+    const maxScore = Math.max(...neighbors.map((n) => n.score));
+    let action: "MERGE" | "GENERALIZE" | "LINK";
+    let reason: string;
+
+    if (maxScore > 0.9) {
+      action = "MERGE";
+      reason = "Near-duplicate memories (>0.9 similarity). Merge into a single, richer memory and delete redundant ones.";
+    } else if (maxScore > 0.8) {
+      action = "GENERALIZE";
+      reason = "Same theme from different angles (0.8-0.9 similarity). Generalize into a broader insight while preserving unique details.";
+    } else {
+      action = "LINK";
+      reason = "Related but distinct memories (0.7-0.8 similarity). Create bidirectional links to strengthen the knowledge graph.";
+    }
+
+    const clusterMemories = [
+      {
+        id: memory.id,
+        content_preview: memory.content.slice(0, 150),
+        category: memory.category,
+        tags: memory.tags,
+        similarity: 1.0, // self
+      },
+      ...neighbors.slice(0, 4).map((n) => {
+        const mem = db.get(n.id);
+        return {
+          id: n.id,
+          content_preview: mem ? mem.content.slice(0, 150) : "(not found)",
+          category: mem?.category || "unknown",
+          tags: mem?.tags || [],
+          similarity: Math.round(n.score * 100) / 100,
+        };
+      }),
+    ];
+
+    // Mark all cluster members as processed
+    for (const cm of clusterMemories) {
+      clustered.add(cm.id);
+    }
+
+    clusters.push({ action, reason, memories: clusterMemories });
+  }
+
+  // Build consolidation prompt
+  const consolidationPrompt = clusters.length > 0
+    ? `## Memory Consolidation Review
+
+Found ${clusters.length} cluster(s) across ${memories.length} memories.
+
+For each cluster, follow this 3-phase process (inspired by langmem):
+
+### Phase 1: Extract & Contextualize
+- Read each memory in the cluster carefully
+- Note the unique information each one contributes
+
+### Phase 2: Compare & Update
+- Identify overlaps, contradictions, and complementary info
+- Decide what to keep, merge, or discard
+
+### Phase 3: Synthesize & Reason
+- For MERGE: Create one unified memory via amem_update on the best one, then amem_delete the others
+- For GENERALIZE: Create a new broader memory via amem_add, link it to originals via amem_update
+- For LINK: Add bidirectional links via amem_update on each memory
+
+After executing actions, run amem_stats to verify improvement.`
+    : "No clusters found above the similarity threshold. Memory collection is well-differentiated.";
+
+  return {
+    content: [{
+      type: "text",
+      text: JSON.stringify({
+        total_memories: memories.length,
+        category_filter: args.category || "all",
+        similarity_threshold: threshold,
+        clusters_found: clusters.length,
+        clusters,
+        consolidation_prompt: consolidationPrompt,
+      }, null, 2),
+    }],
+  };
+}
+
 // Start server
 async function main() {
+  // Initialize embedding provider (auto-detects best available)
+  const providerChoice = (process.env.AMEM_EMBEDDING_PROVIDER || "auto") as ProviderChoice;
+  const embedder = await initEmbedder(providerChoice);
+
+  // Initialize components with detected embedder
+  db = new MemoryDatabase(process.env.AMEM_DB_PATH);
+  vector = new VectorStore(embedder, process.env.AMEM_VECTOR_PATH);
   await vector.init();
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("AMEM Server running on stdio");
+  console.error(`AMEM Server v2.0.0 running on stdio (${embedder.name}, ${embedder.dimensions}-dim)`);
 }
 
 main().catch((error) => {

@@ -1,65 +1,16 @@
 import { LocalIndex } from "vectra";
 import path from "path";
 import fs from "fs";
-
-// Simple local embeddings using TF-IDF-like hashing
-// No external API needed - deterministic and fast
-function textToVector(text: string, dimensions: number = 384): number[] {
-  const vector = new Float64Array(dimensions);
-  const words = text.toLowerCase().replace(/[^\w\s]/g, "").split(/\s+/).filter(Boolean);
-
-  if (words.length === 0) return Array.from(vector);
-
-  // Hash each word to a position and accumulate
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-
-    // Simple hash function to map word to vector positions
-    let hash = 0;
-    for (let j = 0; j < word.length; j++) {
-      hash = ((hash << 5) - hash + word.charCodeAt(j)) | 0;
-    }
-
-    // Use multiple hash positions for each word (simulates richer embeddings)
-    for (let k = 0; k < 3; k++) {
-      const pos = Math.abs((hash * (k + 1) * 31) % dimensions);
-      const sign = ((hash * (k + 1)) & 1) === 0 ? 1 : -1;
-      // TF component: weight by 1/sqrt(word_count) for normalization
-      vector[pos] += sign * (1.0 / Math.sqrt(words.length));
-    }
-
-    // Bigram features (word pairs for context)
-    if (i > 0) {
-      const bigram = words[i - 1] + "_" + word;
-      let bigramHash = 0;
-      for (let j = 0; j < bigram.length; j++) {
-        bigramHash = ((bigramHash << 5) - bigramHash + bigram.charCodeAt(j)) | 0;
-      }
-      const biPos = Math.abs((bigramHash * 17) % dimensions);
-      vector[biPos] += 0.5 / Math.sqrt(words.length);
-    }
-  }
-
-  // L2 normalize
-  let norm = 0;
-  for (let i = 0; i < dimensions; i++) {
-    norm += vector[i] * vector[i];
-  }
-  norm = Math.sqrt(norm);
-  if (norm > 0) {
-    for (let i = 0; i < dimensions; i++) {
-      vector[i] /= norm;
-    }
-  }
-
-  return Array.from(vector);
-}
+import { CachedEmbedder } from "./embeddings.js";
 
 export class VectorStore {
   private index: LocalIndex;
   private ready: boolean = false;
+  private embedder: CachedEmbedder;
 
-  constructor(vectorPath?: string) {
+  constructor(embedder: CachedEmbedder, vectorPath?: string) {
+    this.embedder = embedder;
+
     const resolvedPath = vectorPath || path.join(
       process.env.HOME || "~",
       ".claude", "memory", "amem-vectors"
@@ -95,7 +46,7 @@ export class VectorStore {
       // Item didn't exist, that's fine
     }
 
-    const vector = textToVector(text);
+    const vector = await this.embedder.embed(text);
 
     await this.index.upsertItem({
       id,
@@ -111,7 +62,7 @@ export class VectorStore {
   ): Promise<Array<{ id: string; score: number; metadata: Record<string, any> }>> {
     await this.init();
 
-    const queryVector = textToVector(query);
+    const queryVector = await this.embedder.embed(query);
 
     // Build MetadataFilter if filter provided
     let metadataFilter: any = undefined;
@@ -148,5 +99,13 @@ export class VectorStore {
     await this.init();
     const items = await this.index.listItems();
     return { itemCount: items.length };
+  }
+
+  getDimensions(): number {
+    return this.embedder.dimensions;
+  }
+
+  getProviderName(): string {
+    return this.embedder.name;
   }
 }
