@@ -680,6 +680,23 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 **O que traz:** "Quais projetos o Sorensen participou?" → Cypher automático → resultado do grafo.
 **Por que não agora:** Sem graph database, não há Cypher. O hybrid search do nox-mem já cobre 80% desses casos.
 
+### Self-Evolving Hooks — Feedback Loop Automático (spec: 2026-04-12)
+**Quando:** Implementável agora — complementa nox-mem com aprendizado local.
+**O que traz:** 3 hooks no Claude Code local (Mac) que capturam correções do usuário e transformam em regras permanentes automaticamente. O sistema aprende com "não faz assim" sem intervenção manual.
+**Fonte:** [buildthisnow.com/blog/real-examples/self-evolving-hooks](https://www.buildthisnow.com/blog/real-examples/self-evolving-hooks)
+**Spec detalhado:** `specs/2026-04-12-self-evolving-hooks.md`
+
+**Arquitetura (3 hooks):**
+1. **`on-stop.js`** (Stop hook) — Quando sessão encerra, captura transcript: mensagens humanas, agentes rodados, skills lidas → salva JSONL em `.claude/learning/sessions/`
+2. **`dream.js`** (Background worker) — A cada 4h+ com 3+ sessões novas, spawna `claude -p --model haiku` que analisa padrões de correções e escreve regras em `.claude/learning/global.md` ou por agente/skill. Max 5 regras/run. 1 sessão = ruído, 2+ = regra.
+3. **`subagent-start.js`** (PreToolUse: Agent) — Injeta regras aprendidas no boot de cada subagent.
+
+**Bridge Local → VPS:** O dream worker pode opcionalmente ingerir regras no nox-mem via HTTP API (:18800), fechando o loop: correções no Mac → regras para agentes na VPS.
+
+**Princípios:** User é ground truth (não avaliador AI), captura raw / interpreta depois, noise filtering (2+ sessões), auto-limitação (max 5 regras/run, cooldown 4h).
+
+**Por que é relevante agora:** O nox-mem resolve memória para agentes VPS, mas no Claude Code local as correções se perdem. Este é o elo que faltava — feedback loop automático sem esforço manual. Custo: ~$0.01/dream run (Haiku).
+
 ---
 
 ## Ganhos Esperados por Fase
@@ -696,6 +713,7 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 | 4 | Galáxia 3D visual no Mac. Obsidian como painel de controle. |
 | 4b | Vault que cresce sozinho (condicional). |
 | 5 | Loop fechado: Obsidian ↔ OpenClaw em tempo real. |
+| SEH | Claude Code local aprende com correções. Bridge Mac→VPS. |
 
 ---
 
@@ -718,4 +736,4 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 ---
 
 *Documento vivo — atualizado após cada fase concluída.*
-*Última atualização: 2026-04-11 v7 — graph-memory como Fase 2.5, estratégia hot/warm/cold, Memgraph como evolução futura, seção Evoluções Futuras adicionada.*
+*Última atualização: 2026-04-12 v8 — Self-Evolving Hooks (feedback loop automático) adicionado como evolução futura com spec detalhado, bridge Mac→VPS via HTTP API.*
