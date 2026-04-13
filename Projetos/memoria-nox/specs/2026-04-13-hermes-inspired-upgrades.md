@@ -2,8 +2,9 @@
 
 > 4 upgrades inspirados na arquitetura do Hermes Agent (NousResearch) adaptados ao stack TypeScript/OpenClaw do nox-mem.
 
-**Status:** Proposto
+**Status:** Em progresso (Upgrade 1 ativado, testando)
 **Data:** 2026-04-13
+**Última atualização:** 2026-04-13 19:30
 **Fonte:** [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) + plugin Hindsight + hermes-agent-self-evolution
 **Relação:** Evolui nox-mem v3.2 (VPS) — complementa specs `self-evolving-hooks` e `nox-neural-memory`
 **Prioridade proposta:** Upgrade 1 > Upgrade 2 > Upgrade 4 > Upgrade 3
@@ -379,12 +380,14 @@ Na v1, cristalização é manual (agente ou humano chama `crystallize`). Na v2, 
 ## Sequência de Implementação
 
 ```
-Semana 1-2: Upgrade 1 (Pre-fetch Injection)
-├─ Verificar suporte a beforeTurn hook no OpenClaw
-├─ Implementar keyword extraction
-├─ Implementar hook com timeout + cache
-├─ Testar com 3 agentes
-└─ Medir latência e hit rate
+Semana 1-2: Upgrade 1 (Pre-fetch Injection) — EM PROGRESSO
+├─ ✅ Verificar suporte a beforeTurn hook no OpenClaw (message:received existe)
+├─ ✅ DESCOBERTA: plugin Active Memory built-in faz exatamente isso
+├─ ✅ Ativado Active Memory para agente nox (Haiku, timeout 5s, queryMode message)
+├─ ✅ Transcript gerado — sub-agente roda, mas timeout 2s era insuficiente → corrigido para 5s
+├─ ⏳ Testar com timeout 5s (pendente — Toto no celular)
+├─ ⏳ Se funcionar, expandir para todos os agentes
+└─ ⏳ Medir latência e hit rate
 
 Semana 3-4: Upgrade 2 (Reflect)
 ├─ Implementar gather pipeline (search + kg + paths)
@@ -523,6 +526,47 @@ O hook pode retornar conteúdo para injetar no contexto via `event.context`.
 | Procedimentos reutilizáveis catalogados | 0 | 20+ (em 60 dias) |
 | Tool descriptions otimizadas | 0 revisões | 1 ciclo completo |
 | Latência média do pre-fetch | N/A | < 1.5s P95 |
+
+---
+
+## Log de Implementação (2026-04-13)
+
+### Sessão 1 — Ativação de plugins (15:00-19:30)
+
+**Backup criado:** `/root/.openclaw/workspace/backups/pre-hermes-20260413-1527/` (137MB, full snapshot)
+
+**Mudanças aplicadas na VPS:**
+
+1. **Active Memory plugin ativado** — `plugins.entries.active-memory` em openclaw.json
+   - Config: agents=[nox], model=haiku, timeout=5s, queryMode=message, promptStyle=balanced, maxSummaryChars=500
+   - Transcript gerado em `/root/.openclaw/plugins/active-memory/transcripts/agents/nox/active-memory/`
+   - Bug encontrado: timeout de 2s era insuficiente → corrigido para 5s
+   - Status: ⏳ aguardando teste com timeout corrigido
+
+2. **`.env` fix — `export` removido** — `sed -i 's/^export //' /root/.openclaw/.env`
+   - 19 env vars tinham `export` na frente → systemd ignorava todas
+   - GROQ_API_KEY não chegava ao gateway → cascade fallback para Groq estava quebrado
+   - Backup: `/root/.openclaw/.env.bak-pre-fix`
+   - Status: ✅ corrigido, zero warnings no journalctl
+
+3. **4 plugins adicionais ativados:**
+   - `memory-wiki` — wiki persistente Obsidian-friendly (vault vazio, precisa seed)
+   - `diffs` — diff viewer para agentes (disponível para Forge code review)
+   - `brave` — web search (key BRAVE_API_KEY já estava no .env)
+   - `firecrawl` — web scraping (key copiada do Mac ~/.zshrc para VPS .env)
+   - Status: ✅ todos loaded, aguardando teste via Discord
+
+4. **RelayPlane achado:** está ativo na porta 4100 mas `ANTHROPIC_BASE_URL` não está no .env nem no systemd → gateway conecta direto à Anthropic, RelayPlane rodando sem uso. Decisão pendente: religar ou remover.
+
+**Total de plugins ativos:** 14 (era 10)
+
+**Testes pendentes (rodar via Discord):**
+- [ ] Active Memory recall com timeout 5s: *"o que aconteceu no incidente de 31 de março?"*
+- [ ] Brave web search: *"pesquisa na web o que é OpenClaw"*
+- [ ] Firecrawl fetch: *"busca o conteúdo de https://docs.openclaw.ai"*
+- [ ] Se Active Memory funcionar, expandir agents=['nox'] → todos os 6 agentes
+
+**Rollback:** restaurar backup em `/root/.openclaw/workspace/backups/pre-hermes-20260413-1527/` + `.env.bak-pre-fix`
 
 ---
 
