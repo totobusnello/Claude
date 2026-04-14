@@ -549,24 +549,93 @@ O hook pode retornar conteúdo para injetar no contexto via `event.context`.
    - Backup: `/root/.openclaw/.env.bak-pre-fix`
    - Status: ✅ corrigido, zero warnings no journalctl
 
-3. **4 plugins adicionais ativados:**
+3. **5 plugins adicionais ativados:**
    - `memory-wiki` — wiki persistente Obsidian-friendly (vault vazio, precisa seed)
    - `diffs` — diff viewer para agentes (disponível para Forge code review)
    - `brave` — web search (key BRAVE_API_KEY já estava no .env)
    - `firecrawl` — web scraping (key copiada do Mac ~/.zshrc para VPS .env)
-   - Status: ✅ todos loaded, aguardando teste via Discord
+   - `webhooks` — GitHub CI failures → Forge (route `/hooks/github`, Bearer auth)
+   - Status: ✅ todos loaded
 
-4. **RelayPlane achado:** está ativo na porta 4100 mas `ANTHROPIC_BASE_URL` não está no .env nem no systemd → gateway conecta direto à Anthropic, RelayPlane rodando sem uso. Decisão pendente: religar ou remover.
+4. **Delivery queue limpa** — 1273 entries stale removidas, 0 restantes
 
-**Total de plugins ativos:** 14 (era 10)
+5. **Memory-core dreaming desabilitado** — nunca funcionou ("cron service unavailable"). nox-mem crons já cobrem consolidation/dedup/prune.
 
-**Testes pendentes (rodar via Discord):**
-- [ ] Active Memory recall com timeout 5s: *"o que aconteceu no incidente de 31 de março?"*
-- [ ] Brave web search: *"pesquisa na web o que é OpenClaw"*
-- [ ] Firecrawl fetch: *"busca o conteúdo de https://docs.openclaw.ai"*
-- [ ] Se Active Memory funcionar, expandir agents=['nox'] → todos os 6 agentes
+6. **Active Memory expandido para 6 agentes** — nox, atlas, boris, cipher, forge, lex
+
+7. **decisions.md e projects.md atualizados na VPS** — estado real documentado
+
+8. **Crons verificados** — 7 entries, já limpos pelo hardening 08/04
+
+9. **Webhooks GitHub → Forge configurado:**
+   - Plugin `webhooks` ativo, route `github-ci` → sessão `forge`
+   - Firewall: porta 18789 aberta para GitHub IPs (4 ranges)
+   - Repos configurados: Granix-App, daily-tech-digest (secret + workflow)
+   - Teste manual: `200 OK`, TaskFlow criado para Forge
+   - Doc: `docs/github-webhook-setup.md`
+
+10. **Upgrade 2 — Reflect implementado:**
+    - Arquivo: `/root/.openclaw/workspace/tools/nox-mem/src/reflect.ts`
+    - CLI: `nox-mem reflect "pergunta"` (precisa `export $(grep -v '^#' .env | xargs)`)
+    - MCP tool: `nox_mem_reflect`
+    - Pipeline: hybrid search top 10 → KG entities → decisions → graph paths → Gemini Flash synthesis
+    - Cache: 24h no SQLite (tabela `reflect_cache`)
+    - Testado: 10 evidence items, 5 sources citadas (INCIDENT-2026-03-31.md, etc)
+
+11. **Upgrade 4 — Crystallize implementado:**
+    - Arquivo: `/root/.openclaw/workspace/tools/nox-mem/src/crystallize.ts`
+    - CLI: `nox-mem crystallize --title "..." --tags "..."` + `nox-mem crystallize-validate <id>`
+    - MCP tool: `nox_mem_crystallize`
+    - Chunks tipo `procedure` — buscáveis via FTS/hybrid
+    - Seed: "Gateway crash loop recovery" (chunk #47397, 6 steps)
+    - Testado: aparece como resultado #2 em search "gateway crash recovery"
+
+12. **Disk cleanup** — ~500MB liberados (nox-mem-bad.db, 4 backups antigos, delivery queue backups, workspace backups velhos)
+
+**Total de plugins ativos:** 15 (era 10): acpx, active-memory, browser, device-pair, diffs, discord, memory-wiki, phone-control, talk-voice, telegram, webhooks, whatsapp + providers brave, firecrawl, memory-core
+
+**RelayPlane:** está ativo na porta 4100 mas `ANTHROPIC_BASE_URL` não está no .env → gateway conecta direto à Anthropic, sem cascade fallback. **Decisão pendente.**
 
 **Rollback:** restaurar backup em `/root/.openclaw/workspace/backups/pre-hermes-20260413-1527/` + `.env.bak-pre-fix`
+
+---
+
+## Pendentes para próxima sessão
+
+### Testes via Discord
+- [ ] Active Memory recall com timeout 5s (verificar transcripts em `/root/.openclaw/plugins/active-memory/transcripts/`)
+- [ ] Brave web search: pedir a um agente para pesquisar algo na web
+- [ ] Firecrawl fetch: pedir a um agente para buscar conteúdo de uma URL
+
+### MCP Server rebuild
+- [ ] O nox-mem MCP server (stdio) precisa ser recompilado para servir `nox_mem_reflect` e `nox_mem_crystallize`
+- [ ] O nox-mem-api (HTTP :18800) precisa de endpoints novos para reflect e crystallize
+- [ ] Compilar: `cd /root/.openclaw/workspace/tools/nox-mem && npx tsc` (ou `npx tsx` que já funciona sem build)
+- [ ] Reiniciar: `systemctl restart nox-mem-api`
+
+### RelayPlane
+- [ ] Decidir: religar (`ANTHROPIC_BASE_URL=http://127.0.0.1:4100` no .env) ou manter direto
+- [ ] Se religar: verificar config do RelayPlane em `/root/.relayplane/config.json` (cascade atualizado?)
+- [ ] Testar: enviar mensagem → verificar se cascade funciona quando Anthropic falha
+
+### Seed de procedures
+- [ ] Cristalizar incidentes do incident log como procedures:
+  - "Config key não reconhecida fix" (incidente 01/04)
+  - "Node.js DEP0040 crash loop fix" (incidente 01/04)
+  - "Bot Telegram duplicado fix" (incidente 31/03)
+  - "Auth profile cooldown reset" (recorrente)
+
+### CLAUDE.md local
+- [ ] Atualizar `memoria-nox/CLAUDE.md` e `.claude/CLAUDE.md` com:
+  - Novos comandos: `reflect`, `crystallize`, `crystallize-validate`
+  - Novos MCP tools: `nox_mem_reflect`, `nox_mem_crystallize`
+  - Active Memory config e status
+  - Plugins ativados (15 total)
+  - Webhooks setup
+
+### Dashboard
+- [ ] Adicionar endpoints no HTTP API para: Active Memory hit rate, procedures list, reflect cache stats
+- [ ] Adicionar cards no agent-hub-dashboard
 
 ---
 
