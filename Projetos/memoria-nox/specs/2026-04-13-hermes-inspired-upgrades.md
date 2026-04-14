@@ -2,9 +2,9 @@
 
 > 4 upgrades inspirados na arquitetura do Hermes Agent (NousResearch) adaptados ao stack TypeScript/OpenClaw do nox-mem.
 
-**Status:** Em progresso (Upgrade 1 ativado, testando)
+**Status:** Upgrades 1-4 implementados, testando
 **Data:** 2026-04-13
-**Última atualização:** 2026-04-13 19:30
+**Última atualização:** 2026-04-13 21:30
 **Fonte:** [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) + plugin Hindsight + hermes-agent-self-evolution
 **Relação:** Evolui nox-mem v3.2 (VPS) — complementa specs `self-evolving-hooks` e `nox-neural-memory`
 **Prioridade proposta:** Upgrade 1 > Upgrade 2 > Upgrade 4 > Upgrade 3
