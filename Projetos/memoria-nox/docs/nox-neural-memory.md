@@ -1,7 +1,10 @@
 # Nox Neural Memory — Segundo Cérebro do Toto Busnello
 
-> Documento de visão — v7 (2026-04-11)
-> **Status:** Fase 1 concluída. Decisões de arquitetura fechadas. Estratégia hot/warm/cold definida.
+> Documento de visão — v12 (2026-04-18)
+> **Status:** Fases 1, 1.5 e **0.5 (Foundation Repair)** concluídas. Decisões de arquitetura fechadas. Estratégia hot/warm/cold definida. Sequência revisada: **0.5 → 1.6 → 1.7a → 2.5 → 2 → 1.7b**. Features do gbrain (garrytan) priorizadas.
+>
+> **Plano de execução:** `memoria-nox/plans/2026-04-19-unified-evolution-roadmap.md` — este doc é a **visão estratégica**; o plano é o que **executa**.
+> **Correção crítica (v12):** a v11 afirmava "Semantic search 3588 vetores — Operacional". Isso era **falso há semanas** — 100% dos vetores eram órfãos, Layer 2 estava morta silenciosamente. Fase 0.5 corrigiu.
 
 ---
 
@@ -19,19 +22,21 @@ Nox responde na hora, com fonte citada.
 
 ## O que já temos (base)
 
-| Componente | Status |
+| Componente | Status verificado (2026-04-18) |
 |---|---|
 | `memory/*.md` — decisions, lessons, pending, wip, people, projects | ✅ Operacional |
-| **nox-mem v3.2** — Hybrid search (FTS5 + Gemini embeddings + RRF fusion), 1880 chunks, 51 MB | ✅ Operacional |
-| **Knowledge Graph v2** — 384 entidades, 537 relações, extração via Gemini 2.5 Flash | ✅ Operacional (migrado 2026-04-11) |
-| **Semantic search** — sqlite-vec, 3588 vetores, Gemini embeddings 3072d | ✅ Operacional |
+| **nox-mem v3.3** — FTS5 + Gemini embeddings + RRF fusion, **1.951 chunks** | ✅ Operacional |
+| **Knowledge Graph v2** — ~371 entidades, ~500 relações, extração via Gemini 2.5 Flash | ✅ Operacional (migrado 2026-04-11) |
+| **Semantic search** — sqlite-vec, **1.951 / 1.951 (100% coverage)**, Gemini embeddings 3072d | ✅ Operacional (**restaurado em 2026-04-18** — estava morto há semanas, ver Fase 0.5) |
+| **Hermes upgrades** — reflect (KG synthesis) + crystallize (procedures searchable) | ✅ Operacional (deployado 2026-04-13, MCP rebuild 2026-04-18) |
 | **Agent Expertise Map** — `shared/agent-expertise.md`, roteamento via SOUL.md | ✅ Operacional |
-| **HTTP API** — porta 18800, 6 endpoints JSON para dashboard | ✅ Operacional |
-| **MCP Server** — 14 tools via JSON-RPC 2.0 stdio | ✅ Operacional |
-| `end-of-day` (22h) — consolida, git push, Notion | ✅ Operacional |
-| `wip.md` — where I left off | ✅ Criado (Fase 1) |
-| `feedback/approved.json` + `rejected.json` | ✅ Criado (Fase 1) |
-| L1 índices em decisions.md e lessons.md | ✅ Criado (Fase 1) |
+| **HTTP API** — porta **18802** (Chrome squata 18800), **10 endpoints** JSON | ✅ Operacional |
+| **MCP Server** — **16 tools** via JSON-RPC 2.0 stdio | ✅ Operacional |
+| **Trigger `trg_chunks_delete_cascade`** — AFTER DELETE ON chunks limpa vec_chunks + map | ✅ Instalado 2026-04-18 (previne recorrência de órfãos) |
+| **Semantic canary** (`/root/.openclaw/scripts/semantic-canary.sh`) — valida Layer 2 diariamente | ✅ Ativo às 06:00 (alerta Discord `#nox-chief-of-staff`) |
+| **Morning report** (`/root/.openclaw/scripts/morning-report.sh`) — resumo de saúde do sistema | ✅ Ativo às 06:30 (alerta Discord) |
+| `end-of-day` (22h) + `nightly-maintenance.sh` (23h) — consolida, reindex, kg-build | ✅ Operacional |
+| `wip.md`, `feedback/approved.json`, L1 índices, USER-PROFILE pendente | ✅ Base (Fase 1) |
 | GitHub `totobusnello/nox-workspace` — backup automático | ✅ Operacional |
 | Time de 6 agentes via Discord | ✅ Operacional |
 | Tailscale Mac (`100.119.65.10`) ↔ VPS (`100.87.8.44`) | ✅ Operacional |
@@ -120,11 +125,15 @@ agentes leem GRAPH_REPORT.md no boot → contexto completo
 
 ---
 
-### 4. Obsidian — view-only primeiro
+### 4. Obsidian — painel de controle visual, não memória
 
-**Decisão:** Fase 5a = view-only. Fase 5b (escrita bidirecional) só após 2-4 semanas de validação.
+**Papel do Obsidian:** É a **janela** para enxergar o segundo cérebro — grafo 3D rotacionável, clusters por projeto, Dataview como SQL visual. A memória real vive em `nox-mem.db` (warm), `graph-memory.db` (hot) e `graphify/graph.json` (cold). O Obsidian não é necessário para o Nox responder — ele funciona igual com ou sem o Obsidian aberto.
 
-**Motivo:** O sistema já tem 29 cron jobs e 6 serviços. Adicionar 25 comandos e 4 agentes do obsidian-second-brain cria risco de conflito. O nox-mem já consolida conhecimento — Obsidian como visualizador é ouro, como escritor duplica responsabilidade.
+**Decisão:** Fase 4 = view-only. Fase 4b (escrita bidirecional) só após 2-4 semanas de validação.
+
+**Papel no L3 (cold):** Após Fase 2.5 (graph-memory) e com camadas hot/warm/cold operacionais, o Obsidian visualiza o L3 — o grafo completo de documentos gerado pelo graphify. Você navega pelo que o agente usa para responder perguntas sobre documentos, contratos e repos.
+
+**Motivo view-only primeiro:** O sistema já tem 29 cron jobs e 6 serviços. Adicionar 25 comandos e 4 agentes do obsidian-second-brain cria risco de conflito. O nox-mem já consolida conhecimento — Obsidian como visualizador é ouro, como escritor duplica responsabilidade.
 
 ### 5. KG extraction — Gemini 2.5 Flash (migrado 2026-04-11)
 
@@ -133,6 +142,34 @@ agentes leem GRAPH_REPORT.md no boot → contexto completo
 **Motivo:** Ollama estava `inactive (dead)` no systemd desde ~março. KG congelado em 384 entidades sem ninguém perceber (fail-silent no código). Gemini usa a mesma API key dos embeddings, tem 500 RPM free tier, e `thinkingBudget: 0` elimina tokens desperdiçados em reasoning.
 
 **Resultado do primeiro build:** 1489 entities + 348 relations extraídas, mentions aumentaram 70-78%, +8 relações novas. Logging ativo com tag `[KG-LLM]` e alerta após 5 falhas consecutivas.
+
+---
+
+## Pipeline de Escrita — como a memória cresce
+
+**A memória é autônoma. Cresce com o uso, sem intervenção manual.**
+
+Cada conversa com qualquer agente (Nox no WhatsApp, Forge/Lex/Atlas/Boris/Cipher no Discord) alimenta o mesmo banco compartilhado. Todos os 6 agentes compartilham o nox-mem — o que você explica para o Lex hoje, o Nox já sabe amanhã.
+
+```
+Você fala com Nox/Forge/Lex/Atlas/Boris/Cipher
+        ↓ imediato (Fase 2.5)
+graph-memory extrai triples da conversa (a cada 7 turnos) → graph-memory.db (HOT)
+        ↓ 22h
+end-of-day consolida → nox-mem.db atualizado → git push (WARM)
+        ↓ 23h (semanal para KG)
+kg-build extrai entidades novas → KG cresce automaticamente (WARM)
+        ↓ cron horário (Fase 2)
+git pull em todos repos GitHub → novos documentos no vault (COLD)
+        ↓ cron noturno
+graphify --update → graph.json atualizado → GRAPH_REPORT.md regenerado (COLD)
+        ↓ sempre disponível
+nox-mem hybrid search + graph-memory recall → Nox responde com contexto completo
+```
+
+**Obsidian** é opcional — você abre quando quer **ver** o segundo cérebro. A memória funciona igual sem ele.
+
+---
 
 ### 6. graph-memory — plugin de contexto inline para conversas
 
@@ -405,6 +442,81 @@ Tela: galáxia 3D interativa com todo o conhecimento (read-only)
 
 ---
 
+### ✅ Fase 0.5 — Foundation Repair (CONCLUÍDA — 2026-04-18)
+
+**Contexto:** Diagnóstico via 4 agentes especializados (architect + database-optimizer + sre-engineer + performance-engineer) identificou **5 gaps críticos que invalidavam a afirmação de "Layer 2 Operacional" na v11** deste doc. Layer 2 semântica estava silenciosamente morta há semanas — hybrid search era FTS-only disfarçado.
+
+**Tier 0 — Stop the bleeding** (fixes reversíveis, zero risco):
+- [x] `health-probe.sh` lê `${NOX_API_PORT}` do `.env` — elimina 288 restarts/dia causados por port mismatch (Chrome squatter em :18800)
+- [x] `db.ts` ganhou `PRAGMA busy_timeout = 5000` — elimina SQLITE_BUSY silencioso sob contention
+- [x] `/api/health.vectorCoverage` usa `INNER JOIN chunks × vec_chunk_map` em vez de COUNT sobre vec_chunk_map — para de mentir
+
+**Tier 1 — Restaurar camada semântica:**
+- [x] DELETE dos 6.627 órfãos em `vec_chunk_map` + 2.587 unreferenced em `vec_chunks`
+- [x] Trigger `trg_chunks_delete_cascade AFTER DELETE ON chunks` instalado — previne recorrência
+- [x] `vectorize.ts` bug corrigido (consultava `vec_chunks.chunk_id` — coluna inexistente)
+- [x] `embed.ts` ganhou `embedBatchAPI()` usando `batchEmbedContents` Gemini — **3 → 26.4 chunks/s (9×)**
+- [x] Re-embed completo dos 1.951 chunks em **74 segundos, zero 429**
+- [x] Verificação: `match_type: "semantic"` aparece em resultados naturais de search (antes era 0%)
+
+**Autodefesa + automação:**
+- [x] `semantic-canary.sh` diário às 06:00 — alerta Discord se `match_type: "semantic"` sumir dos resultados
+- [x] `morning-report.sh` diário às 06:30 — resumo de saúde + mudanças de 24h no `#nox-chief-of-staff`
+- [x] Webhook Discord ativo (`#nox-chief-of-staff`, criada via API com `DISCORD_BOT_TOKEN`)
+- [x] Script local Mac: `~/Claude/Projetos/memoria-nox/scripts/check-nox-mem.sh` — 1 comando, GO/NO-GO colorido
+- [x] Índice composto `idx_chunks_type_date` — elimina TEMP B-TREE em queries `chunk_type + source_date DESC`
+- [x] Snapshot completo do DB antes do nightly (136MB, `PRAGMA integrity_check: ok`) em `/root/.openclaw/workspace/backups/nox-mem-pre-nightly-20260418-125019.db`
+
+**Aprendizado institucional:**
+- Endpoints de saúde **nunca** devem derivar de tabelas isoladas — sempre JOIN com source-of-truth (chunks)
+- Embedding layer **exige** teste canário diário. Fail-silent é o pior tipo de falha
+- Quando a doc estratégica contradizer `/api/health`, auditar ambos — doc pode estar mentindo
+
+**Deliverables completos:**
+- `audits/audit-2026-04-18-db-gaps-remediation.md` (DB)
+- `audits/sre-deepening-2026-04-18.md` (SRE)
+- `audits/perf-baseline-2026-04-18.md` (performance)
+- `plans/2026-04-18-tier0-tier1-session-log.md` (handoff completo)
+- `plans/2026-04-19-unified-evolution-roadmap.md` (plano executável unificado — **fonte primária** de execução daqui em diante)
+
+---
+
+### Fase 1.6 — Search Quality Upgrade (aguardando OK)
+**Objetivo:** Melhorar qualidade do hybrid search com 2 técnicas comprovadas do gbrain (14.7K+ brain files em produção).
+**Tempo estimado:** 2h. Zero risco — wrappers puros do pipeline existente.
+**Inspiração:** [garrytan/gbrain](https://github.com/garrytan/gbrain) — `search/expansion.ts` + `search/dedup.ts`
+
+**Query Expansion — Multi-Query Rewrite (~50 LOC em `search.ts`):**
+- Antes do hybrid search, gerar 2 reformulações da query via Gemini 2.5 Flash (já pago, 500 RPM free)
+- Queries curtas (<3 palavras) ficam como estão — sem overhead desnecessário
+- **Config `expansionEnabled: boolean`** — liga/desliga sem deploy. Padrão: `true`. Se uso escalar e custo Gemini subir, desligar aqui sem tocar no código
+- Cada reformulação gera embedding + vector search separado
+- RRF fusion mergeia os 3 rankings (original + 2 expansões)
+- Exemplo: "deal Sorensen" → ["deal Sorensen", "negociação Nuvini Sorensen", "SME transaction M&A"]
+- Fallback gracioso: se Gemini falhar, usa query original (non-fatal)
+- **Impacto estimado: +30-40% recall** em queries ambíguas no WhatsApp
+
+**Search Dedup Pipeline 4-Layer (~80 LOC, post-processor do RRF fusion):**
+- Layer 1: Top 3 chunks por page (não deixa 1 page dominar)
+- Layer 2: Text similarity >0.85 removido (elimina chunks quase idênticos)
+- Layer 3: Nenhum `type` >60% dos resultados (diversidade — evita 10 lessons sem decisions)
+- Layer 4: Max 2 chunks por page final (cap hard)
+- Aplica DEPOIS do RRF fusion existente — zero mudança no core search
+- **Impacto: resultados mais diversos e úteis, menos redundância**
+
+**Resultado:** Hybrid search retorna respostas melhores sem tocar em FTS5, sqlite-vec ou schema. Wrapper puro sobre o pipeline existente.
+
+---
+
+### Fase 1.7a — Core Memory Quality (aguardando OK)
+**Objetivo:** Entidades ricas + economia de API + User Profile no boot dos agentes.
+**Tempo estimado:** 2-3h. Baixo risco — mudanças de prompt + ~60 linhas de código.
+
+> **Sequência recomendada:** 1.6 → 1.7a → 2.5 → 2 → 1.7b
+> Search quality (1.6) primeiro porque é wrapper puro, zero risco. graph-memory (2.5) antes do graphify (2) para L1 estar pronto.
+
+---
+
 ### Fase 1.7 — Reasoning Traces + Multi-Stage Extraction (aguardando OK)
 **Objetivo:** Agentes gravam como chegaram nas respostas. Extração de entidades fica mais eficiente.
 **Tempo estimado:** 1-2h
@@ -472,9 +584,46 @@ Tela: galáxia 3D interativa com todo o conhecimento (read-only)
 
 **Resultado:** Memória de raciocínio + economia de API + entidades ricas + detecção de contradições + versionamento de fatos + auto-esquecimento inteligente + perfil de usuário persistente.
 
-**Nota:** Se a Fase 1.7 ficar grande na execução, quebrar em 1.7a (core: reasoning + multi-stage + ontology) e 1.7b (quality: conflicts + invalidation + forgetting + user profile).
+**Divisão obrigatória em 1.7a e 1.7b:**
 
-**Inspiração:** [neo4j-labs/agent-memory](https://github.com/neo4j-labs/agent-memory) (reasoning traces, multi-stage extraction) + [topoteretes/cognee](https://github.com/topoteretes/cognee) (ontology grounding) + [kraklabs/mie](https://github.com/kraklabs/mie) (conflict detection, invalidation chains) + [supermemoryai/supermemory](https://github.com/supermemoryai/supermemory) (smart forgetting, user profiles) + [MemPalace/mempalace](https://github.com/MemPalace/mempalace) (verbatim preservation, hierarchical tagging — 96.6% LongMemEval).
+**Fase 1.7a — Core (execução 2-3h, baixo risco):**
+- Ontology Grounding (só mudança de prompt)
+- Multi-Stage Extraction (30 linhas, 30-40% menos calls Gemini)
+- User Profile Cache (USER-PROFILE.md — alto impacto no boot)
+- Source Attribution — campo `source_type` nos chunks: `user_statement`, `compiled`, `timeline`, `external`. Hierarquia: user > compiled > timeline > external. RRF fusion aplica boost por source_type (user 2x, compiled 1.5x, timeline 1x, external 0.8x). Zero infra nova — ajuste no scoring. **(gbrain)**
+- Compiled Truth Flag — campo `is_compiled` nos chunks: consolidados = `true` (síntese = verdade atual), originais = timeline (evidência). Search dá boost para chunks compilados. Conceito validado pelo gbrain em 14.7K brain files. **(gbrain)**
+
+**Fase 1.7b — Quality (execução 4-6h, requer testes):**
+- Reasoning Traces
+- Conflict Detection
+- Invalidation Chains (**regra crítica:** entidades com `superseded_by` são imunes a TTL — arquivadas, nunca deletadas)
+- Smart Forgetting
+- Source Text Preservation + Hierarchical Tagging
+- Inline Entity Detection — regex fast-path em cada mensagem WhatsApp/Discord: se ≥3 entidades (nomes, valores, datas), gravar direto no KG sem LLM. Se <3, chamar Gemini Flash em background async. KG atualizado em tempo real vs delay de 7 dias. Conceito validado pelo gbrain: entity detection spawna subagent em toda mensagem. **(gbrain)**
+
+**Inspiração:** [neo4j-labs/agent-memory](https://github.com/neo4j-labs/agent-memory) (reasoning traces, multi-stage extraction) + [topoteretes/cognee](https://github.com/topoteretes/cognee) (ontology grounding) + [kraklabs/mie](https://github.com/kraklabs/mie) (conflict detection, invalidation chains) + [supermemoryai/supermemory](https://github.com/supermemoryai/supermemory) (smart forgetting, user profiles) + [MemPalace/mempalace](https://github.com/MemPalace/mempalace) (verbatim preservation, hierarchical tagging — 96.6% LongMemEval) + [garrytan/gbrain](https://github.com/garrytan/gbrain) (source attribution, compiled truth, inline entity detection — 14.7K brain files em produção).
+
+---
+
+### Fase 2.5 — graph-memory Plugin (aguardando OK) ← **executar ANTES da Fase 2**
+**Objetivo:** Agentes ganham memória de curto prazo — compressão de contexto e recall automático em conversas via WhatsApp/Discord.
+**Tempo estimado:** 30 min (plugin install + config)
+
+> **Por que antes da Fase 2:** Com 20K entidades chegando via graphify, o L1 (graph-memory) precisa estar ativo para absorver o volume sem sobrecarregar o sistema a cada pergunta no WhatsApp.
+
+**Passos:**
+1. `pnpm openclaw plugins install graph-memory` na VPS
+2. Configurar no `openclaw.json`:
+   - `compactTurnCount: 7` (extrai triples a cada 7 turnos)
+   - `recallMaxNodes: 6` (injeta até 6 nós de recall)
+   - `recallMaxDepth: 2` (max 2 hops no grafo)
+   - LLM: usa provider padrão do gateway (Sonnet)
+   - Embeddings: Gemini via endpoint OpenAI-compatible (já pago)
+3. Adicionar `graph-memory.db` ao backup script
+4. Testar: conversa longa no WhatsApp → verificar compressão e recall
+5. Monitorar por 1 semana antes de considerar concluído
+
+**Resultado:** Nox no WhatsApp lembra o que conversou ontem. Contexto de 174 mensagens cabe em 24K tokens.
 
 ---
 
@@ -493,28 +642,28 @@ Tela: galáxia 3D interativa com todo o conhecimento (read-only)
 8. Cron diário 23h30: `graphify --update /root/vault/` (rebuild incremental)
 9. Agentes passam a ler GRAPH_REPORT.md no boot
 10. nox-mem ingest GRAPH_REPORT.md (ponte graphify → hybrid search)
+11. **Semantic Chunking para novos docs** — chunks existentes ficam como estão, novos ingestões usam semantic chunker **(gbrain)**:
+    - Embeds cada frase, calcula similaridade coseno entre adjacentes
+    - Savitzky-Golay filter (5-window, 3rd-order polynomial) para achar mínimos locais = topic boundaries
+    - Fallback automático para recursive chunker se embedding falhar
+    - ~150 LOC portado do gbrain (`chunkers/semantic.ts`, validado em 14.7K brain files)
+    - **Impacto: chunks de documentos longos (PPTX, PDF) ficam semanticamente coerentes em vez de cortados no meio de parágrafos**
 
-**Resultado:** Nox sabe o que está em todos os projetos do Totó. Primeira query real.
+**Resultado:** Nox sabe o que está em todos os projetos do Totó. Primeira query real. Docs longos geram chunks melhores.
 
 ---
 
-### Fase 2.5 — graph-memory Plugin (aguardando OK)
-**Objetivo:** Agentes ganham memória de curto prazo — compressão de contexto e recall automático em conversas via WhatsApp/Discord.
-**Tempo estimado:** 30 min (plugin install + config)
+### Fase 1.7b — Memory Quality (aguardando OK — executar após validar 1.7a + 2.5 + 2)
+**Objetivo:** Detecção de contradições, versionamento de fatos, auto-esquecimento inteligente.
+**Tempo estimado:** 4-6h. Requer testes cuidadosos.
 
-**Passos:**
-1. `pnpm openclaw plugins install graph-memory` na VPS
-2. Configurar no `openclaw.json`:
-   - `compactTurnCount: 7` (extrai triples a cada 7 turnos)
-   - `recallMaxNodes: 6` (injeta até 6 nós de recall)
-   - `recallMaxDepth: 2` (max 2 hops no grafo)
-   - LLM: usa provider padrão do gateway (Sonnet via RelayPlane)
-   - Embeddings: Gemini via endpoint OpenAI-compatible (já pago)
-3. Adicionar `graph-memory.db` ao backup script
-4. Testar: conversa longa no WhatsApp → verificar compressão e recall
-5. Monitorar por 1 semana antes de considerar concluído
+> **Regra crítica de TTL:** Entidades com `superseded_by` são **imunes ao TTL** — apenas arquivadas, nunca deletadas. Conflito entre Smart Forgetting e Invalidation Chains resolvido por esta regra.
 
-**Resultado:** Nox no WhatsApp lembra o que conversou ontem. Contexto de 174 mensagens cabe em 24K tokens.
+- Reasoning Traces
+- Conflict Detection (crítico quando graphify trouxer dados de épocas diferentes)
+- Invalidation Chains (`valid_until` + `superseded_by`) + regra de proteção TTL
+- Smart Forgetting (TTL inteligente por data)
+- Source Text Preservation + Hierarchical Tagging
 
 ---
 
@@ -530,6 +679,16 @@ Tela: galáxia 3D interativa com todo o conhecimento (read-only)
 5. launchd no Mac: sync diário às 2h
 
 **Nota:** fotos e vídeos pesados → filtrar por extensão, só PPTX/PDF/XLSX/DOCX no primeiro round.
+
+**Enrichment Pipeline Tiered (design nesta fase, implementação incremental) — (gbrain):**
+- Com graphify + rsync trazendo centenas/milhares de entidades, enriquecimento manual fica inviável
+- 3 tiers de gasto por importância da entidade:
+  - **Tier 1 (key people/deals):** Pipeline completo — cross-reference todos os chunks, gerar compiled truth, validar conflitos
+  - **Tier 2 (menções frequentes):** Light touch — apenas cross-reference e timeline
+  - **Tier 3 (passagem):** Raw data only — preservar verbatim sem processamento
+- Classificação automática: entidades com ≥5 mentions = Tier 1, 2-4 = Tier 2, 1 = Tier 3
+- Usa o próprio nox-mem como fonte (cross-reference entre chunks) — sem APIs externas por agora
+- **Impacto: recursos de processamento focados no que importa, Sorensen e Nuvini viram Tier 1 automaticamente**
 
 ---
 
@@ -565,7 +724,7 @@ Tela: galáxia 3D interativa com todo o conhecimento (read-only)
 
 **Resultado:** Galáxia 3D interativa, zero risco de corrupção de dados.
 
-**Alternativa leve:** [Memory-Knowledge-Graph-3D](https://github.com/TheSethRose/Memory-Knowledge-Graph-3D) — visualização 3D no browser via JSON, sem instalar Obsidian. Pode rodar na VPS (acessível via Tailscale) ou local (`npm start`). Útil para preview rápido antes do setup completo do Obsidian, ou se Obsidian se provar pesado demais.
+> O Obsidian é o **painel de controle visual** do segundo cérebro — não é necessário para a memória funcionar. É onde você vê o L3 (cold) como galáxia interativa. A memória cresce e serve os agentes independentemente de o Obsidian estar aberto.
 
 ### Fase 4b — Obsidian Write (futuro, condicional)
 **Pré-requisito:** 2-4 semanas usando Obsidian view-only. Só avançar se sentir falta de escrita.
@@ -596,10 +755,16 @@ Plugin Obsidian que conecta na porta 18789 (gateway) e sincroniza a cada 5 minut
 | Cross-Agent | Expertise via SOUL.md + agent-expertise.md | Over-engineering para 6 agentes |
 | Sequência crons | graphify (23h30) → precompact (23h45) | Constraint explícita documentada |
 | Fathom | Fase 3.5 paralela, não sequencial | Não bloqueia o resto do projeto |
-| Obsidian | View-only primeiro, 2-4 semanas antes de escrita | Evita conflito com nox-mem consolidation |
+| Obsidian | Painel de controle visual (L3 view-only) | Memória vive em nox-mem.db+graph-memory.db+graph.json — Obsidian só visualiza |
+| Sequência fases | 1.6 → 1.7a → 2.5 → 2 → 1.7b → 3 → 3.5 | Search quality (wrapper puro) primeiro, depois graph-memory antes do graphify |
+| TTL + Invalidation | `superseded_by` = imune a TTL | Sem essa regra, histórico é perdido pelo Smart Forgetting |
+| Notion | Manter apenas para Tarefas & Deals (pipeline operacional) | Memória & Decisões migra para nox-mem + Obsidian; crons de sync de memória para Notion serão aposentados |
 | graph-memory | Plugin complementar (Fase 2.5) | Memória curto prazo (conversas) vs nox-mem longo prazo (documentos) |
 | Estratégia de camadas | Hot/warm/cold com DBs separados | Com 20K-70K entidades, buscar em tudo a cada pergunta é inviável |
 | Memgraph | Evolução futura (>500K entidades) | Over-engineering severo para 384 entidades atuais |
+| gbrain engine pluggável | Não adotar (PGLite/Postgres) | **Motivo explícito:** o gbrain suporta PGLite e Postgres como engines alternativos ao SQLite. Migrar o nox-mem para Postgres adicionaria um serviço extra (daemon, backup, autovacuum), aumentaria complexidade operacional e não traria benefício mensurável abaixo de 500K entidades. O SQLite com WAL mode performa em <5ms para os volumes atuais. Revisitar se/quando migrar para Memgraph (>500K entidades). |
+| gbrain git-as-source-of-truth | Não adotar (markdown-as-code) | **Motivo explícito:** o gbrain usa markdown files versionados em git como banco primário — cada entidade é um arquivo `.md` com frontmatter YAML. O nox-mem usa SQLite com FTS5 + sqlite-vec + schema relacional. São filosofias de storage opostas. Adotar o modelo gbrain significaria reescrever o nox-mem do zero (novo schema, novo chunker, novo indexer, novo search). As features individuais (query expansion, dedup, semantic chunking, source attribution) são portáveis e foram adotadas. A arquitetura de storage não é. |
+| gbrain 30 MCP tools | Manter 14 tools atuais | Mais tools = mais manutenção. Novos capabilities via search quality + enrichment |
 
 ---
 
@@ -618,16 +783,41 @@ Plugin Obsidian que conecta na porta 18789 (gateway) e sincroniza a cada 5 minut
 
 ---
 
+## Nox Answers — exemplos concretos por fase
+
+Cada fase habilita novas perguntas reais. Teste esses exemplos para validar que a fase entregou o prometido.
+
+| Fase | Pergunta de teste | Fonte esperada |
+|---|---|---|
+| ✅ 1.5 | "Quais entidades estão no KG?" | `nox-mem kg-query` |
+| 1.6 | "Quem trabalhou com Sorensen?" (query ambígua) | Query expansion gera 3 variantes, recall +30% vs busca direta |
+| 1.6 | "decisões recentes" (busca genérica) | Dedup 4-layer retorna mix de types (decisions, lessons, notes) |
+| 1.7a | "Qual era o múltiplo de EBITDA do SME?" | entidade ontologia `project.ebitda_multiple` |
+| 1.7a | "De onde veio essa informação?" | Source attribution: "segundo reunião de 2026-03-15" |
+| 1.7a | "Qual é o perfil de contexto do Toto hoje?" | `USER-PROFILE.md` injetado no boot |
+| 2.5 | "O que conversamos sobre o Sorensen na semana passada?" | `graph-memory` recall cross-session |
+| 2.5 | "Qual o status do deal que discutimos ontem?" | graph-memory compressão 75% |
+| 2 | "O que tem no repo sao-thiago-fii?" | `graphify query` |
+| 2 | "Quais documentos mencionam EBITDA nos meus projetos?" | graphify + nox-mem GRAPH_REPORT |
+| 1.7b | "O FII São Thiago tem 2400m² ou 3200m²?" | Conflict Detection — "há informação conflitante" |
+| 3 | "Qual a área do terreno da Sorocaba?" | XLSX indexado via rsync + graphify |
+| 3.5 | "O que foi decidido na call de quinta?" | Fathom transcrição indexada |
+| 4 | [visual] Nuvini → SME Deal → Sorensen → 20-F | Obsidian 3D grafo |
+
+---
+
 ## Métricas de Sucesso por Fase
 
 | Fase | Métrica | Meta |
 |---|---|---|
 | ✅ 1 | Arquivos criados, índices funcionais | Concluído |
 | ✅ 1.5 | KG extraction rodando, logging ativo | Concluído (1489 extrações) |
-| 1.7 | Reasoning traces gravando, regex reduzindo calls Gemini | ≥30% menos calls Gemini no kg-build |
-| 2 | `graphify query` retorna resultados reais dos repos | ≥ 80% queries com resposta |
+| 1.6 | Query expansion ativo, dedup 4-layer aplicando | +30% recall em queries ambíguas, resultados sem duplicatas |
+| 1.7a | Ontology Grounding ativo, User Profile gerado, source attribution, compiled truth | ≥30% menos calls Gemini, respostas com fonte citada |
+| 1.7b | Reasoning traces, conflicts, TTL, inline entity detection | Zero `superseded_by` deletadas por TTL, KG real-time |
+| 2 | `graphify query` retorna resultados reais, semantic chunking ativo | ≥ 80% queries com resposta, chunks semanticamente coerentes |
 | 2.5 | Compressão de contexto ativa, recall cross-session funcionando | <30K tokens em conversa de 7+ rounds |
-| 3 | Documentos do HD consultáveis via Nox | ≥ 50 docs indexados na primeira rodada |
+| 3 | Documentos do HD consultáveis, enrichment tiered ativo | ≥ 50 docs indexados, Tier 1 entities com compiled truth |
 | 3.5 | Reuniões da última semana consultáveis | ≤ 24h delay entre reunião e indexação |
 | 4 | Obsidian rodando no Mac com grafo visual | Setup completo, vault atualizado diariamente |
 | 4b | Nox escreve no vault sem conflitos | Zero corrupção em 2 semanas |
@@ -650,6 +840,7 @@ Plugin Obsidian que conecta na porta 18789 (gateway) e sincroniza a cada 5 minut
 | [kraklabs/mie](https://github.com/kraklabs/mie) | Single binary Go, conflict detection, invalidation chains, typed nodes, cross-agent daemon | Fase 1.7 (conflicts, versioning) |
 | [supermemoryai/supermemory](https://github.com/supermemoryai/supermemory) | #1 em 3 benchmarks, smart forgetting, user profiles ~50ms, contradiction resolution, connectors | Fase 1.7 (forgetting, profiles) |
 | [MemPalace/mempalace](https://github.com/MemPalace/mempalace) | 96.6% LongMemEval, raw verbatim storage, palace structure (+34% retrieval), zero API, local only | Fase 1.7 (source_text, scope/category/topic) |
+| [garrytan/gbrain](https://github.com/garrytan/gbrain) | Personal brain do Garry Tan (YC president), 5K+ stars, 14.7K brain files em produção. Query expansion (Haiku, ~70 LOC), search dedup 4-layer, semantic chunking (Savitzky-Golay), compiled truth + timeline, source attribution, entity detection inline, enrichment pipeline tiered, 30 MCP tools. Stack: TypeScript, Postgres/pgvector/PGLite, OpenAI embeddings | Fase 1.6 (query expansion, dedup), 1.7a (source attribution, compiled truth), 1.7b (inline entity), 2 (semantic chunking), 3 (enrichment) |
 | [memgraph/memgraph](https://github.com/memgraph/memgraph) | Graph DB in-memory C++, Cypher, 40+ algoritmos MAGE, vector+text indexes, GraphRAG atômico | Evolução futura |
 | Guia @brunobracaioli | Tutorial prático graphify + métrica 71.5x confirmada | Referência |
 
@@ -680,6 +871,14 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 **O que traz:** "Quais projetos o Sorensen participou?" → Cypher automático → resultado do grafo.
 **Por que não agora:** Sem graph database, não há Cypher. O hybrid search do nox-mem já cobre 80% desses casos.
 
+### Fase P — Productização NOX-Supermem (horizonte: pós-Fase 4)
+**Quando:** Depois que todas as fases funcionais (1.6 → 5) estiverem estáveis e usadas internamente por 30+ dias.
+**O que traz:** Empacota o sistema de memória como produto comercial para o mercado brasileiro via Hotmart.
+**Repo:** `github.com/totobusnello/nox-supermem` (private) — já existe scaffold no Mar/15 (v2.1.2, ~10% implementação)
+**Gap atual:** produto comercial está 6+ meses atrás do sistema interno. Não tem Layer 2 semantic, KG, reflect, crystallize, MCP, HTTP API. Plano de implementação com 57 tasks pendentes.
+**Tiers:** A R$147, B R$197, C R$227 + R$30/semana suporte.
+**Decisão:** NÃO atacar em paralelo com evolução interna. Fazer produto DEPOIS que o sistema estiver em paridade interna com v3.3+ e fases 1.6-4 estáveis por 30 dias.
+
 ### Self-Evolving Hooks — Feedback Loop Automático (spec: 2026-04-12)
 **Quando:** Implementável agora — complementa nox-mem com aprendizado local.
 **O que traz:** 3 hooks no Claude Code local (Mac) que capturam correções do usuário e transformam em regras permanentes automaticamente. O sistema aprende com "não faz assim" sem intervenção manual.
@@ -705,10 +904,12 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 |---|---|
 | ✅ 1 | Boot -60% tokens. Feedback loop. Continuidade entre sessões. |
 | ✅ 1.5 | KG vivo novamente. Extração via Gemini 2.5 Flash. Logging ativo. |
-| 1.7 | Agentes aprendem com decisões passadas. 30-40% menos calls Gemini. |
-| 2 | Projetos consultáveis. Primeiro "pergunta qualquer coisa" real. |
+| 1.6 | Search +30-40% recall. Resultados sem duplicatas. Wrapper puro, zero risco. **(gbrain)** |
+| 1.7a | Entidades ricas + User Profile + respostas com fonte citada. **(gbrain: source attribution, compiled truth)** |
+| 1.7b | Contradições detectadas, fatos versionados, KG real-time. **(gbrain: inline entity detection)** |
+| 2 | Projetos consultáveis. Chunks semanticamente coerentes. **(gbrain: semantic chunking)** |
 | 2.5 | Nox lembra conversas anteriores no WhatsApp. Contexto comprimido 75%. |
-| 3 | HD completo indexado. Documentos de todas as áreas disponíveis. |
+| 3 | HD indexado. Enrichment tiered (Sorensen=Tier 1 automaticamente). **(gbrain: enrichment pipeline)** |
 | 3.5 | Reuniões indexadas automaticamente. Zero esforço manual. |
 | 4 | Galáxia 3D visual no Mac. Obsidian como painel de controle. |
 | 4b | Vault que cresce sozinho (condicional). |
@@ -719,7 +920,11 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 
 ## Próximos Passos — Aguardando OK do Totó
 
-**Para começar Fase 2 hoje:**
+**Para começar Fase 1.6 (Search Quality — vitória mais rápida):**
+- [ ] OK do Totó para executar
+- [ ] ~130 LOC, ~2h, wrapper puro sobre hybrid search existente
+
+**Para começar Fase 2 (após 1.6 + 1.7a + 2.5):**
 - [ ] OK do Totó para executar
 - [ ] Confirmar quais repos priorizar (Nuvini? FII? todos?)
 - [ ] gh auth na VPS tem acesso aos repos privados? (verificar)
@@ -736,4 +941,5 @@ Ideias estudadas que fazem sentido quando o sistema crescer, mas são over-engin
 ---
 
 *Documento vivo — atualizado após cada fase concluída.*
-*Última atualização: 2026-04-12 v8 — Self-Evolving Hooks (feedback loop automático) adicionado como evolução futura com spec detalhado, bridge Mac→VPS via HTTP API.*
+*Última atualização: 2026-04-18 v12 — Fase 0.5 (Foundation Repair) concluída e registrada; correção da afirmação falsa sobre Layer 2 operacional na v11; status do sistema re-verificado com valores reais (1.951 chunks, 100% coverage, 16 MCP tools, porta 18802, trigger CASCADE ativo, canary + morning report automáticos); Fase P (productização nox-supermem) adicionada ao horizonte pós-Fase 4; referência ao plano executável unificado em `memoria-nox/plans/2026-04-19-unified-evolution-roadmap.md`.*
+*v11 original: 2026-04-12 — config `expansionEnabled` na Fase 1.6; motivos explícitos para não adotar gbrain git-as-source-of-truth e engine pluggável; decisão Notion documentada.*
