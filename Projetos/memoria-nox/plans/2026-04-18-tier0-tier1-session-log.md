@@ -1,8 +1,8 @@
 # Session Log — Tier 0 + Tier 1 Memory Integrity Restoration
 
-**Data:** 2026-04-18
-**Duração:** ~3h
-**Status final:** Sistema hiper-saudável, aguardando stress test do `nightly-maintenance.sh` às 23:00 para validação completa.
+**Data:** 2026-04-18 (+ iteração 2026-04-19 07:25 — fixes pós-primeira execução do nightly)
+**Duração:** ~3h + 30min follow-up
+**Status final:** Sistema hiper-saudável. Primeira execução do nightly-maintenance trouxe 2 issues corrigidas: (1) ordem `session-distill → vectorize` invertida no script deixava 339 distilled chunks sem embedding; (2) threshold do morning-report disparava RED em drift normal de <10%. Ambos corrigidos e espelhados em `scripts/vps-mirror/`.
 
 > **⚠️ Source of truth daqui em diante:** `plans/2026-04-19-unified-evolution-roadmap.md`
 > Este session log documenta o que FOI FEITO hoje (Fase 0.5). O **plano unificado** é o que EXECUTAMOS.
