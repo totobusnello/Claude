@@ -96,6 +96,43 @@ Toto quer importar 9 páginas do Notion (conectadas em "Mission Control Nox") pr
 
 ---
 
+## Migração de tarefas: Notion DB → WhatsApp → pending.md (decidido no final da sessão)
+
+### Descobertas técnicas
+
+- **Briefing matinal** não é cron standalone. Script: `/root/.openclaw/workspace/tools/prepare-briefing-context.sh`. Chamado pelo agente Nox (via heartbeat/wakeup, não cron direto no root).
+- **Tarefas vêm de Notion database**, não de página: UUID `31d8e299-11ab-81c8-8379-fed013991e7e` (distinct da página "Mission Control Nox" `31d8e29911ab81b0...`, ambas no mesmo workspace).
+- **Filtros aplicados:** `Status=Pendente OR Em andamento`, ordenado por `Prioridade`, top 8.
+- **Briefing já combina as duas fontes** (Notion DB + `memory/pending.md`) na mesma seção (linha 27: `🗂 TAREFAS & PENDÊNCIAS (Notion + pending.md)`).
+- **Notion API key** lido de `~/.config/notion/api_key` na VPS (distinto do `NOTION_API_KEY` local do Mac).
+
+### Decisão do Toto
+Migrar captura de tarefas de **Notion → WhatsApp**. Nox já recebe mensagens diretas no próprio número, o Toto confia nele pra escrever em `pending.md` sem duplo-write.
+
+### Plano de migração (4 passos, baixo risco)
+
+1. **Snapshot das tarefas ativas hoje:** rodar uma vez a query Notion (filtros existentes) → exportar top 8 → adicionar como entries em `memory/pending.md` com prioridade preservada.
+2. **Patch em `prepare-briefing-context.sh`:** comentar o bloco `A) Notion — tarefas ativas` (linhas ~32-56). Mantém `B) pending.md` (linha ~58+). Briefing passa a ler só de `pending.md`.
+3. **Processo novo:** Toto manda WA → Nox (`"Nox, tarefa: X, prio alta"`) → Nox escreve em `pending.md` com frontmatter `priority`. **Obrigatório:** Nox manda ack (`✅ adicionei: X`) em ≤30s. Se não chegar, Toto adiciona manual.
+4. **Notion database** fica read-only legacy. Decisão de apagar fica pra depois — sem pressa.
+
+### Riscos conhecidos
+- **Nox indisponível** no momento do WA → captura falha. **Mitigação:** ack + retry + fallback manual pra Notion se ack não chegar.
+- **Parsing errado de prioridade.** **Mitigação:** Nox confirma se ambíguo antes de gravar.
+
+### Próxima sessão — ordem clara
+
+1. **Restart Claude Code** (pra MCP `notion-api` surfacear tools).
+2. `claude mcp list | grep notion-api` → confirmar.
+3. Fetchar a **página "Mission Control Nox"** + descobrir as 8 subpáginas (uma delas deve ser a tasks database).
+4. **Decidir por página** (8 decisões): import, manter no Notion, ou apagar. Para cada que for importar: chunk_type, tier, source_file prefix.
+5. **Executar snapshot da tasks database** (passo 1 do plano acima).
+6. **Patch do prepare-briefing-context.sh** (passo 2).
+7. **Escrever `plans/2026-04-20-notion-import-e-whatsapp-tasks.md`** com os detalhes finais e marcar no unified roadmap.
+8. **Pilot:** 1 página importada primeiro. Validar que `nox-mem search` acha com `match_type: "semantic"` antes de fazer as outras.
+
+---
+
 ## Pendências já conhecidas (carry-over, não tocadas hoje)
 
 Do morning report de hoje:
