@@ -22,6 +22,24 @@ related_lessons: [2026-04-01-dep0040-punycode, 2026-04-19-boost-stacking-and-fak
 
 **Não resolve:** v2026.4.15 (última released), `OPENCLAW_NO_RESPAWN=1` sozinho, `commands.restart=false` sozinho (Issue #5533 mostra que é ignorado).
 
+## ⚠️ Nuance crítica: Issue #62028 está CLOSED mas o bug persiste (verificado 2026-04-20 pós-fix)
+
+**Não confie no status do GitHub Issue pra decidir upgrade.** Forge validou:
+- Issue #62028 foi fechado em 2026-04-06 no GitHub (antes mesmo da v2026.4.5 ser released — suspeito)
+- Issue está **LOCKED** (não aceita mais comentários)
+- v2026.4.15 changelog menciona fix pra **Issue #67436 (SIGUSR1 loop)** — **bug diferente**, não o fratricide
+- O comportamento real (`cleanStaleGatewayProcessesSync` self-kill) **persiste em v2026.4.15**
+- Comentário pra upstream salvo em `shared/github-comments/issue-62028-comment-draft.md` pra quando a issue reabrir ou criarem nova
+
+**Isso significa que o monitor deve checar o CÓDIGO, não o STATUS:**
+```bash
+# Check se o fix está no binary (sinaliza que monkey-patch não é necessário):
+FILE=$(ls /usr/lib/node_modules/openclaw/dist/restart-stale-pids-*.js | head -1)
+grep -q 'return \[\]; // monkey-patch' "$FILE" && echo "MONKEY-PATCHED (nosso fix ativo)"
+# OU procurar assinatura que indique que upstream corrigiu:
+grep -q 'if (pid === process.pid.*skip)\|selfPid.*exclude' "$FILE" && echo "UPSTREAM FIX DETECTED"
+```
+
 **Rollback alternativo:** v2026.3.31 é pré-regression, estável, mas tem config drift.
 
 ## Timeline do incident (2026-04-20)
