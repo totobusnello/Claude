@@ -37,7 +37,7 @@
 # =============================================================================
 
 BASE_DIR="${HOME}/Claude"
-LOG_FILE="${BASE_DIR}/sync.log"
+LOG_FILE="${BASE_DIR}/logs/sync.log"
 ERRORS=0
 
 log() {

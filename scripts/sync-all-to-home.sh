@@ -7,7 +7,7 @@
 set -euo pipefail
 
 BASE_DIR="${HOME}/Claude"
-LOG_FILE="${BASE_DIR}/sync.log"
+LOG_FILE="${BASE_DIR}/logs/sync.log"
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" | tee -a "$LOG_FILE"
