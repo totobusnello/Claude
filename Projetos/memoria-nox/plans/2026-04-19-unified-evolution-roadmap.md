@@ -1,16 +1,27 @@
 # Unified Evolution Roadmap — nox-mem Memory System
 
-**Versão:** 1.0 (2026-04-19)
-**Status:** Foundation repaired. Ready to execute Fase 1.6.
+**Versão:** 1.2 (2026-04-21)
+**Status:** v3.6c deployado. Fases 24h, 2.5, Path A aposentadas (evidência produção).
 **Fonte estratégica:** `docs/nox-neural-memory.md` (v12)
 **Fonte de execução:** este arquivo — **source of truth daqui em diante**
-**Última auditoria completa:** 2026-04-18 (4 agentes specialists)
+**Última auditoria completa:** 2026-04-21 (sessão audit sistêmica — 17 fixes)
 
 ---
 
 ## Executive Summary
 
-Objetivo: sistema de memória hyper-eficiente, confiável e persistente para os 6 agentes do Totó acessados via WhatsApp/Discord. Estado atual: v3.3, 1.951 chunks 100% embedded, hybrid search funcional pela primeira vez, autodefesa diária ativa. Próximos 3 movimentos: (1) bake telemetria leve em Fase 1.6, (2) executar Fase 1.6 (query expansion + dedup — +30-40% recall, 2h, zero risco), (3) Fase 1.7a (User Profile + ontology — economia de API + boot de agentes com contexto rico).
+Objetivo: sistema de memória hyper-eficiente, confiável e persistente para os 6 agentes do Totó acessados via WhatsApp/Discord.
+
+**Estado atual (2026-04-21, v3.6c):**
+- 2073 chunks 100% embedded, zero orphans
+- Hybrid search + canary */30min com self-heal
+- Reindex com auto-vectorize inline (fix arquitetural — raiz do bug Apr 21)
+- Cross-agent operacional (7 DBs com trigger+vetores)
+- RelayPlane ATIVO, roteando Sonnet+Haiku real, budget caps efetivos
+- Delegação inter-agente validada end-to-end (D3 passou)
+- 6 serviços active, 0 restarts desde 07:56, logrotate configurado
+
+**Próximos movimentos:** (1) importar repos locais pra nox-mem (plano original, ~45 min), (2) Fase 2 Graphify scale de 3 → 15 repos, (3) Fase 1.7b Memory Quality advanced.
 
 ---
 
@@ -21,12 +32,15 @@ Objetivo: sistema de memória hyper-eficiente, confiável e persistente para os 
 | 1 | Quick Wins (wip, feedback, L1) | ✅ DONE | — | — | Concluída 2026-04-11 |
 | 1.5 | KG Migration Ollama→Gemini | ✅ DONE | — | 1 | 1489 entities extraídas |
 | **0.5** | **Foundation Repair** | ✅ DONE | — | 1.5 | 1951/1951 embedded, canary+morning ativos |
-| 24h | Observação pós-Fase 0.5 | 🔧 IN PROGRESS | passivo | 0.5 | Nightly 23h passa limpo; canary 06:00 OK |
-| 1.6 | Search Quality (expansion + dedup) | ⏳ READY | 2-3h | 24h | +30% recall em queries ambíguas; telemetria ativa |
-| 1.7a | Core Memory Quality | ⏳ READY | 2-3h | 1.6 | USER-PROFILE.md gerado; -30% calls Gemini |
-| 2.5 | graph-memory plugin | ⏳ READY | 30 min | 1.7a | Conversa 7+ turns cabe em 24K tokens |
-| Path A | Write coordinator | 🔒 PRE-REQ para Fase 2 | 2 semanas | 2.5 | Zero partial writes sob contention |
-| 2 | Graphify + GitHub repos | 🔒 BLOCKED | 2-3h + wait | Path A | GRAPH_REPORT.md indexado; query "o que tem no repo X?" responde |
+| 24h | Observação pós-Fase 0.5 | ✅ DONE (2026-04-21) | — | 0.5 | Concluída 3d estável — canary 5 OKs consecutivos, nightly limpo, 0 restarts anômalos |
+| 1.6 | Search Quality (expansion + dedup) | ✅ DONE | — | 24h | Concluída 2026-04-19 (ver rodapé) |
+| 1.7a | Core Memory Quality | ✅ DONE | — | 1.6 | Concluída 2026-04-19 (ver rodapé) |
+| 2.5 | graph-memory plugin | ✅ DONE (2026-04-21) | — | 1.7a | Plugin ativo em produção — afterTurn events validados nos logs, provider=anthropic model=claude-sonnet-4-6 ok, vector search ready |
+| D1-D4 | Audit sistêmica + pendências | ✅ DONE (2026-04-21) | — | 2.5 | 17 fixes aplicados, check-discord-heartbeat-validation criado, cron session-distill fix, delegação Nox→Atlas validada |
+| Path A | Write coordinator | 🟡 REATIVO (não mais PRE-REQ) | 3-5d (fast) se precisar | — | SQLITE_BUSY aparecer em produção = ativar. Trigger busy_timeout=5000 (v3.3) + trg_chunks_delete_cascade tem evitado até agora |
+| RP | RelayPlane de verdade | ✅ DONE (2026-04-21 v3.6c) | — | — | `providers.anthropic.baseUrl: "http://127.0.0.1:4100"` + ANTHROPIC_BASE_URL env; requests subiram de 1 (12 dias) pra >6 em 1h; Sonnet+Haiku roteados; budget cap $5/dia/$1/h/$0.50/req efetivo |
+| IM | Import repos locais | ⏳ READY | ~45min | RP | Plano em `plans/2026-04-21-session-start.md` — docs-only (*.md) de 10 projetos ~/Claude/Projetos/ + raiz |
+| 2 | Graphify + GitHub repos | 🔧 IN PROGRESS (3/~15 repos) | escalando | IM | GRAPH_REPORT.md indexado; query "o que tem no repo X?" responde |
 | 1.7b | Memory Quality advanced | 🔒 BLOCKED | 4-6h | 2 | Conflicts detectados; inline entity real-time |
 | 3 | HD rsync + enrichment tiered | 🔒 BLOCKED | 1h + tempo rsync | 1.7b | 50+ docs indexados com Tier 1/2/3 |
 | 3.5 | Fathom API | 🔒 BLOCKED (opcional) | 3-4h | pré-req API | Reunião indexada <24h |
@@ -38,7 +52,31 @@ Objetivo: sistema de memória hyper-eficiente, confiável e persistente para os 
 | SEH | Self-Evolving Hooks | 🔒 INDEPENDENTE | 2h | — | 3+ sessões geram regra aprendida |
 | P | Productização nox-supermem | 🔒 HORIZONTE 60d+ | semanas | 4 estável 30d | v3.3 paridade no produto |
 
-Legenda: ✅ done / 🔧 in progress / ⏳ ready / 🔒 blocked
+Legenda: ✅ done / 🔧 in progress / ⏳ ready / 🟡 reativo (só ativa se sintoma aparecer) / 🔒 blocked
+
+---
+
+## Changelog v1.2 (2026-04-21)
+
+Fases fechadas com evidência da sessão de audit de hoje:
+- **24h observação** → ✅ DONE (canary passou 5 vezes consecutivas hoje, 0 restarts desde 07:56, nightly Apr 20 rodou limpo)
+- **2.5 graph-memory** → ✅ DONE (validado em logs como ativo processando afterTurn events + provider=anthropic)
+- **RelayPlane (novo)** → ✅ DONE (fix crítico do baseUrl no openclaw.json — env var sozinho não basta)
+- **D1-D4 (novo)** → ✅ DONE (audit sistêmica do Toto: 17 fixes infra no dia)
+- **Import repos (IM, novo)** → ⏳ READY (próxima ação do plano original)
+
+Outras mudanças:
+- `dist/reindex.js` patchado pra auto-vectorize inline (fix arquitetural da raiz)
+- Canary cron `0 6 → */30` com self-heal automático
+- `nightly-maintenance.sh` Phase 6 diário de vectorize (safety net)
+- `nox-mem-session-distill` cron corrigido (timeout 3600s, max-sessions 20)
+- `discovery.mdns.mode: "off"` explícito no openclaw.json
+- Agent DBs (atlas/boris/cipher/forge/lex/nox) ressuscitados com trigger + vetores
+- Logrotate ativo em 9 logs nox-*
+- `.gitignore` do memoria-nox corrigido (tinha `\n` literal)
+- `.claude/CLAUDE.md` espelho deletado, source-of-truth único: `memoria-nox/CLAUDE.md`
+
+Tudo detalhado em `handoffs/2026-04-21-session-handoff.md` + `CLAUDE.md` v3.6c.
 
 ---
 
@@ -151,37 +189,58 @@ Legenda: ✅ done / 🔧 in progress / ⏳ ready / 🔒 blocked
 
 ---
 
-## Path A — Write Coordinator (PRE-REQ Fase 2)
+## Path A — Write Coordinator (🟡 REATIVO, não mais PRE-REQ)
 
-**Goal:** Processo único long-lived que detém a conexão de escrita do SQLite. Readers (API, MCP, CLI) usam conexões read-only. Elimina contention + race conditions + CASCADE inconsistencies + WAL checkpoint issues.
+**Decisão 2026-04-19 (reavaliada):** Path A DEIXA DE SER PRE-REQ da Fase 2. Vira **intervenção reativa** — só executamos se evidência de problema aparecer.
 
-**Por que AGORA (antes de Fase 2, não depois):** Graphify vai injetar 20K+ entities em lotes. Com writer único no pool de crons + watcher + api, SQLITE_BUSY volta mesmo com `busy_timeout=5000`. Path A é a solução arquitetural.
+### Por que a mudança
 
-**Blueprint detalhado:** `audits/sre-deepening-2026-04-18.md` seção Path A.
+Baselines medidos em 2026-04-19 invalidam a premissa original:
 
-**Deliverables:**
-- [ ] Novo processo systemd `nox-mem-writer.service` — Unix socket em `/run/nox-mem-writer.sock` (FS perms = AuthN, sub-ms latency, não vaza via ufw)
-- [ ] Migração incremental por op class (2 semanas, começa pela mais nova/baixo volume):
-  - Semana 1: `crystallize` + `reflect_cache` writes
-  - Semana 1.5: `ingest` do watcher
-  - Semana 2: `vectorize`, `kg-build`, `consolidate`
-- [ ] API + CLI passam a abrir DB com `file://... ?mode=ro&immutable=0` para reads
-- [ ] Writer implementa backpressure queue (max 100 pending writes, reject após isso)
-- [ ] Graceful shutdown handler (SIGTERM drena queue antes de exit)
-- [ ] Startup ordering em systemd: `Requires=nox-mem-writer.service` em nox-mem-api + watcher
+| Métrica | Valor atual | Valor que justificaria Path A pre-emptivo |
+|---|---|---|
+| SQLITE_BUSY 7d | **0** | >50 |
+| Writes/dia normal | ~300 | >5000 |
+| Writes/dia pós-mesh inbox (estimado) | ~330 | >5000 |
+| `/api/health` latência | <10ms | >100ms |
+| systemd-run cold start | 40ms | — |
 
-**Depende de:** Fase 2.5 estável 7d (confirma que graph-memory não introduz novos writers inesperados).
+Com volume atual + mesh inbox, estamos **uma ordem de magnitude abaixo** do limite que justificaria Path A preventivo. Fazer 2 semanas de dev pra proteger contra problema não-medido = *premature optimization*.
 
-**Exit criteria:**
-- Zero SQLITE_BUSY em 48h sob carga normal
-- `/api/health` responde <10ms em 99% dos casos mesmo durante nightly-maintenance
-- Kill do writer durante transação → recovery automático sem perda de dados (integrity_check=ok)
+### Estratégia adotada: rate-limit graphify
 
-**Risk:** regressão em latência (IPC sobre Unix socket). Aceitável se <5ms overhead (sub-ms testado em dev).
+Graphify (Fase 2) vai processar em **batches controlados** em vez de dump de 20K entities de uma vez:
 
-**Rollback:** disable do writer service, readers voltam a abrir DB direto. Reversível por op class.
+- **Batch size:** 500 entities por iteração
+- **Pause:** 5min entre batches (dá tempo pro watcher + api respirarem)
+- **Horário preferencial:** fora do nightly-maintenance (23:00-01:00 bloqueado)
+- **Monitoramento:** canary semântico 06:00 + morning report 07:30 detectam regressão
 
-**Estimativa:** 2 semanas execução + 1 semana observação.
+### Quando ativar Path A (triggers)
+
+Ativar Path A "fast" (3-5 dias de dev, não 2 semanas) **apenas se**:
+
+1. **Canary ou morning-report** reportam SQLITE_BUSY > 0 em 24h consecutivas
+2. `/api/health.restartsHour` > 2 em janela rolante de 6h (não causado por deploy manual)
+3. Latência p95 de `/api/health` > 100ms (atualmente <10ms)
+4. `journalctl -u nox-mem-api | grep -c "database is locked"` > 0 em 7d
+
+Qualquer dos 4 gatilhos ativa Path A como intervenção reativa. Plano fast (não incremental):
+- 1 dia: implementar `nox-mem-writer.service` + Unix socket + backpressure queue
+- 1-2 dias: migrar todos writers de uma vez (big bang)
+- 1 dia: observação + rollback pronto
+- Total: 3-5 dias de calendário
+
+### Blueprint detalhado (quando precisar)
+
+`audits/sre-deepening-2026-04-18.md` seção Path A mantém o desenho técnico — só não é mais urgência.
+
+**Exit criteria (quando precisar ativar):**
+- Zero SQLITE_BUSY em 48h sob carga pós-graphify
+- `/api/health` p95 <10ms durante nightly-maintenance
+- Kill do writer durante transação → recovery automático sem perda (integrity_check=ok)
+
+**Rollback:** disable writer service, readers voltam a abrir DB direto.
 
 ---
 
@@ -195,25 +254,37 @@ Legenda: ✅ done / 🔧 in progress / ⏳ ready / 🔒 blocked
 - [ ] `pip install graphifyy` na VPS
 - [ ] `graphify install --platform claw` (escreve no AGENTS.md)
 - [ ] Criar `/root/vault/projetos/` com symlink `/root/.openclaw/workspace/vault → /root/vault`
-- [ ] Script: clonar repos prioritários (definir quais com usuário — Nuvini? FII? todos 20+?)
-- [ ] `graphify /root/vault/projetos/` — primeiro build real
-- [ ] Analisar `GRAPH_REPORT.md`: god nodes? Conexões surpresa?
+- [ ] **Teste piloto**: 1 repo pequeno (ex: `memoria-nox` ou `nox-supermem`) antes de comprometer escopo total — valida output + volume de writes real
+- [ ] Definir com Totó: lista priorizada de repos (todos 20+? só Nuvini+FII+Granix? Tier 1 vs Tier 2?)
+- [ ] Script: clonar repos priorizados em `/root/vault/projetos/`
+- [ ] **Rate-limit (novo — substitui Path A pre-emptivo):**
+  - Config graphify `--batch-size 500 --pause 300` (500 entities + 5min pause)
+  - **Janela proibida:** 22:30-01:30 BRT (não concorre com nightly-maintenance)
+  - Monitorar SQLITE_BUSY em morning-report; se >0 em 24h, pausar graphify + ativar Path A reativo
+- [ ] `graphify /root/vault/projetos/ --batch-size 500 --pause 300` — primeiro build rate-limited
+- [ ] Analisar `GRAPH_REPORT.md`: god nodes? Conexões surpresa? Volume de writes real
 - [ ] Cron horário: `git pull` em todos os repos (com lock para não concorrer com nightly)
-- [ ] Cron diário 23:30: `graphify --update /root/vault/` (rebuild incremental)
+- [ ] Cron diário 02:00: `graphify --update /root/vault/` (rebuild incremental, fora da janela do nightly)
 - [ ] Agentes leem `GRAPH_REPORT.md` no boot
 - [ ] nox-mem ingest `GRAPH_REPORT.md` (ponte graphify → hybrid search)
 - [ ] **Semantic Chunking** (gbrain, ~150 LOC em `chunkers/semantic.ts`): embed por frase, cosine adjacentes, Savitzky-Golay filter (5-window, 3rd-order) para topic boundaries. Fallback graceful para recursive chunker. Aplica a chunks novos apenas; existentes ficam com v1
 
-**Depende de:** Path A estável 7d.
+**Depende de:**
+- Fase 2.5 (graph-memory) estável 7d — confirma que não há conflito entre context engines
+- NÃO depende mais de Path A (ver seção Path A revisada — strategy rate-limit substitui)
 
 **Exit criteria:**
+- Piloto em 1 repo pequeno roda sem SQLITE_BUSY
 - `graphify query "o que tem no repo sao-thiago-fii?"` retorna resposta com source citada
-- ≥80% dos repos do Totó no GitHub estão indexados
+- ≥80% dos repos priorizados do Totó estão indexados
 - Chunks de PPTX/PDF novos usam semantic chunking (verificável via metadata `chunker: "semantic"`)
+- SQLITE_BUSY 7d = 0 durante + após o build inicial
 
-**Risk:** 21GB de HD rsync + 5-10GB de repos ocupa ~30GB no /root (tem 148GB livre — ok).
+**Risk + Mitigação:**
+- 21GB de HD rsync + 5-10GB de repos ocupa ~30GB no /root (tem 148GB livre — ok)
+- Volume de writes: mitigado por rate-limit acima; se sintoma aparecer → Path A reativo
 
-**Estimativa:** 2-3h setup + tempo do primeiro build (depende do volume de repos).
+**Estimativa:** 30min piloto + 2-3h setup pleno + tempo do primeiro build (depende do volume de repos — rate-limited).
 
 ---
 
@@ -488,3 +559,149 @@ Teste `match_type: "semantic"` em resultado de search é **o** canário de sanid
 - Paper técnico (stale, refletir v3.0.0): `paper-tecnico-nox-mem.md`
 - Ferramenta de check local: `scripts/check-nox-mem.sh`
 - VPS canonical: `ssh root@100.87.8.44:/root/.openclaw/workspace/`
+
+---
+
+## Fase 1.6 — Resultado (2026-04-19)
+
+**Status:** ✅ Todos exit criteria atendidos no teste de aceitação com 15 queries.
+
+**Entregas:**
+- `src/search-expansion.ts` (multi-perspective via Gemini 2.5 Flash, 2 variantes + original)
+- `src/search-dedup.ts` (4 layers: per-file cap 3, Jaccard sim ≥0.85, type saturation 60%, final cap 2/file)
+- `src/search.ts` — expansion em paralelo com search original; variantes feed FTS; semantic só na query original (decisão que tirou ~800ms do p95)
+- Schema v6: tabela `search_telemetry` + flag `meta.expansion_enabled` (default true; toggle via SQL sem deploy)
+- `/api/health.searchTelemetry` (count_24h, avg_results, semantic_ratio, p95_latency_ms, expansion_enabled, skip_reasons)
+- Script de aceitação: `test-phase-1.6.sh` (15 queries: ambíguas, específicas, too-short, NL longa)
+
+**Métricas (15 queries):**
+- Queries com ≥3 resultados únicos: **15/15** (target ≥10)
+- Queries com semantic match: **15/15 = 100%** (target ≥70%)
+- p95 latência: **1399ms** (target ≤1500ms)
+- Latência média: **965ms**
+
+**Evidência de semantic-only recall:** query "coisa da memória quebrada" → BM25 puro retorna **0 resultados**; hybrid com expansion retorna **3 matches semânticos relevantes** (chunks sobre DB corrompido + WAL stale).
+
+**Decisões de implementação que viraram doutrina:**
+1. **FTS para variantes, semantic só para original** — paráfrases de query são near-redundantes no espaço vetorial (mesmo cluster de embeddings). Usar Gemini embed para cada variante gastava 900ms de latência sem ganhar recall. Keyword variedade é onde expansion ajuda; semantic ignora vocabulário.
+2. **Expansion em paralelo, não serial** — kickoff de `search(original) + searchSemantic(original)` acontece **antes** do await na expansão. Economiza 500-800ms no caminho comum.
+3. **`expansion_enabled` na tabela `meta`, não em `openclaw.json`** — binary v2026.3.31 rejeita chaves root desconhecidas (crash loop 2026-04-01). `meta` é schema-compatible e permite toggle sem deploy (`UPDATE meta SET value='false' WHERE key='expansion_enabled'`).
+4. **Telemetria via query_hash sha1** — privacidade: não armazenamos texto cru da query. Hash de 16 chars é suficiente para ver padrões.
+
+**Próximo:** Fase 1.7a (Core Memory Quality — ontology grounding + USER-PROFILE.md + multi-stage extraction).
+
+---
+
+## Fase 1.7a — Resultado (2026-04-19)
+
+**Status:** ✅ Todos exit criteria atendidos.
+
+**Entregas:**
+- Schema v7: `kg_entities.attributes` (JSON) + `chunks.source_type` + `chunks.is_compiled` + 2 indexes
+- `src/kg-llm.ts`: ontology grounding prompt (campos ricos por tipo) + fast-path regex PT-BR (R$/US$/€, CNPJ/CPF, datas BR, telefones +55, emails, URLs, percentagens, proper nouns) + backfill de attributes em `kg_entities` via merge JSON
+- `src/index.ts` (`kg-extract`): merge incremental de attributes + contador fast-path
+- `src/search.ts`: boost por `source_type` (user 2.0x · compiled 1.5x · timeline 1.0x · external 0.8x) em FTS e semantic
+- `src/generate-user-profile.ts` (novo): gera `shared/USER-PROFILE.md` com top 20 entidades, projects ativos, decisões 30d, preferências
+- Cron `generate-user-profile` (Dom 21:00 via openclaw cron)
+- Boot injection em 6/6 SOUL.md: Nox, Atlas, Boris, Cipher, Forge, Lex leem USER-PROFILE no start
+
+**Métricas (teste 10 chunks):**
+- Fast-path hits: **30% (3/10 chunks)** — meta ≥30% ✅ (Gemini API calls economizados)
+- Extraction: 41 entities + 16 relations em 10 chunks
+- USER-PROFILE.md: 8KB, 371 entities agregadas
+- Backfill source_type: 2290 chunks classificados (timeline 99.7%, external 0.3% — heurísticas conservadoras; calibra em sessão futura)
+
+**Decisões de implementação que viraram doutrina:**
+1. **Attributes em JSON (não tabelas normalizadas)** — schema rico sem migrations por campo. Merge preserva dados existentes, overwrites chaves novas. Trade-off: sem indices por campo, mas volumes (<500 entities/type) não pedem.
+2. **Fast-path threshold = ≥3 hits estruturados (ignora proper_noun solo)** — evita falsos positivos (capitalizações random viram entidades).
+3. **Boost source_type multiplicativo em cima do existing** (tier, type, recency) — ordem de aplicação não matters por serem independentes.
+4. **USER-PROFILE.md em `shared/`** (not `agents/<x>/`) — single source, 6 agentes leem mesmo arquivo. Regenerado semanal, não manual.
+5. **Boot injection por append em SOUL.md** (não edit pontual) — idempotente (grep USER-PROFILE antes de adicionar), reversível (delete da seção).
+
+**Pendente (melhoria futura, não gating):**
+- Calibrar heurística de backfill `source_type` — hoje só 6 chunks external + 2284 timeline; nenhum user_statement/compiled. Revisar patterns em sessão dedicada.
+- Validar query "múltiplo EBITDA do deal X" retorna valor específico (precisa rodar `kg-extract` full para popular attributes).
+
+**Próximo:** Fase 2.5 (graph-memory plugin) ou Fase 1.8 (Agent Mesh completo — dispatch_to + 9 security controls), conforme prioridade.
+
+---
+
+## Fase 2.5 — Setup (2026-04-19)
+
+**Status:** 🔧 IN OBSERVATION (1 semana). Setup concluído; exit criteria aguarda conversas reais.
+
+**Entregas:**
+- `openclaw plugins install graph-memory` via ClawHub community → v1.5.8 em `/root/.openclaw/extensions/graph-memory/`
+- `openclaw.json` configurado:
+  - `plugins.slots.contextEngine: "graph-memory"` (CRÍTICO — sem isso plugin não ingeria)
+  - `plugins.allow` incluindo `graph-memory` (22 plugins explicitamente trusted)
+  - `plugins.entries.graph-memory.enabled: true`
+  - `config.embedding: { baseURL: generativelanguage.googleapis.com/v1beta/openai/, model: gemini-embedding-001, dimensions: 3072 }`
+  - `config.llm`: default (Anthropic via env)
+- Defaults de extração honrados: `compactTurnCount: 7`, `recallMaxNodes: 6`, `recallMaxDepth: 2`
+- `graph-memory.db` em `/root/.openclaw/graph-memory.db` (schema: gm_messages, gm_nodes, gm_edges, gm_communities, gm_vectors, gm_nodes_fts)
+- Backup daily em `backup-all.sh`: SQLite `.backup` API + keep 7 days (`graph-memory_YYYY-MM-DD.db`)
+- Gateway restart com 14 plugins loaded
+- `[graph-memory] vector search ready` confirmado nos logs
+
+**Descobertas relevantes:**
+1. **Gemini OpenAI-compat embedding**: `text-embedding-004` **não existe** na v1main; o correto é `gemini-embedding-001` com 3072d nativo.
+2. **plugins.slots.contextEngine é gating**: sem isso, o plugin registra mas ingest/assemble/compact nunca dispara — seria falha silenciosa.
+3. **ClawHub auto-install** populou `plugins.allow` com 22 entries (whatsapp, discord, telegram, slack, anthropic, openai, brave, active-memory, memory-core, memory-wiki, graph-memory, etc.) — não precisou configurar manualmente.
+
+**Exit criteria (a medir em 7 dias):**
+- [ ] Conversa 7+ turns mede ≤30K tokens no contexto (README do plugin: R7 com graph-memory = 23.977 vs 95.187 sem — 75% compressão)
+- [ ] Query "o que conversamos ontem?" retorna recall de sessão anterior
+- [ ] `graph-memory.db` < 50MB após 7 dias de uso
+- [ ] Zero conflito com active-memory (plugin bundled que também injeta memória antes de replies)
+
+**Pendências (para sessão futura):**
+- Monitorar overlap entre `graph-memory` (context engine slot) e `active-memory` (before_prompt_build hook bundled) — podem estar duplicando
+- Dashboard visual do grafo não configurado (plugin tem UI mas não ativa por default)
+- Comunidades serão formadas após ~7 turns de conversa — primeira "PageRank + community detection" acontece automaticamente
+
+**Próximo:** Após 7 dias de observação, Fase 2 (Graphify + GitHub) rate-limited. Path A virou reativo (ver decisão 14).
+
+---
+
+## Decisão 14 (2026-04-19) — Path A vira reativo + rate-limit graphify substitui
+
+**Contexto:** Path A era listado como PRE-REQ de Fase 2 com estimativa de 2 semanas. Baselines medidos hoje invalidam a premissa:
+- SQLITE_BUSY 7d = 0 (não existe o problema que Path A resolveria)
+- Writes/dia atuais = ~300 (uma ordem de magnitude abaixo do limite)
+- `/api/health` latência = <10ms (sem contenção visível)
+
+**Nova estratégia:**
+1. **Pular Path A preventivo** — não gastar 2 semanas protegendo contra problema não-medido
+2. **Graphify rate-limited** — batches 500 + pause 5min + janela proibida 22:30-01:30 BRT substitui proteção arquitetural
+3. **Path A vira REATIVO** — plano fast (3-5d big-bang) pronto pra ativar SE aparecer:
+   - SQLITE_BUSY > 0 em 24h consecutivas
+   - /api/health.restartsHour > 2 em 6h (não-deploy)
+   - Latência p95 > 100ms
+   - `database is locked` no journalctl em 7d
+4. **Monitoramento reforçado:** morning-report 07:30 + canary 06:00 + cipher weekly 10:00 pegariam sintomas cedo
+
+**Nova ordem de execução (após Fase 2.5 em observação 7d):**
+
+| # | Fase | Esforço | Gating |
+|---|---|---|---|
+| 1 | Observar graph-memory 7d (em curso) | passivo | canary verde · compressão medida |
+| 2 | **Fase 2 — Graphify + GitHub (rate-limited)** | 2-3h + build | SQLITE_BUSY 0; piloto OK |
+| 3 | 7d observação Fase 2 rodando | passivo | zero regressão |
+| 4 | Fase 1.7b (Memory Advanced) | 4-6h | Fase 2 estável |
+| 5 | Fase 3 (HD Mac rsync + enrichment tiered) | 1h + rsync | Fase 1.7b concluída |
+| 6 | Fase 4 (Obsidian view-only) | 1h | Fase 3 estável |
+| 7 | Productização (Fase P) | horizonte 60d+ | Fase 4 estável 30d |
+
+**Timeline revisado: 3-4 semanas pra Fase 4** (era 5-6 semanas com Path A preventivo) — economia de ~2 semanas.
+
+**Se Path A for ativado reativo:** insere 3-5 dias de intervenção entre o sintoma e o próximo passo. Atraso aceitável dado que a probabilidade é baixa.
+
+**Rationale da decisão:**
+- Engenharia honesta: hedge contra problema sem evidência empírica = premature optimization
+- Observabilidade já coberta (morning-report, canary, cipher) — sintomas seriam vistos em <24h
+- Rollback do graphify é trivial (`systemctl stop` + `graphify --clear`); Path A depois seria puro ganho
+
+**Quem aceitou:** Totó, 2026-04-19.
+
+---
