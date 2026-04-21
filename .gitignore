@@ -40,3 +40,7 @@ agent-orchestrator.yaml
 # Backup files
 *.bak
 *~
+
+# Temp/junk
+.tmp.driveupload/
+.claude/

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Council Verdict — Proatividade Multi-Agent | 2026-04-17</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: #fafaf7; color: #1a1a1a; line-height: 1.6; padding: 40px 20px; }
+  .container { max-width: 860px; margin: 0 auto; }
+  header { border-bottom: 3px solid #1a1a1a; padding-bottom: 20px; margin-bottom: 30px; }
+  header h1 { font-size: 28px; margin-bottom: 8px; }
+  header .meta { font-size: 13px; color: #666; }
+  .question { background: #f0ebe1; border-left: 4px solid #c9a44c; padding: 18px 22px; margin-bottom: 28px; border-radius: 4px; font-size: 15px; }
+  .verdict { background: #fff; border: 2px solid #1a1a1a; padding: 28px; margin-bottom: 28px; border-radius: 6px; }
+  .verdict h2 { font-size: 22px; margin-bottom: 16px; color: #c9302c; }
+  .verdict h3 { font-size: 16px; margin-top: 20px; margin-bottom: 10px; color: #1a1a1a; border-bottom: 1px solid #ddd; padding-bottom: 6px; }
+  .verdict ul { margin-left: 20px; margin-top: 8px; }
+  .verdict li { margin-bottom: 6px; }
+  .one-thing { background: #1a1a1a; color: #fff; padding: 24px; border-radius: 6px; margin: 28px 0; }
+  .one-thing h2 { color: #ffc83d; font-size: 18px; margin-bottom: 10px; }
+  .one-thing p { font-size: 17px; }
+  .scoreboard { background: #fff; border: 1px solid #ddd; padding: 20px; margin-bottom: 24px; border-radius: 6px; }
+  .scoreboard h3 { margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
+  th { background: #f5f2ea; font-weight: 600; }
+  .winner { background: #e6f4ea; font-weight: 600; }
+  .loser { background: #fce8e6; }
+  details { border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px; background: #fff; }
+  details summary { padding: 12px 16px; cursor: pointer; font-weight: 600; font-size: 14px; }
+  details[open] summary { border-bottom: 1px solid #eee; }
+  details > div { padding: 16px 20px; font-size: 14px; }
+  .advisor-c { border-left: 4px solid #c9302c; }
+  .advisor-a { border-left: 4px solid #2980b9; }
+  .advisor-e { border-left: 4px solid #27ae60; }
+  .advisor-d { border-left: 4px solid #8e44ad; }
+  .advisor-b { border-left: 4px solid #d4a017; }
+  .clash { background: #fff4e5; border: 1px solid #e8b87a; padding: 14px 18px; margin: 10px 0; border-radius: 4px; font-size: 14px; }
+  .clash strong { color: #a06418; }
+  .blind { background: #e8f0fe; border: 1px solid #a5c2f5; padding: 12px 16px; margin: 8px 0; border-radius: 4px; font-size: 14px; }
+  .phase { background: #fff; border: 1px solid #ccc; padding: 16px 20px; margin: 10px 0; border-radius: 4px; }
+  .phase h4 { color: #1a1a1a; margin-bottom: 8px; }
+  .phase ol { margin-left: 20px; font-size: 14px; }
+  footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 12px; color: #888; text-align: center; }
+  code { background: #f5f2ea; padding: 1px 5px; border-radius: 3px; font-size: 13px; font-family: "SF Mono", Consolas, monospace; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>⚖️ Council Verdict — Proatividade Multi-Agent</h1>
+    <div class="meta">Data: 17 de Abril de 2026 · Subject: Toto Busnello's OpenClaw VPS setup (6 agents) · Decisão: Plano A (ambicioso) vs Plano B (cirúrgico)</div>
+  </header>
+
+  <div class="question">
+    <strong>Pergunta:</strong> Qual é o plano correto pra ativar proatividade e autonomia multi-agent no setup do Toto? Plano A (3 ondas 2-3 semanas: pub/sub + dashboard + slash + INBOX + webhooks) vs Plano B (cirúrgico 1-2 semanas: cron sistema + CLI openclaw + webhooks + systemPrompts). Infra pronta mas quase não usada (transcripts 1,3,0,0,0,0). 4 perguntas pendentes: autonomia, budget, threshold WhatsApp, cadência.
+  </div>
+
+  <div class="verdict">
+    <h2>🎯 RECOMENDAÇÃO — Nenhum dos 2 planos. Um terceiro caminho.</h2>
+
+    <p>O council convergiu num ponto incômodo: <strong>construir mais infra não vai resolver o problema.</strong> O Toto não tem um gap técnico — ele tem um gap de <em>definição do trabalho a delegar</em>. Ambos os planos A e B assumem demanda que não foi validada.</p>
+
+    <h3>Where the Council Agrees (unanimidade)</h3>
+    <ul>
+      <li><strong>Infra existe, demanda não.</strong> Transcripts zerados + shared-memory dormindo = problema é uso, não ferramenta</li>
+      <li><strong>Plano A é over-engineering.</strong> Pub/sub + dashboard pra sistema que não gera 1 decisão útil = fantasia</li>
+      <li><strong>As 4 perguntas pendentes NÃO são trivia.</strong> Autonomia / budget / threshold / cadência = freio do carro</li>
+      <li><strong>"Descentralizar do Nox" é objetivo suspeito.</strong> Ele é o único hub com uso > 0 — descentralizar de hub não-usado = dispersão</li>
+    </ul>
+
+    <h3>Where the Council Clashes</h3>
+    <div class="clash"><strong>Começar antes ou depois de responder as 4 perguntas?</strong> A/C/D: <em>não</em>, sem demanda é spam. B/E: <em>sim</em>, dados reais em 48h > especulação em 30min. Reasonable advisors divergem em: confiança no exercício mental vs velocidade de execução.</div>
+    <div class="clash"><strong>Manter 6 agents ou reduzir?</strong> A/D: talvez 1-2 bastem. B/C/E: assumem 6 continuam. A/D questionam premissa; outros tratam como dado.</div>
+    <div class="clash"><strong>Qual é a pergunta certa?</strong> A: qual é o trabalho? · C: como validar? · D: Toto realmente pediu? · E: como virar asset 8 dígitos? · B: o que rodar segunda 9h?</div>
+
+    <h3>Blind Spots Caught by Peer Review</h3>
+    <div class="blind"><strong>1. Custo de ATENÇÃO do Toto é o bottleneck real.</strong> CEO de 5 empresas; qualquer plano que exija ele consumir output diário compete com Granix/Frooty/Galapagos. Nenhum advisor mediu isso.</div>
+    <div class="blind"><strong>2. Custo financeiro sem kill-switch.</strong> 6 agents × 2-3 posts/dia × contexto crescente = 30-50 calls/dia escalando. Ninguém propôs métrica sinal/ruído + pausa automática.</div>
+    <div class="blind"><strong>3. Desligar agents ociosos como movimento estratégico.</strong> Ninguém propôs REDUZIR antes de adicionar. "Quais 3 dos 6 devem ser aposentados?" não foi perguntada.</div>
+    <div class="blind"><strong>4. Por que o uso é zero HOJE.</strong> Hipóteses não exploradas: qualidade ruim? interface errada? latência? agents não mapeiam decisões reais? Precisa observar 1 semana do Toto antes de cron.</div>
+    <div class="blind"><strong>5. nox-mem já existente (1,481 chunks + KG + 24 crons).</strong> Por que novos crons em vez de ESTENDER? + Compliance LGPD pesada em Galapagos (wealth management).</div>
+
+    <h3>🗺️ Plano Recomendado (3 fases, validação falsificável)</h3>
+
+    <div class="phase">
+      <h4>Fase 0 — DIAGNÓSTICO (esta semana, 2h de trabalho do Toto)</h4>
+      <ol>
+        <li><strong>30 min sozinho</strong> (sem Claude): Toto escreve à mão lista de 5-7 decisões/tarefas recorrentes que GOSTARIA de delegar. Concreto. Ex: "revisar Term Sheet XYZ sexta", "monitorar Granix diário", "briefing reunião Nuvini seg"</li>
+        <li><strong>15 min</strong>: respostas numéricas às 4 perguntas (budget mensal / gatilhos WhatsApp / matriz de autonomia / cadência)</li>
+        <li><strong>15 min — Forge</strong>: grep source do OpenClaw por <code>scheduler</code> nativo (se existir usa; se null = vapor → cron sistema)</li>
+        <li><strong>30 min</strong>: Toto decide o que <strong>DESLIGAR</strong>. Quais agents <1 transcript/semana? Aposenta temporariamente</li>
+        <li><strong>30 min</strong>: mapear lista → agent responsável → medir se cobre ou se agents sobram</li>
+      </ol>
+      <p style="margin-top: 10px; font-size: 13px; color: #c9302c;"><strong>Critério falsificável:</strong> se lista do passo 1 &lt;3 itens reais delegáveis, projeto multi-agent é prematuro. Volta pro Nox solo. Sem vergonha.</p>
+    </div>
+
+    <div class="phase">
+      <h4>Fase 1 — VALIDAÇÃO (próxima semana, 5 dias)</h4>
+      <p>Se diagnóstico ≥3 itens: rodar UMA rotina por agent sobrevivente por 5 dias.</p>
+      <ul>
+        <li>Horário fixo (cron sistema ou scheduler nativo)</li>
+        <li>Output no Discord próprio do agent (não WhatsApp, exceto Nox)</li>
+        <li><strong>Métrica</strong>: Toto reagiu/leu/respondeu? Counter em sqlite</li>
+        <li><strong>Kill-switch</strong>: se 3 dias consecutivos sem interação → pausa agent</li>
+        <li><strong>Budget cap</strong>: <code>max_tokens: 2000</code> + alerta se >R$10/agent/dia</li>
+      </ul>
+    </div>
+
+    <div class="phase">
+      <h4>Fase 2 — EXPANSÃO (semana 3+, só se Fase 1 validar)</h4>
+      <p>Escolher 1-2 upsides (decision-journal SQLite, content engine Boris) <strong>apenas se</strong> engagement real medido. Webhooks e colaboração inter-agent vêm depois. Plano A (dashboard, pub/sub, slash) vai pro <strong>freezer Q2</strong>.</p>
+    </div>
+  </div>
+
+  <div class="one-thing">
+    <h2>⚡ THE ONE THING TO DO FIRST</h2>
+    <p>Toto reserva <strong>30 minutos sozinho</strong> (sem Claude, sem SSH) e escreve à mão uma lista de <strong>5-7 decisões/tarefas recorrentes da semana que ele gostaria de delegar AGORA</strong>.</p>
+    <p style="margin-top: 10px; font-size: 14px;">Tudo bloqueia nesse exercício. Lista sai rápida → resto se escreve sozinho. Trava em 3 itens → mata o projeto multi-agent e economiza 2 semanas.</p>
+  </div>
+
+  <div class="scoreboard">
+    <h3>📊 Peer Review Scoreboard</h3>
+    <table>
+      <tr><th>Advisor</th><th>Votos "mais forte"</th><th>Votos "maior blind spot"</th></tr>
+      <tr><td>A — First Principles</td><td>1</td><td>0</td></tr>
+      <tr><td>B — Executor</td><td>1</td><td>1</td></tr>
+      <tr class="winner"><td>C — Contrarian 🏆</td><td>3</td><td>0</td></tr>
+      <tr><td>D — Outsider</td><td>0</td><td>0</td></tr>
+      <tr class="loser"><td>E — Expansionist</td><td>0</td><td>4</td></tr>
+    </table>
+    <p style="margin-top: 10px; font-size: 13px; color: #666;"><strong>Vencedor:</strong> Contrarian (C) 3-1-1. <strong>Perdedor:</strong> Expansionist (E) 4x blind spot. Chairman sides with C + A + Outsider insights.</p>
+  </div>
+
+  <h2 style="margin-top: 30px; margin-bottom: 16px; font-size: 20px;">📝 Respostas dos Advisors (expandir para ler)</h2>
+
+  <details class="advisor-c">
+    <summary>🔴 The Contrarian (C) — Response 🏆 MAIS FORTE</summary>
+    <div>
+      <strong>Tese:</strong> nem A nem B. Infra dormindo = demanda, não ferramenta. Proatividade sem threshold = spam R$400-800/mês. Scheduler null no openclaw.json é bloqueador técnico — investigue nativo antes de construir. 4 perguntas são bloqueador de 15min, não filosofia.
+      <p style="margin-top: 8px;"><strong>Top-3:</strong> (1) Toto responde 4 perguntas. (2) Grep scheduler nativo. (3) UMA rotina (Nox 7h brief) × 5 dias medir.</p>
+    </div>
+  </details>
+
+  <details class="advisor-a">
+    <summary>🔵 The First Principles (A) — Problema é falta de TRABALHO, não proatividade</summary>
+    <div>
+      <strong>Tese:</strong> você tá resolvendo o problema errado. Não é "ativar proatividade" — é "qual é o trabalho?". Sem lista concreta de 5 decisões recorrentes a delegar, todos os planos são masturbação de infra. Descentralizar sem memória compartilhada viva = 5 agents burros em paralelo.
+      <p style="margin-top: 8px;"><strong>Top-3:</strong> Lista 5 trabalhos (30min sem Claude). Popular shared-memory com contexto. Executar 1 manual. Se lista &lt;3 itens: mata projeto, volta pro Nox solo.</p>
+    </div>
+  </details>
+
+  <details class="advisor-d">
+    <summary>🟣 The Outsider (D) — Por que 6 agents?</summary>
+    <div>
+      <strong>Tese naive:</strong> por que 6 agents quando CEO já tem equipe? Por que tantos canais? Perguntas 1-4 = freio. "Infra pronta mas ninguém usa" = solução procurando problema. Toto pediu isso ou alguém construiu?
+      <p style="margin-top: 8px;"><strong>Sugestão:</strong> sentar 30 min e perguntar "o que você fez hoje que queria delegar?". Se não sair lista, nenhum plano importa. Talvez 1 agente resolva — não 6.</p>
+    </div>
+  </details>
+
+  <details class="advisor-b">
+    <summary>🟡 The Executor (B) — Plano B. Segunda-feira de manhã.</summary>
+    <div>
+      <strong>Tese:</strong> Plano B, segunda 9h, 30 min. 5 crons (Atlas 8h, Boris 9h, Cipher 10h, Lex 8h, Forge 7h) + 1 webhook. Terça olha transcripts. Pula as 4 perguntas — responde depois com dados reais. OpenClaw cron+CLI nativo basta 30 dias.
+      <p style="margin-top: 8px;"><strong>Regra:</strong> se quarta agents não postaram, problema é systemPrompt (não infra). <strong>Blind spot apontado pelo peer review:</strong> crons sem budget cap + threshold = spam em 72h, custo Haiku×6 estoura.</p>
+    </div>
+  </details>
+
+  <details class="advisor-e">
+    <summary>🟢 The Expansionist (E) — 4× MAIOR BLIND SPOT</summary>
+    <div>
+      <strong>Tese:</strong> pergunta errada. Certa = "como virar asset 8 dígitos?". Dataset cross-portfolio único, Galapagos AI dogfooding, Nox EA-as-a-Service vendável. Plano B+ com decision-journal desde dia 1 + Nox clone-para-CEO.
+      <p style="margin-top: 8px;"><strong>Blind spot apontado por 4 peer reviews:</strong> pula de "uso zero" pra "8 dígitos" sem passar por "funciona uma vez". Vender antes de provar. 10k decisões anotadas exige 27/dia × 12 meses — Toto não gera isso nem funcionando. Compliance LGPD Galapagos = bloqueio regulatório pesado.</p>
+    </div>
+  </details>
+
+  <footer>
+    Council Session · 5 advisors + 5 peer reviews + chairman synthesis · Gerado automaticamente via <code>/llm-council</code> skill<br>
+    Transcript completo: <code>council-transcript-2026-04-17-proatividade-multiagent.md</code>
+  </footer>
+</div>
+</body>
+</html>

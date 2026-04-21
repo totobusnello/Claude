@@ -258,17 +258,31 @@ Quando iniciar um novo projeto, Claude deve:
 
 ```
 ~/Claude/                          (source of truth)
-├── skills/          → synced to ~/.claude/skills/    (60 categories)
-├── agents/          → synced to ~/.claude/agents/    (14 categories + standalone)
-├── commands/        → synced to ~/.claude/commands/  (27 categories)
+├── skills/          → synced to ~/.claude/skills/    (56 categories)
+├── agents/          → synced to ~/.claude/agents/    (22 categories)
+├── commands/        → synced to ~/.claude/commands/  (26 categories)
 ├── prompts/         → synced to ~/.claude/prompts/   (41 files)
 ├── templates-powerpoint/  (submodule: 93 PowerPoint templates)
-├── Projetos/              (submodules: repos individuais)
+├── Projetos/              (submodules: 7 repos + agent-orchestrator)
+├── _retired/              (skills/commands replaced by AO)
 ├── docs/                  (reference docs: MCP setup, optimization)
 ├── scripts/               (sync and automation scripts)
+├── agent-orchestrator.yaml (AO config: 7 projects)
 ├── CATALOG.md             (skills/agents catalog)
 └── INDEX.md               (master index)
 ```
+
+## Agent Orchestrator (AO)
+
+- **CLI**: `ao` (run from `~/Claude/`)
+- **Config**: `agent-orchestrator.yaml` (7 projects)
+- **Commands**: `ao status`, `ao spawn <project> <issue>`, `ao batch-spawn`, `ao dashboard`
+- **Reactions**: auto-responds to CI failures, PR reviews, stuck agents
+
+## MCP Servers (14 total)
+
+- **Core**: github, sequential-thinking, sqlite, time, amem
+- **Plugins**: context7, sentry, firecrawl, semgrep, vercel, supabase, firebase, posthog, serena
 
 ## Sync Flow
 
@@ -280,9 +294,9 @@ Quando iniciar um novo projeto, Claude deve:
 
 ## Installed Extensions Summary
 
-- **60 Skill Categories** em `skills/` (synced to `~/.claude/skills/`)
-- **134+ Agents** em `agents/` (synced to `~/.claude/agents/`)
-- **27 Command Categories** em `commands/` (synced to `~/.claude/commands/`)
+- **56 Skill Categories** em `skills/` (synced to `~/.claude/skills/`)
+- **22 Agent Categories** em `agents/` (synced to `~/.claude/agents/`)
+- **26 Command Categories** em `commands/` (synced to `~/.claude/commands/`)
 - **41 Prompt Templates** em `prompts/` (synced to `~/.claude/prompts/`)
 - **INDEX.md** catalogo completo
 
