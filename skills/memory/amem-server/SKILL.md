@@ -1,3 +1,8 @@
+---
+name: amem-server
+description: Use when the user asks to save, recall, search, evolve, or consolidate long-term memories, or references the Agentic Memory / A-MEM system. Provides evolutive memory with semantic search (OpenAI/Ollama embeddings), automatic relationship detection, and cross-session persistence via MCP tools (amem_add, amem_search, amem_evolve, amem_consolidate).
+---
+
 # Agentic Memory (A-MEM) MCP Server
 
 Evolutive memory system with real semantic search, automatic relationship detection, memory evolution, and consolidation.
