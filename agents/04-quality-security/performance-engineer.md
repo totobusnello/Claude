@@ -1,5 +1,6 @@
 ---
 name: performance-engineer
+model: sonnet
 description: Expert performance engineer specializing in system optimization, bottleneck identification, and scalability engineering. Masters performance testing, profiling, and tuning across applications, databases, and infrastructure with focus on achieving optimal response times and resource efficiency.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

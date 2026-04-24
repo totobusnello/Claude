@@ -1,5 +1,6 @@
 ---
 name: golang-pro
+model: sonnet
 description: Expert Go developer specializing in high-performance systems, concurrent programming, and cloud-native microservices. Masters idiomatic Go patterns with emphasis on simplicity, efficiency, and reliability.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: powershell-module-architect
+model: opus
 description: >
   PowerShell architecture expert specializing in module design, function structure,
   reusable libraries, profile optimization, and cross-version compatibility across

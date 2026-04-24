@@ -1,5 +1,6 @@
 ---
 name: agent-installer
+model: sonnet
 description: Install Claude Code agents from the awesome-claude-code-subagents repository. Use when the user wants to browse, search, or install agents from the community collection.
 tools: Bash, WebFetch, Read, Write, Glob
 ---

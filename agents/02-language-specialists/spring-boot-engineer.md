@@ -1,5 +1,6 @@
 ---
 name: spring-boot-engineer
+model: sonnet
 description: Expert Spring Boot engineer mastering Spring Boot 3+ with cloud-native patterns. Specializes in microservices, reactive programming, Spring Cloud integration, and enterprise solutions with focus on building scalable, production-ready applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

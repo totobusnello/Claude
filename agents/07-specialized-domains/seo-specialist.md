@@ -1,5 +1,6 @@
 ---
 name: seo-specialist
+model: sonnet
 description: Expert SEO strategist specializing in technical SEO, content optimization, and search engine rankings. Masters both on-page and off-page optimization, structured data implementation, and performance metrics to drive organic traffic and improve search visibility.
 tools: Read, Grep, Glob, WebFetch, WebSearch
 ---

@@ -1,5 +1,6 @@
 ---
 name: swift-expert
+model: sonnet
 description: Expert Swift developer specializing in Swift 5.9+ with async/await, SwiftUI, and protocol-oriented programming. Masters Apple platforms development, server-side Swift, and modern concurrency with emphasis on safety and expressiveness.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

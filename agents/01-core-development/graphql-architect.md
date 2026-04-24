@@ -1,5 +1,6 @@
 ---
 name: graphql-architect
+model: opus
 description: GraphQL schema architect designing efficient, scalable API graphs. Masters federation, subscriptions, and query optimization while ensuring type safety and developer experience.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

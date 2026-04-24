@@ -1,5 +1,6 @@
 ---
 name: nlp-engineer
+model: sonnet
 description: Expert NLP engineer specializing in natural language processing, understanding, and generation. Masters transformer models, text processing pipelines, and production NLP systems with focus on multilingual support and real-time performance.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

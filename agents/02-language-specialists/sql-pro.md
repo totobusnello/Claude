@@ -1,5 +1,6 @@
 ---
 name: sql-pro
+model: sonnet
 description: Expert SQL developer specializing in complex query optimization, database design, and performance tuning across PostgreSQL, MySQL, SQL Server, and Oracle. Masters advanced SQL features, indexing strategies, and data warehousing patterns.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

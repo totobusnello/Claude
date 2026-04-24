@@ -1,5 +1,6 @@
 ---
 name: technical-writer
+model: sonnet
 description: Expert technical writer specializing in clear, accurate documentation and content creation. Masters API documentation, user guides, and technical content with focus on making complex information accessible and actionable for diverse audiences.
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch
 ---

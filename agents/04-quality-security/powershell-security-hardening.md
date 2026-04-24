@@ -1,5 +1,6 @@
 ---
 name: powershell-security-hardening
+model: sonnet
 description: >
   Security-focused PowerShell specialist skilled in hardening Windows systems,
   securing automation, enforcing least privilege, and aligning scripts with

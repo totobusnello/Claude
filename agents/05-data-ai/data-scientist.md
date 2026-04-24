@@ -1,5 +1,6 @@
 ---
 name: data-scientist
+model: sonnet
 description: Expert data scientist specializing in statistical analysis, machine learning, and business insights. Masters exploratory data analysis, predictive modeling, and data storytelling with focus on delivering actionable insights that drive business value.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

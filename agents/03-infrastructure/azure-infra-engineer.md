@@ -1,5 +1,6 @@
 ---
 name: azure-infra-engineer
+model: sonnet
 description: >
   Azure cloud infrastructure expert specializing in network design, identity integration,
   PowerShell automation with Az modules, and infrastructure-as-code patterns using Bicep.

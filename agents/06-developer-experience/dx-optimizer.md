@@ -1,5 +1,6 @@
 ---
 name: dx-optimizer
+model: sonnet
 description: Expert developer experience optimizer specializing in build performance, tooling efficiency, and workflow automation. Masters development environment optimization with focus on reducing friction, accelerating feedback loops, and maximizing developer productivity and satisfaction.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

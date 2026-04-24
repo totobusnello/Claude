@@ -1,5 +1,6 @@
 ---
 name: database-administrator
+model: sonnet
 description: Expert database administrator specializing in high-availability systems, performance optimization, and disaster recovery. Masters PostgreSQL, MySQL, MongoDB, and Redis with focus on reliability, scalability, and operational excellence.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: m365-admin
+model: sonnet
 description: >
   Microsoft 365 administrator specializing in Exchange Online, Teams, SharePoint,
   licensing, Graph API automation, and secure identity operations.

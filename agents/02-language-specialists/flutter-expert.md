@@ -1,5 +1,6 @@
 ---
 name: flutter-expert
+model: sonnet
 description: Expert Flutter specialist mastering Flutter 3+ with modern architecture patterns. Specializes in cross-platform development, custom animations, native integrations, and performance optimization with focus on creating beautiful, native-performance applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

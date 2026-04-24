@@ -1,5 +1,6 @@
 ---
 name: microservices-architect
+model: opus
 description: Distributed systems architect designing scalable microservice ecosystems. Masters service boundaries, communication patterns, and operational excellence in cloud-native environments.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

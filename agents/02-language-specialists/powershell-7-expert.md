@@ -1,5 +1,6 @@
 ---
 name: powershell-7-expert
+model: sonnet
 description: >
   Cross-platform PowerShell 7+ expert specializing in modern .NET, cloud automation,
   CI/CD tooling, Azure integration, and high-performance scripting across Windows, Linux,
