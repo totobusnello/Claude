@@ -31,9 +31,25 @@ settings = json.loads(SETTINGS.read_text())
 installed = json.loads(INSTALLED.read_text())
 
 enabled_map = settings.get("enabledPlugins", {})
-disabled_names = {k for k, v in enabled_map.items() if v is False}
+# Also union with any project-level settings so we don't purge plugins kept
+# enabled at a narrower scope.
+PROJECT_SETTINGS = Path("/Users/lab/Claude/.claude/settings.json")
+project_enabled = set()
+if PROJECT_SETTINGS.exists():
+    try:
+        project_enabled = set(
+            json.loads(PROJECT_SETTINGS.read_text()).get("enabledPlugins", {}).keys()
+        )
+    except Exception:
+        pass
 
+enabled_anywhere = set(enabled_map.keys()) | project_enabled
 plugins_db = installed.get("plugins", {})
+
+# Targets = anything installed on disk but not enabled in any scope.
+# This picks up plugins the user removed from enabledPlugins (by us or manually)
+# as well as any stale install records still labelled scope=project.
+disabled_names = {k for k in plugins_db.keys() if k not in enabled_anywhere}
 
 to_purge = []
 for name in disabled_names:
