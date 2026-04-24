@@ -74,16 +74,41 @@ def should_keep(entry):
     if is_cli_literal_ok(entry): return True, 'safe literal'
     return False, 'literal one-off'
 
+def find_broad_patterns(allow):
+    """Collect Bash(<cmd> *) patterns — these dominate sub-patterns."""
+    broad = set()
+    for e in allow:
+        if not e.startswith('Bash('): continue
+        inside = e[5:-1]
+        m = re.match(r'^([\w.-]+)\s+\*$', inside)
+        if m: broad.add(m.group(1))
+    return broad
+
+def is_redundant_under_broad(entry, broad):
+    """True if entry is Bash(cmd ...) where cmd matches a broad wildcard."""
+    if not entry.startswith('Bash('): return False
+    inside = entry[5:-1]
+    # Skip if it IS a broad pattern or a bare command
+    if re.match(r'^[\w.-]+\s+\*$', inside): return False
+    if re.match(r'^[\w.-]+$', inside): return False
+    first = re.split(r'[\s:]', inside, maxsplit=1)[0]
+    return first in broad
+
 def main():
     data = json.loads(SETTINGS.read_text())
     allow = data.get('permissions', {}).get('allow', [])
 
+    # Phase 1: drop obvious shell-construct / hash-comment / one-off literals
+    # Phase 2: drop entries redundant under broader wildcards
+    broad = find_broad_patterns(allow)
     kept, dropped = [], []
     seen = set()
     for e in allow:
         if e in seen: continue
         seen.add(e)
         keep, reason = should_keep(e)
+        if keep and not any(e.startswith(p) for p in PROTECTED_PREFIXES) and is_redundant_under_broad(e, broad):
+            keep, reason = False, f'redundant under broad wildcard'
         (kept if keep else dropped).append((e, reason))
 
     print(f'Total before:  {len(allow)}')
