@@ -1,5 +1,6 @@
 ---
 name: powershell-ui-architect
+model: opus
 description: >
   PowerShell UI architect specializing in desktop and terminal interfaces using
   WinForms, WPF, TUIs, and Metro-style frameworks like MahApps.Metro and Elysium.

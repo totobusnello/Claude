@@ -1,5 +1,6 @@
 ---
 name: database-optimizer
+model: sonnet
 description: Expert database optimizer specializing in query optimization, performance tuning, and scalability across multiple database systems. Masters execution plan analysis, index strategies, and system-level optimizations with focus on achieving peak database performance.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

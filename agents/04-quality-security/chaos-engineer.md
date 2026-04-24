@@ -1,5 +1,6 @@
 ---
 name: chaos-engineer
+model: sonnet
 description: Expert chaos engineer specializing in controlled failure injection, resilience testing, and building antifragile systems. Masters chaos experiments, game day planning, and continuous resilience improvement with focus on learning from failure.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

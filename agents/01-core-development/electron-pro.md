@@ -1,5 +1,6 @@
 ---
 name: electron-pro
+model: sonnet
 description: Desktop application specialist building secure cross-platform solutions. Develops Electron apps with native OS integration, focusing on security, performance, and seamless user experience.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

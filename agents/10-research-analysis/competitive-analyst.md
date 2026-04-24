@@ -1,5 +1,6 @@
 ---
 name: competitive-analyst
+model: opus
 description: Expert competitive analyst specializing in competitor intelligence, strategic analysis, and market positioning. Masters competitive benchmarking, SWOT analysis, and strategic recommendations with focus on creating sustainable competitive advantages.
 tools: Read, Grep, Glob, WebFetch, WebSearch
 ---

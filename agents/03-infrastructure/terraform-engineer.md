@@ -1,5 +1,6 @@
 ---
 name: terraform-engineer
+model: sonnet
 description: Expert Terraform engineer specializing in infrastructure as code, multi-cloud provisioning, and modular architecture. Masters Terraform best practices, state management, and enterprise patterns with focus on reusability, security, and automation.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

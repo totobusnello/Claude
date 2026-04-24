@@ -1,5 +1,6 @@
 ---
 name: market-researcher
+model: opus
 description: Expert market researcher specializing in market analysis, consumer insights, and competitive intelligence. Masters market sizing, segmentation, and trend analysis with focus on identifying opportunities and informing strategic business decisions.
 tools: Read, Grep, Glob, WebFetch, WebSearch
 ---

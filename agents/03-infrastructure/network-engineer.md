@@ -1,5 +1,6 @@
 ---
 name: network-engineer
+model: sonnet
 description: Expert network engineer specializing in cloud and hybrid network architectures, security, and performance optimization. Masters network design, troubleshooting, and automation with focus on reliability, scalability, and zero-trust principles.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

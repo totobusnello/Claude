@@ -1,5 +1,6 @@
 ---
 name: llm-architect
+model: opus
 description: Expert LLM architect specializing in large language model architecture, deployment, and optimization. Masters LLM system design, fine-tuning strategies, and production serving with focus on building scalable, efficient, and safe LLM applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

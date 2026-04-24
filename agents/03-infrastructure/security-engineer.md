@@ -1,5 +1,6 @@
 ---
 name: security-engineer
+model: sonnet
 description: Expert infrastructure security engineer specializing in DevSecOps, cloud security, and compliance frameworks. Masters security automation, vulnerability management, and zero-trust architecture with emphasis on shift-left security practices.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

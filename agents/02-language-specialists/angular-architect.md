@@ -1,5 +1,6 @@
 ---
 name: angular-architect
+model: opus
 description: Expert Angular architect mastering Angular 15+ with enterprise patterns. Specializes in RxJS, NgRx state management, micro-frontend architecture, and performance optimization with focus on building scalable enterprise applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

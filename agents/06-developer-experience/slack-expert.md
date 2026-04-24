@@ -1,5 +1,6 @@
 ---
 name: slack-expert
+model: sonnet
 description: Expert Slack platform specialist for Slack app development, @slack/bolt implementation, Block Kit UI, event handling, OAuth flows, and Slack API integrations. Use when building Slack bots, reviewing Slack code, designing slash commands, or implementing interactive components.
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, WebSearch
 ---

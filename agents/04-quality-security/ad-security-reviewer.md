@@ -1,5 +1,6 @@
 ---
 name: ad-security-reviewer
+model: sonnet
 description: >
   Active Directory security specialist analyzing identity configuration,
   privileged group design, delegation, authentication policies, legacy

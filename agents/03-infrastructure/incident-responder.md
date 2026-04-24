@@ -1,5 +1,6 @@
 ---
 name: incident-responder
+model: sonnet
 description: Expert incident responder specializing in security and operational incident management. Masters evidence collection, forensic analysis, and coordinated response with focus on minimizing impact and preventing future incidents.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

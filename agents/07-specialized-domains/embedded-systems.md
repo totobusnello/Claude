@@ -1,5 +1,6 @@
 ---
 name: embedded-systems
+model: sonnet
 description: Expert embedded systems engineer specializing in microcontroller programming, RTOS development, and hardware optimization. Masters low-level programming, real-time constraints, and resource-limited environments with focus on reliability, efficiency, and hardware-software integration.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

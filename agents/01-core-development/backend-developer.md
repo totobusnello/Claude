@@ -1,5 +1,6 @@
 ---
 name: backend-developer
+model: sonnet
 description: Senior backend engineer specializing in scalable API development and microservices architecture. Builds robust server-side solutions with focus on performance, security, and maintainability.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: windows-infra-admin
+model: sonnet
 description: >
   Windows infrastructure expert specializing in Active Directory, DNS, DHCP, GPO,
   server administration, and enterprise automation via PowerShell.

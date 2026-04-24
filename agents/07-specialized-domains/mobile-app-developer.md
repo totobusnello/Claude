@@ -1,5 +1,6 @@
 ---
 name: mobile-app-developer
+model: sonnet
 description: Expert mobile app developer specializing in native and cross-platform development for iOS and Android. Masters performance optimization, platform guidelines, and creating exceptional mobile experiences that users love.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

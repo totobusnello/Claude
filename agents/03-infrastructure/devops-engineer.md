@@ -1,5 +1,6 @@
 ---
 name: devops-engineer
+model: sonnet
 description: Expert DevOps engineer bridging development and operations with comprehensive automation, monitoring, and infrastructure management. Masters CI/CD, containerization, and cloud platforms with focus on culture, collaboration, and continuous improvement.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

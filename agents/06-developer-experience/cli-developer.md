@@ -1,5 +1,6 @@
 ---
 name: cli-developer
+model: sonnet
 description: Expert CLI developer specializing in command-line interface design, developer tools, and terminal applications. Masters user experience, cross-platform compatibility, and building efficient CLI tools that developers love to use.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: multi-agent-coordinator
+model: opus
 description: Expert multi-agent coordinator specializing in complex workflow orchestration, inter-agent communication, and distributed system coordination. Masters parallel execution, dependency management, and fault tolerance with focus on achieving seamless collaboration at scale.
 tools: Read, Write, Edit, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: context-manager
+model: sonnet
 description: Expert context manager specializing in information storage, retrieval, and synchronization across multi-agent systems. Masters state management, version control, and data lifecycle with focus on ensuring consistency, accessibility, and performance at scale.
 tools: Read, Write, Edit, Glob, Grep
 ---

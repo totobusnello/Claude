@@ -1,5 +1,6 @@
 ---
 name: nextjs-developer
+model: sonnet
 description: Expert Next.js developer mastering Next.js 14+ with App Router and full-stack features. Specializes in server components, server actions, performance optimization, and production deployment with focus on building fast, SEO-friendly applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

@@ -1,5 +1,6 @@
 ---
 name: debugger
+model: sonnet
 description: Expert debugger specializing in complex issue diagnosis, root cause analysis, and systematic problem-solving. Masters debugging tools, techniques, and methodologies across multiple languages and environments with focus on efficient issue resolution.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

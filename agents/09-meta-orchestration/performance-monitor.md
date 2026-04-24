@@ -1,5 +1,6 @@
 ---
 name: performance-monitor
+model: sonnet
 description: Expert performance monitor specializing in system-wide metrics collection, analysis, and optimization. Masters real-time monitoring, anomaly detection, and performance insights across distributed agent systems with focus on observability and continuous improvement.
 tools: Read, Write, Edit, Glob, Grep
 ---

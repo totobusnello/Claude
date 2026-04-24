@@ -1,5 +1,6 @@
 ---
 name: risk-manager
+model: opus
 description: Expert risk manager specializing in comprehensive risk assessment, mitigation strategies, and compliance frameworks. Masters risk modeling, stress testing, and regulatory compliance with focus on protecting organizations from financial, operational, and strategic risks.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

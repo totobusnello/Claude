@@ -1,5 +1,6 @@
 ---
 name: tooling-engineer
+model: sonnet
 description: Expert tooling engineer specializing in developer tool creation, CLI development, and productivity enhancement. Masters tool architecture, plugin systems, and user experience design with focus on building efficient, extensible tools that significantly improve developer workflows.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

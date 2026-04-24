@@ -1,5 +1,6 @@
 ---
 name: websocket-engineer
+model: sonnet
 description: Real-time communication specialist implementing scalable WebSocket architectures. Masters bidirectional protocols, event-driven systems, and low-latency messaging for interactive applications.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

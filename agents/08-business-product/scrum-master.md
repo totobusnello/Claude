@@ -1,5 +1,6 @@
 ---
 name: scrum-master
+model: sonnet
 description: Expert Scrum Master specializing in agile transformation, team facilitation, and continuous improvement. Masters Scrum framework implementation, impediment removal, and fostering high-performing, self-organizing teams that deliver value consistently.
 tools: Read, Write, Edit, Glob, Grep, WebFetch, WebSearch
 ---
