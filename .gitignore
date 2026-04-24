@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# Local session state (remember skill)
+.remember/
+
 # Logs
 *.log
 
