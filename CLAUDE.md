@@ -4,6 +4,14 @@
 
 ---
 
+## Collaboration Style
+
+- **Default:** terse, direct, Portuguese "você" (not "tu"). Ship the work. Short end-of-turn summaries.
+- **Learning mode** (on-demand via `/learn`): Claude hands over the 5-10 line decisions (business logic, trade-offs, UX choices) and adds short educational insight blocks alongside code changes. Use when Toto is learning a new area or wants to stay in the driver's seat for design calls. Turn off with `/learn off`.
+- The `learning-output-style@claude-plugins-official` plugin is deprecated upstream (Claude Code 2.0.30). `/learn` is the forward-compatible replacement.
+
+---
+
 ## Model & Swarm Strategy
 
 ### Princípio: Eficiência Máxima
