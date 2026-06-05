@@ -55,7 +55,7 @@
 - Revisão múltipla: `Task(explore, "auth")` + `Task(explore, "api")` + `Task(explore, "tests")`
 - Validação: `Task(build-fixer)` + `Task(security-reviewer-low)` + `Task(tdd-guide-low)`
 
-**⚠️ HARD RULE — Multi-agent + git = `isolation: "worktree"` mandatory** (lesson cravada 2026-05-20):
+**⚠️ HARD RULE — Multi-agent + git = `isolation: "worktree"` mandatory** (lesson cravada 2026-05-20, hook installed 2026-05-21):
 
 Parallel agents que possam executar `git checkout`, `git checkout -b`, `git stash`, `git reset` em working tree compartilhado **CONTAMINAM HEAD** da parent session. Resultado: commits da main session landed em branch errada, ~15-30min de git surgery pra recovery.
 
@@ -68,7 +68,15 @@ Parallel agents que possam executar `git checkout`, `git checkout -b`, `git stas
 
 Symptoms de violação: `git push` reclama de upstream errado, `git log` mostra commits em branch que não era a current, `git branch --show-current` retorna branch que o agent criou (não a sua).
 
-Memory: `[[multi-agent-branch-checkout-race]]` (memoria-nox). Incident reference: `docs/INCIDENTS.md` 2026-05-20 ~09h30 BRT.
+**Defense em camadas (escalated 2026-05-21 após 3 violations em 1 dia despite worktree set; escalada novamente 2026-05-24 8× leaks):**
+
+1. `isolation: "worktree"` no Agent tool spawn — primeira linha (FRAGILE, sparse-checkout in `.claude/worktrees/` causes HEAD desync)
+2. Pre-commit hook global em `~/.git-hooks-global/pre-commit` — **FAIL-SAFE automático** que aborta commit se parent path está em branch != main (RELIABLE)
+3. Pre-commit hook override: `COMMIT_TO_NON_MAIN_OK=1 git commit ...` quando feature branch em parent é intencional
+4. Discipline: `git branch --show-current` antes de `git add` no main session (terceira linha)
+5. **RECOMENDADO 2026-05-24:** Agents devem usar `/tmp/<task>-$(uuidgen)` com fresh `git clone --depth 5`, NÃO `.claude/worktrees/`. Bypassa sparse-checkout entirely + isolate melhor.
+
+Memory: `[[multi-agent-branch-checkout-race]]` + `[[pre-commit-hook-blocks-non-main-commits]]` + `[[worktree-isolation-sparse-checkout-root-cause]]` (memoria-nox). Incidents: 2026-05-20 ~09h30 BRT + 2026-05-21 3× + 2026-05-24 8×.
 
 ---
 
@@ -91,8 +99,9 @@ Ao abrir projeto novo, detectar stack via config files + estrutura + imports, su
 
 ## Hooks & Settings (em `~/.claude/settings.json`)
 
-- **PermissionRequest** — auto-allow/deny via `hooks/permission-auto.mjs` (rm -rf, curl|bash, fork bombs → deny; git-read, gh-read, safe utils → allow)
-- **SubagentStart** — injeta session brief (branch, commits, CLAUDE.md map) em agents heavy-tier via `hooks/subagent-start.mjs`
+- **SessionStart** — `hooks/context-mode-cache-heal.mjs` + **`hooks/nox-mem-brief.sh`** (2026-06-04, Session Priming Loop: injeta brief por salience do nox-mem VPS, scope=basename do cwd, via `https://srv1465941.tail4caa5b.ts.net` + Bearer em `~/.config/nox-mem/token`; fail-open, ~130ms).
+- **SessionEnd + PreCompact** — `hooks/nox-mem-ingest.sh <kind>` (2026-06-04): deposita digest (`.remember/now.md`) no nox-mem como chunk daily/90d, dedup por session_id(+seq no pre_compact), redaction server-side. Fail-open.
+- **Feeder claude-mem→nox-mem** — `~/.config/nox-mem/feeder.py` via launchd `com.toto.nox-mem-feeder` 23:37: digest diário/projeto (session_summaries + 50 obs) → ingest-event. Log: `~/.config/nox-mem/feeder.log`. (core-memory.json DESLIGADO 2026-06-04 — estava stale, descrevia Toto como C-level executivo, framing errado desde 2026-05-05; arquivo arquivado em `~/.claude/memory/core-memory.json.retired-2026-06-04`, conteúdo válido migra pra entity `person/toto` no nox-mem via PRD session-priming-loop §13. Hooks `permission-auto.mjs`/`subagent-start.mjs` também removidos; segurança coberta por allowlist + sandbox.)
 - **`sandbox.filesystem.denyRead`** (added 2026-05-06): bloqueia leitura de `~/.ssh`, `~/.aws`, `~/.openclaw/.env`, `~/.gnupg`, `~/.config/gh/hosts.yml`
 - **`ENABLE_TOOL_SEARCH=auto:30`** em `~/.zshrc` (added 2026-05-06): defere descrições de MCP tools até passarem de 30% do contexto. Reduz overhead de 14 MCPs no system prompt.
 
