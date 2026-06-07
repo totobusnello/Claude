@@ -1,0 +1,19 @@
+extends: relaxed
+rules:
+  line-length: disable
+  truthy: disable
+  comments: disable
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+ignore: |
+  .claude/
+  archive/
+  _archive-pre-split-20260501/
+  staged-*/
+  node_modules/
+  # Excluded: multi-line git commit string in run: block chokes python yaml.safe_load
+  # but is valid GitHub Actions syntax — do not edit the file
+  .github/workflows/perf-baseline-refresh.yml
+  # Excluded: uses YAML aliases that python yaml.safe_load rejects
+  validation/zero-vendor/ci-action.yml

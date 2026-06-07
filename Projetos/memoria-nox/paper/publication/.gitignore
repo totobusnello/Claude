@@ -1,0 +1,14 @@
+# LaTeX build artifacts
+latex/main.aux
+latex/main.log
+latex/main.bbl
+latex/main.blg
+latex/main.out
+latex/main.toc
+latex/main.pdf
+latex/*.fdb_latexmk
+latex/*.fls
+latex/*.synctex.gz
+
+# Test artifacts
+latex/test-*.tar.gz

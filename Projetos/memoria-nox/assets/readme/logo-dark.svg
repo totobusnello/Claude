@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" width="300" height="80" role="img" aria-label="nox-mem">
+  <title>nox-mem</title>
+  <desc>Pain-weighted hybrid memory with shadow discipline — yours by design.</desc>
+
+  <defs>
+    <clipPath id="outside-moon-wm-dark" clipPathUnits="userSpaceOnUse">
+      <path d="M 0 0 H 80 V 80 H 0 Z
+               M 48 14 A 26 26 0 1 0 48 66 A 26 26 0 1 0 48 14 Z"
+            fill-rule="evenodd"/>
+    </clipPath>
+  </defs>
+
+  <!-- ============ Symbol (left, 80x80 region) ============ -->
+  <g>
+    <g clip-path="url(#outside-moon-wm-dark)">
+      <rect x="8" y="20" width="64" height="6" rx="3" fill="#00C896" opacity="0.45"/>
+      <rect x="8" y="37" width="64" height="6" rx="3" fill="#00C896" opacity="0.75"/>
+      <rect x="8" y="54" width="64" height="6" rx="3" fill="#00C896" opacity="1.00"/>
+    </g>
+    <path d="M 48 14 A 26 26 0 1 0 48 66 A 26 26 0 1 0 48 14 Z
+             M 56 18 A 22 22 0 1 1 56 62 A 22 22 0 1 1 56 18 Z"
+          fill="#00C896"
+          fill-rule="evenodd"/>
+  </g>
+
+  <!-- ============ Wordmark (right, from x=96) ============ -->
+  <g font-family="'IBM Plex Sans','Inter Tight','Inter','Helvetica Neue','Segoe UI',system-ui,sans-serif"
+     font-size="38"
+     font-weight="600"
+     letter-spacing="-1.2"
+     fill="#FFFFFF">
+    <text x="96" y="52">nox</text>
+  </g>
+
+  <!-- Accent dot replacing the hyphen — locks brand primary into the wordmark -->
+  <circle cx="171" cy="48" r="3.6" fill="#00C896"/>
+
+  <g font-family="'IBM Plex Sans','Inter Tight','Inter','Helvetica Neue','Segoe UI',system-ui,sans-serif"
+     font-size="38"
+     font-weight="500"
+     letter-spacing="-1.2"
+     fill="#FFFFFF"
+     opacity="0.62">
+    <text x="182" y="52">mem</text>
+  </g>
+</svg>

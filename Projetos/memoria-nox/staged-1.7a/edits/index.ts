@@ -5,7 +5,7 @@ import { ingestFile } from "./ingest.js";
 import { reindex } from "./reindex.js";
 import { primer } from "./primer.js";
 import { getStats } from "./stats.js";
-import { getDb, closeDb } from "./db.js";
+import { getDb, closeDb, checkLargeDbIngestGuard } from "./db.js";
 import { syncProjectContexts, listProjects } from "./project-context-gen.js";
 import { crossSearch, formatCrossResults, getCrossStats } from "./cross-search.js";
 import { compact } from "./compact.js";
@@ -54,7 +54,15 @@ program
 program
   .command("ingest <file>")
   .description("Index a specific .md or .json file")
-  .action(async (file: string) => {
+  .option("--allow-prod", "Skip large-DB ingest guard (required for prod ops, see CLAUDE.md §6)")
+  .action(async (file: string, opts: { allowProd?: boolean }) => {
+    // Large-DB guard (postmortem 2026-05-19): abort if DB looks like prod
+    // and operator hasn't explicitly opted in. Override via --allow-prod flag
+    // or NOX_ALLOW_PROD_INGEST=1 env var.
+    if (opts.allowProd) {
+      process.env.NOX_ALLOW_PROD_INGEST = "1";
+    }
+    checkLargeDbIngestGuard(getDb(), "ingest");
     const result = await ingestFile(file);
     console.log(`[INFO] Ingested ${file}: ${result.chunks} chunks`);
     closeDb();
@@ -247,9 +255,33 @@ program
 program
   .command("kg-merge")
   .description("Merge duplicate entities in knowledge graph (normalizes names)")
-  .action(async () => {
-    const result = mergeEntities();
-    console.log("[KG] Merged " + result.merged + " duplicate entities");
+  .option("--dry-run", "Show what would be merged without mutating (preview JSON)", false)
+  .action(async (opts: { dryRun?: boolean }) => {
+    // audit #20 fix — kg-merge does DELETE+UPDATE on kg_entities/kg_relations.
+    // Wrap in withOpAudit for atomic snapshot pre-op (CLAUDE.md rule #6) and
+    // expose --dry-run for safe preview without mutation.
+    if (opts.dryRun) {
+      const { previewMergeEntities } = await import("./knowledge-graph.js");
+      const preview = previewMergeEntities();
+      console.log(JSON.stringify({
+        op: "kg-merge",
+        dry_run: true,
+        would_merge: preview.wouldMerge,
+        groups: preview.groups,
+      }, null, 2));
+      closeDb();
+      return;
+    }
+    const { withOpAudit } = await import("./lib/op-audit.js");
+    // Issue #3B (2026-05-21): db_source is now explicit — 'main' (prod nox-mem.db).
+    const result = await withOpAudit("kg-merge", { db_source: 'main' }, async () => {
+      const r = mergeEntities();
+      return { affected_rows: r.merged };
+    });
+    const merged = typeof result === "object" && result && "affected_rows" in result
+      ? (result as { affected_rows: number }).affected_rows
+      : 0;
+    console.log("[KG] Merged " + merged + " duplicate entities");
     closeDb();
   });
 
@@ -564,7 +596,17 @@ program
   .command("watch")
   .description("Watch memory directories and auto-ingest on change (real-time)")
   .option("-v, --verbose", "Show skipped directories", false)
-  .action((opts: { verbose: boolean }) => {
+  .option("--allow-prod", "Skip large-DB ingest guard (required for prod ops, see CLAUDE.md §6)")
+  .action((opts: { verbose: boolean; allowProd?: boolean }) => {
+    // audit #20 fix — Large-DB ingest guard at watcher boot. Watcher ingests via
+    // ingestFile() in a long-running loop; if it accidentally points at prod DB
+    // without explicit opt-in, abort before mutating. Override: --allow-prod or
+    // NOX_ALLOW_PROD_INGEST=1. (Watcher is INSERT-only via ingestFile so no
+    // withOpAudit wrap is needed — defense is at-boot gate, not per-write.)
+    if (opts.allowProd) {
+      process.env.NOX_ALLOW_PROD_INGEST = "1";
+    }
+    checkLargeDbIngestGuard(getDb(), "watch");
     startWatch(opts.verbose);
     // Keep process alive
     process.on("SIGINT", () => {
