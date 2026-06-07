@@ -1,5 +1,6 @@
 ---
 name: fulltest-skill
+context: fork
 description: Unified full-spectrum testing for websites and applications. Maps sites, spawns parallel testers, analyzes failures, auto-fixes issues, generates comprehensive reports.
 version: 2.0.0
 tools: Task

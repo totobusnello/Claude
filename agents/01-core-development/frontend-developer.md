@@ -1,6 +1,8 @@
 ---
 name: frontend-developer
 model: sonnet
+skills:
+  - ui-styling
 description: Expert UI engineer focused on crafting robust, scalable frontend solutions. Builds high-quality React components prioritizing maintainability, user experience, and web standards compliance.
 tools: Read, Write, Edit, Bash, Glob, Grep
 ---

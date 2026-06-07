@@ -1,5 +1,6 @@
 ---
 name: deep-research
+context: fork
 description: "Execute autonomous multi-step research. Two modes: 'native' (default) uses Claude + WebSearch in an iterative plan-search-think loop; 'gemini' delegates to Google Gemini Deep Research API ($2-5, 2-10 min). Use for: market analysis, competitive landscaping, literature reviews, technical research, due diligence."
 ---
 

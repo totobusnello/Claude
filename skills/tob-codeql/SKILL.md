@@ -1,5 +1,6 @@
 ---
 name: codeql
+context: fork
 description: >-
   Runs CodeQL static analysis for security vulnerability detection
   using interprocedural data flow and taint tracking. Applicable when
