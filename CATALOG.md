@@ -19,13 +19,13 @@
 | **Data Science/ML** | data-ai, analytics | 05-data-ai agents |
 | **Security Audit** | tob-* (37 skills), root-cause-tracing | 04-quality-security agents |
 | **Marketing/Content** | business-marketing, brand, marketing, research | 08-business-product agents |
-| **Product Development** | cpo-ai-skill, business-cpo, product | 08-business-product + ralph-agents |
+| **Product Development** | cpo-ai-skill, business-cpo, product | 08-business-product + 00-core |
 
 ### By Task Type
 
 | Task | Skill | Agent Category |
 |------|-------|-----------------|
-| **Build feature quickly** | autonomous-dev | ralph-agents (persistent) |
+| **Build feature quickly** | autonomous-dev | 00-core (persistent) |
 | **Code review** | verification-before-completion | 04-quality-security |
 | **Testing strategy** | fulltest-skill | 04-quality-security |
 | **Generate docs** | documentation | 01-core-development |
@@ -33,7 +33,7 @@
 | **Architecture design** | engineering, software-architecture | 01-core-development |
 | **Security scan** | tob-* (37 skills) | 04-quality-security |
 | **Visualize data** | d3js-visualization, analytics | 05-data-ai |
-| **Autonomous loop** | autonomous-loop | ralph-agents |
+| **Autonomous loop** | autonomous-loop | 00-core |
 
 ---
 
@@ -237,7 +237,7 @@ Research Analyst, Literature Reviewer, Data Analyst, Market Analyst, Competitive
 | **c-level** | Directory - Executive guidance agents |
 | **marketing** | Directory - Marketing specialists |
 | **product** | Directory - Product specialists |
-| **ralph-agents** | Directory - 32+ autonomous persistent agents |
+| **00-core** | Directory - 32+ autonomous persistent agents |
 | **review** | Directory - Code review agents |
 | **api-agent.md** | File - API design specialist |
 | **database-agent.md** | File - Database specialist |
@@ -334,7 +334,7 @@ Categories include:
 
 ### "I need to build this feature fast"
 → Use **autonomous-dev** or **subagent-driven-dev**
-→ Use **ralph-agents** for long-running tasks
+→ Use **00-core** for long-running tasks
 → Use **fulltest-skill** to ensure quality
 
 ### "I'm getting weird errors"
@@ -446,7 +446,7 @@ Agents are invoked explicitly:
 ```
 Use the 02-language-specialists agent for TypeScript
 Use the 04-quality-security agent for security review
-Use ralph-agents for long-running background work
+Use 00-core for long-running background work
 ```
 
 ---

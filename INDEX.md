@@ -80,7 +80,7 @@
 - **c-level** - Executive guidance
 - **marketing** - Marketing specialists
 - **product** - Product specialists
-- **ralph-agents** - 32+ autonomous persistent agents
+- **00-core** - 32+ autonomous persistent agents
 - **review** - Code review agents
 
 ### Standalone Agent Files (7)
@@ -143,7 +143,7 @@ cowork-platform
 - **c-level** - Executive guidance agents
 - **marketing** - Marketing specialists
 - **product** - Product specialists
-- **ralph-agents** - 32+ autonomous persistent agents for long-running tasks, continuous improvement, and background operations
+- **00-core** - 32+ autonomous persistent agents for long-running tasks, continuous improvement, and background operations
 - **review** - Code review agents
 
 ### Standalone Files
@@ -170,7 +170,7 @@ cowork-platform
 
 | Task | Best Skill | Best Agent |
 |------|-----------|-----------|
-| Autonomous feature build | autonomous-dev | ralph-agents |
+| Autonomous feature build | autonomous-dev | 00-core |
 | Code review | verification-before-completion | 04-quality-security |
 | Testing strategy | fulltest-skill | 04-quality-security |
 | Documentation | documentation | 01-core-development |
@@ -195,7 +195,7 @@ Comprehensive security pattern expertise:
 - **Tools & Utilities**: tob-yara-authoring, tob-debug-buttercup, tob-seatbelt-sandboxer, tob-dwarf-expert, tob-git-cleanup, tob-fp-check
 - **Meta**: tob-agentic-actions-auditor, tob-ask-questions-if-underspecified, tob-let-fate-decide, tob-second-opinion, tob-skill-improver, tob-claude-in-chrome-troubleshooting
 
-### Ralph Agents (32+ agents in /agents/ralph-agents/)
+### Ralph Agents (32+ agents in /agents/00-core/)
 Long-running, autonomous agents designed for:
 - Persistent background tasks
 - Continuous integration and improvement

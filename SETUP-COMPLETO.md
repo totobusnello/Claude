@@ -495,7 +495,7 @@
 ├── agents/          → ~/.claude/agents/    (15 categories, 183 files)
 │   ├── 01-core-development/ ... 10-research-analysis/
 │   ├── c-level/     (CEO, CTO advisors)
-│   ├── ralph-agents/ (31 multi-tier agents)
+│   ├── 00-core/ (31 multi-tier agents)
 │   └── ... (avulsos + marketing + product + review)
 ├── commands/        → ~/.claude/commands/  (27 categories, 223 files)
 ├── prompts/         → ~/.claude/prompts/   (41 files)
