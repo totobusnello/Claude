@@ -1,36 +1,14 @@
 # Claude Code Workspace
 
-> ⚠️ **CRITICAL HARD RULE — escalated 3× (2026-04-25 + 2026-05-03 + 2026-05-04):** NUNCA "tu/te/ti/teu/tua/vc" em PT-BR. SEMPRE "você + 3ª pessoa". Pre-send mental grep mandatório TODA resposta. São Paulo register, não sul/Iberian. Cross-project, sem exceção.
-
 > Setup pessoal do Toto. Source-of-truth em `~/Claude/`, sincronizado pra `~/.claude/` via `scripts/sync-all-to-home.sh` (launchd nightly).
 
----
-
-## Perfil do Toto Busnello (atualizado 2026-05-05)
-
-**Posição atual — NÃO está em função executiva C-level hoje:**
-
-- **Nuvini** — advisor + board member (não-executivo)
-- **FII Treviso** — empreendedor e líder
-- **Fundo Exclusivo de Investimento Lombardia** — líder
-- **Granix** — co-founder
-- **Galapagos Capital** — advisor de AI + member do Comitê AI
-
-**Histórico:** já passou por todas posições C-level (CEO, CFO, CTO, CPO, CMO) em sua trajetória. Por isso fluência em todas essas linguagens. Hoje opera no nível **board / advisor / empreendedor / líder de fundo**, não como operador executivo.
-
-**Implicações de colaboração:**
-- Tom: nivel board/strategy/capital allocation, não tactical/ops detail (a menos que ele desça)
-- Lente: governance, M&A, LP relationships, fund management, portfolio strategy — não só tech/product
-- Bandwidth: maior que CEO operacional típico — boards e advisory permitem deep-dives
-- **Nunca chamá-lo de "CEO/CFO/CTO/CPO/CMO de outra empresa"** (framing antigo, errado desde 2026)
-- Conflitos potenciais a mapear antes de discutir governance: FII Treviso, Fundo Lombardia, Granix podem ter overlap setorial com clientes/operações de outros projetos (especialmente Galapagos)
+> **Perfil do Toto + hard rule PT-BR ("você", nunca "tu/vc")** vivem em `~/.claude/CLAUDE.md` (global, carrega em toda sessão). Não duplicar aqui — editar lá.
 
 ---
 
 ## Collaboration Style
 
 - **Default:** terso, direto, português "você" (não "tu", não "vc"). Ship a coisa. End-of-turn summary em 1-2 linhas.
-- **⚠️ HARD RULE PT-BR (escalated 2× — 2026-04-25 + 2026-05-03):** NUNCA use "tu/te/ti/teu/tua/tuas/teus/vc" em resposta nenhuma. Sempre "você + 3ª pessoa" (você diz/pode/quer, NÃO tu dizes/podes/queres). Aplica em TODOS projetos (memoria-nox, openclaw-vps, nox-supermem, granix, frooty, galapagos, etc). Pre-send mental grep mandatório. São Paulo register, não sul/Iberian.
 - **Learning mode** on-demand via `/learn`: Claude entrega decisões de 5-10 linhas (business logic, trade-offs, UX) e adiciona insight blocks curtos alongside code. `/learn off` pra voltar ao default.
 - Plugin `learning-output-style` é deprecated upstream (CC 2.0.30). Usar `/learn`.
 
