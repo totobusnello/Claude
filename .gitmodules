@@ -31,3 +31,48 @@
 [submodule "Projetos/Gordon-Gekko_Trader"]
 	path = Projetos/Gordon-Gekko_Trader
 	url = https://github.com/totobusnello/Gordon-Gekko_Trader.git
+[submodule "Projetos/memoria-nox"]
+	path = Projetos/memoria-nox
+	url = https://github.com/totobusnello/memoria-nox.git
+[submodule "Projetos/BIolab AI"]
+	path = Projetos/BIolab AI
+	url = https://github.com/totobusnello/biolab-ai.git
+[submodule "Projetos/Curso-AI"]
+	path = Projetos/Curso-AI
+	url = https://github.com/totobusnello/curso-ai.git
+[submodule "Projetos/Fake-News-Check"]
+	path = Projetos/Fake-News-Check
+	url = https://github.com/totobusnello/fake-news-check.git
+[submodule "Projetos/GranCoffee"]
+	path = Projetos/GranCoffee
+	url = https://github.com/totobusnello/grancoffee.git
+[submodule "Projetos/Projeto-AI-Galapagos"]
+	path = Projetos/Projeto-AI-Galapagos
+	url = https://github.com/totobusnello/projeto-ai-galapagos.git
+[submodule "Projetos/Superfrio"]
+	path = Projetos/Superfrio
+	url = https://github.com/totobusnello/superfrio.git
+[submodule "Projetos/São-Thiago-FII"]
+	path = Projetos/São-Thiago-FII
+	url = https://github.com/totobusnello/sao-thiago-fii.git
+[submodule "Projetos/agent-hub-dashboard"]
+	path = Projetos/agent-hub-dashboard
+	url = https://github.com/totobusnello/agent-hub-dashboard.git
+[submodule "Projetos/kids-wearable"]
+	path = Projetos/kids-wearable
+	url = https://github.com/totobusnello/kids-wearable.git
+[submodule "Projetos/nox-supermem"]
+	path = Projetos/nox-supermem
+	url = https://github.com/totobusnello/nox-supermem.git
+[submodule "Projetos/nox-workspace"]
+	path = Projetos/nox-workspace
+	url = https://github.com/totobusnello/nox-workspace.git
+[submodule "Projetos/openclaw-update-toolkit"]
+	path = Projetos/openclaw-update-toolkit
+	url = https://github.com/totobusnello/openclaw-update-toolkit.git
+[submodule "Projetos/openclaw-vps"]
+	path = Projetos/openclaw-vps
+	url = https://github.com/totobusnello/openclaw-vps.git
+[submodule "Projetos/Posts Linkedin"]
+	path = Projetos/Posts Linkedin
+	url = https://github.com/totobusnello/posts-linkedin.git

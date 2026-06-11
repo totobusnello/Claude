@@ -1,5 +1,0 @@
-dist/
-node_modules/
-bench-results.json
-bench-progress.log
-*.log

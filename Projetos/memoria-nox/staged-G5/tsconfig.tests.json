@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noEmitOnError": false
-  },
-  "include": ["edits/src/lib/**/*.ts"],
-  "exclude": ["dist", "node_modules", "edits/src/api/**"]
-}
