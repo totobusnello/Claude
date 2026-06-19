@@ -48,3 +48,6 @@ agent-orchestrator.yaml
 .tmp.driveupload/
 .claude/
 Projetos/memoria-nox/staged-P7-browser-extension/
+
+# logs do launchd sync (gerados, não versionar)
+logs/
