@@ -88,9 +88,9 @@ O OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), us
 
 1. **Dashboard do gateway** (mais visual):
    ```bash
-   openclaw-dash            # alias: túnel SSH -L 18790:127.0.0.1:18789
-   # abre http://localhost:18790 no Chrome
+   ocdash                   # 1 passo: túnel SSH + abre o Chrome + derruba o túnel no ctrl+c
    ```
+   Cru, 2 passos: `openclaw-dash` (segura o túnel) + noutro pane `open -a "Google Chrome" http://localhost:18790`.
 2. **Sessão ao vivo (tmux)** — vê o Claude/bot rodando:
    ```bash
    ssh root@100.87.8.44      # Tailscale (ou 187.77.234.79)
