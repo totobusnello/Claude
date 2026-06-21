@@ -109,11 +109,11 @@ O OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), us
 
 ## O que mais vale configurar
 
-- **Instalar a integração `codex`** (você usa): `herdr integration install codex`.
-- **Notificações** (`settings > toasts`): avisar quando um agent fica `blocked`/`done` — útil em swarm longo.
-- **herdr permanente** (sobreviver reboot): configurar launchd pro `herdr server` (hoje some no reboot).
-- **`work vps`**: comando pra abrir o VPS dentro do cockpit (SSH + túnel dashboard) — a pedir.
-- **Integrar `herdr agent wait --status blocked` no AO**: o AO reage a agents travados automaticamente (próximo nível).
+- ✅ **Integração `codex`** instalada (hook em `~/.codex/herdr-agent-state.sh`). Junto de claude + kimi → status blocked/working/done dos 3.
+- ✅ **herdr permanente** — launchd em `~/Library/LaunchAgents/dev.herdr.server.plist`. Sobe o `herdr server` no login e ressuscita em **crash** (`KeepAlive: SuccessfulExit=false`). Ativa no **próximo login** (não agora, p/ não conflitar com o server vivo). `herdr server stop` (saída limpa) **continua parando** de propósito; pra reativar sem reboot: `launchctl load ~/Library/LaunchAgents/dev.herdr.server.plist`.
+- ✅ **`work vps`** — feito (pane de saúde).
+- ✅ **`herdr agent wait --status blocked` → watcher** `~/Claude/scripts/herdr-ao-watch.sh`: poll multi-agent, notifica (macOS) a cada novo `blocked`. Rode num pane: `bash ~/Claude/scripts/herdr-ao-watch.sh`. Gancho `ao send` pronto (comentado) p/ ligar reação automática do AO quando os agents forem sessões do AO.
+- **Notificações nativas** (`settings > toasts`): complementam o watcher p/ `done` em swarm longo.
 
 ---
 
