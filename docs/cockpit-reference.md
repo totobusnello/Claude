@@ -31,7 +31,7 @@
 > O workspace **VPS** entra **sempre** no cockpit (1 pane de **saúde**, idempotente). Decisão 2026-06-20: trocado de 3 panes `journalctl -f` (firehose de heartbeat = ruído) por **sinal**. O pane mostra, com refresh 30s:
 > - status dos 3 services systemd (🟢 active / 🔴 outro): `openclaw-gateway`, `nox-mem-api`, `nox-mem-watch`
 > - só os **erros** das últimas 2h (`journalctl -p err`), não o stream inteiro
-> Responde em 1 olhada "tá de pé? teve erro?". Dashboard visual continua no atalho **`openclaw-dash`** (→ `http://localhost:18790`), sob demanda. Tudo via `ssh root@187.77.234.79`.
+> Responde em 1 olhada "tá de pé? teve erro?". Dashboard visual continua no atalho **`openclaw-dash`** (→ `http://localhost:18790`), sob demanda. Tudo via `ssh root@187.77.234.79`, com **reconexão automática** (`ServerAliveInterval` + loop de retry) — sobrevive a sleep do Mac / queda de wifi, não fica com pane morto. Se a conexão cair: `── conexão VPS caiu · reconectando em 8s ──` e volta sozinho.
 | `work close <nome>` | fecha UM workspace (ex: `work close VPS`; fuzzy: `work close galap`). `herdr workspace close <id>` é o equivalente cru. |
 | `work list` | lista workspaces abertos + status |
 
