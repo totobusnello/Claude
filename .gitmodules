@@ -27,7 +27,7 @@
 	url = https://github.com/totobusnello/powerpoint-templates.git
 [submodule "Projetos/agent-orchestrator"]
 	path = Projetos/agent-orchestrator
-	url = https://github.com/ComposioHQ/agent-orchestrator.git
+	url = https://github.com/totobusnello/agent-orchestrator.git
 [submodule "Projetos/Gordon-Gekko_Trader"]
 	path = Projetos/Gordon-Gekko_Trader
 	url = https://github.com/totobusnello/Gordon-Gekko_Trader.git
