@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# glm — GLM-5.2 (Zhipu / Z.ai) como voz adversarial, via harness Claude headless.
+#
+# Roda `claude --bare -p` contra o endpoint Anthropic-compatible da Z.ai. O modo
+# --bare pula plugin sync, hooks, auto-memory, CLAUDE.md e keychain, e usa
+# ESTRITAMENTE ANTHROPIC_API_KEY — então não recursa o ecossistema da sessão pai
+# nem toca o OAuth do plano Max. A key vem de ~/.config/glm/token (chmod 600);
+# nunca fica no script nem no git.
+#
+# Read-only por padrão (só Read/Grep/Glob) — é uma voz de revisão, não de edição.
+#
+# Uso:
+#   glm "revise a abordagem deste diff: ..."     # explora o cwd, devolve veredito
+#   glm "explique o módulo X em 5 linhas"
+#   GLM_MODEL=glm-5.2 glm "..."                   # override de modelo (sem 1M)
+set -euo pipefail
+
+TOKEN_FILE="${GLM_TOKEN_FILE:-$HOME/.config/glm/token}"
+MODEL="${GLM_MODEL:-glm-5.2[1m]}"
+BASE_URL="${GLM_BASE_URL:-https://api.z.ai/api/anthropic}"
+
+if [ ! -r "$TOKEN_FILE" ]; then
+  echo "glm: API key não encontrada em $TOKEN_FILE (gere no dashboard Z.ai e salve com chmod 600)" >&2
+  exit 1
+fi
+KEY="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+if [ -z "$KEY" ]; then
+  echo "glm: $TOKEN_FILE está vazio" >&2
+  exit 1
+fi
+
+# O prompt vai por STDIN: --allowedTools é variádico (<tools...>) e engoliria um
+# prompt posicional. env -u limpa vars da sessão Claude pai que confundiriam o
+# subprocess. --bare exige ANTHROPIC_API_KEY; mandamos AUTH_TOKEN junto p/ compat.
+printf '%s' "$*" | env \
+  -u ANTHROPIC_MODEL -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u ENABLE_TOOL_SEARCH \
+  ANTHROPIC_BASE_URL="$BASE_URL" \
+  ANTHROPIC_API_KEY="$KEY" \
+  ANTHROPIC_AUTH_TOKEN="$KEY" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.2" \
+  claude --bare -p --model "$MODEL" --allowedTools "Read Grep Glob"
