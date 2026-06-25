@@ -12,6 +12,10 @@
 - **Learning mode** on-demand via `/learn`: Claude entrega decisões de 5-10 linhas (business logic, trade-offs, UX) e adiciona insight blocks curtos alongside code. `/learn off` pra voltar ao default.
 - Plugin `learning-output-style` é deprecated upstream (CC 2.0.30). Usar `/learn`.
 
+### Idioma
+
+Escreva em português, mas mantenha SEMPRE em inglês os termos técnicos, comandos/CLI, identificadores de código, nomes de produtos/ferramentas e jargão de engenharia (commit, push, merge, branch, diff, build, deploy, pull request, rate limit, embeddings, retrieval, etc.). NÃO traduza esses termos nem crie equivalentes em português. (A regra "você", nunca "tu/vc", continua valendo — vive no `~/.claude/CLAUDE.md` global.)
+
 ---
 
 ## Model & Swarm Strategy

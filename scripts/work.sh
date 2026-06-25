@@ -5,19 +5,57 @@
 #
 # Contextual ao diretório onde você roda:
 #   work            estando DENTRO de um projeto  → abre só esse projeto
-#                   estando numa raiz de projetos → abre todos os projetos dali (alfabético)
+#                   estando numa raiz de projetos → abre TODAS as pastas-projeto dali (alfabético)
 #                   em outro lugar                → abre todos os projetos conhecidos (alfabético)
 #   work all        força todos os projetos conhecidos
+#   work curated    OPT-IN: só git repos/submódulos OU allowlist (ver CURADORIA abaixo)
 #   work <projeto>  abre/foca UM projeto (fuzzy match no nome)
 #   work swarm <proj> N   N git-worktrees isolados (hard-rule multi-agent+git=worktree)
 #   work list       lista workspaces abertos
+#
+# DEFAULT mostra TODAS as pastas (inclusive não-git) — é o comportamento desejado.
+# CURADORIA é OPT-IN via `work curated` (nunca filtra o fluxo normal `work`): só vira space o que é
+#   • git repo de verdade / submódulo (.git existe, ou path listado em ~/Claude/.gitmodules), OU
+#   • path presente na allowlist ~/Claude/.herdr/spaces (um path por linha; se o arquivo
+#     existir, ELE tem prioridade — git/.gitmodules deixam de valer).
 set -uo pipefail
 
 YAML="$HOME/Claude/agent-orchestrator.yaml"
+ALLOWLIST="$HOME/Claude/.herdr/spaces"     # allowlist opcional de spaces (1 path/linha, prioridade)
+GITMODULES="$HOME/Claude/.gitmodules"      # submódulos declarados contam como git de verdade
 
-is_project() {  # path -> 0 se parece um projeto
+is_project() {  # path -> 0 se parece um projeto (heurística ampla, usada em `work all`/PWD)
   [ -d "$1/.git" ] || [ -f "$1/package.json" ] || [ -f "$1/pyproject.toml" ] || [ -f "$1/CLAUDE.md" ] || [ -f "$1/Cargo.toml" ] || [ -f "$1/go.mod" ]
 }
+
+# paths absolutos dos submódulos declarados em ~/Claude/.gitmodules
+submodule_paths() {
+  [ -f "$GITMODULES" ] || return 0
+  grep -E '^[[:space:]]*path[[:space:]]*=' "$GITMODULES" \
+    | sed -E 's/.*=[[:space:]]*//; s/[[:space:]]+$//' \
+    | while IFS= read -r rel; do [ -n "$rel" ] && printf '%s\n' "$HOME/Claude/${rel%/}"; done
+}
+
+# path -> 0 se entra no default CURADO (allowlist tem prioridade se existir)
+is_curated_space() {
+  local p="${1%/}" line
+  if [ -f "$ALLOWLIST" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      line="${line%%#*}"                                    # tira comentário
+      line="$(printf '%s' "$line" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+      [ -z "$line" ] && continue
+      line="${line/#\~/$HOME}"; line="${line%/}"
+      [ "$line" = "$p" ] && return 0
+    done < "$ALLOWLIST"
+    return 1
+  fi
+  [ -e "$p/.git" ] && return 0                              # repo real (dir) ou submódulo init (file)
+  submodule_paths | grep -qxF "$p" && return 0             # submódulo declarado no .gitmodules
+  return 1
+}
+
+# filtra um stream de paths (1/linha) deixando só os spaces curados
+curate() { while IFS= read -r p; do [ -n "$p" ] && is_curated_space "$p" && printf '%s\n' "$p"; done; }
 
 # projetos conhecidos (AO yaml + extras), ordenados alfabeticamente por nome
 known_projects() {
@@ -29,9 +67,11 @@ known_projects() {
     | sort -f | cut -f2-
 }
 
-# subdiretórios de um dir que são projetos, ordenados por nome
+# subdiretórios (não-ocultos) de um dir, ordenados por nome.
+# DEFAULT: TODAS as pastas (inclusive não-git e submódulos), não só as que passam is_project.
+# O glob */ já ignora ocultas (.remember, .git). A curadoria é opt-in via `curate` no fluxo `curated`.
 child_projects() {  # dir
-  for d in "$1"/*/; do d="${d%/}"; is_project "$d" && printf '%s\t%s\n' "$(basename "$d")" "$d"; done \
+  for d in "$1"/*/; do d="${d%/}"; [ -d "$d" ] && printf '%s\t%s\n' "$(basename "$d")" "$d"; done \
     | sort -f | cut -f2-
 }
 
@@ -51,7 +91,15 @@ open_one() {  # path
   local out pid
   out="$(herdr workspace create --cwd "$p" --label "$n" --no-focus --env HERDR_PANE_ROLE=brief 2>/dev/null)"
   pid="$(printf '%s' "$out" | python3 -c "import json,sys;print(json.load(sys.stdin)['result']['root_pane']['pane_id'])" 2>/dev/null)"
-  [ -n "$pid" ] && herdr pane split "$pid" --direction right --ratio 0.26 --cwd "$p" --env HERDR_PANE_ROLE=gitlog --no-focus >/dev/null 2>&1
+  local wsid laz; wsid="$(ws_id "$n")"
+  # layout fixo de 3 panes: [ claude 42% | lazygit 32.5% | monitor 25.5% ]
+  if [ -n "$pid" ]; then
+    laz="$(herdr pane split "$pid" --direction right --ratio 0.42 --cwd "$p" \
+        --env HERDR_PANE_ROLE=lazygit --no-focus 2>/dev/null \
+        | python3 -c "import json,sys;print(json.load(sys.stdin)['result']['pane']['pane_id'])" 2>/dev/null)"
+    [ -n "$laz" ] && herdr pane split "$laz" --direction right --ratio 0.56 --cwd "$p" \
+        --env HERDR_PANE_ROLE=monitor --env HERDR_WS="$wsid" --no-focus >/dev/null 2>&1
+  fi
   echo "  + $n"
 }
 
@@ -64,6 +112,9 @@ open_vps() {  # workspace VPS — 1 pane de saúde (status 3 services + erros), 
     && echo "  + VPS (saúde: 3 services + erros · dashboard via openclaw-dash)" \
     || echo "  ! VPS falhou"
 }
+
+# teste: `WORK_SOURCE_ONLY=1 source work.sh` carrega as funções sem efeitos colaterais
+if [ "${WORK_SOURCE_ONLY:-0}" = 1 ]; then return 0 2>/dev/null || exit 0; fi
 
 ensure_server
 cmd="${1:-home}"
@@ -84,6 +135,16 @@ case "$cmd" in
     ;;
   all)
     echo "🐑 todos os projetos conhecidos…"; known_projects | open_many; open_vps
+    ;;
+  curated)
+    # OPT-IN: aplica a curadoria (git repos/submódulos · allowlist). NÃO afeta o `work` normal.
+    echo "🐑 montando spaces CURADOS (git repos/submódulos · allowlist ~/Claude/.herdr/spaces)…"
+    if [ -n "$(child_projects "$PWD" | curate)" ]; then
+      child_projects "$PWD" | curate | open_many; open_vps
+    else
+      known_projects | curate | open_many; open_vps
+    fi
+    echo "pronto — ctrl+b w pra navegar.  ('work' sozinho mostra TODAS as pastas)"
     ;;
   list)
     herdr workspace list 2>/dev/null | python3 -c "import json,sys;[print(' •',w['label'],'('+w['agent_status']+')') for w in json.load(sys.stdin)['result']['workspaces']]" 2>/dev/null

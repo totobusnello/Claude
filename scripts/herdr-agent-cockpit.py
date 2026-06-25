@@ -37,6 +37,10 @@ C = {"working": GRN, "blocked": RED, "unknown": YEL, "idle": GRY}
 
 DONE, PROG, TODO = set("✔✓☑"), set("◼■▸▶"), set("◻☐□")
 
+# badge git por space: ●dirty ↑ahead ↓behind ⚠conflito. cache leve p/ não pesar o refresh.
+_BADGE_CACHE = {}        # path -> (expiry_ts, badge_str)
+BADGE_TTL = 8.0          # recalcula no máx a cada 8s por path (2× o refresh default)
+
 TASK_RE = re.compile(r"^[\s⎿│]*([✔✓☑◼■◻☐□▸▶])\s*Task\s*(\d+)\s*[:.\-]?\s*(.*)$")
 CUR_RE = re.compile(r"^\s*▸\s*Task\s*(\d+).*?\((\d+/\d+)\)")
 AGENT_RE = re.compile(r"^\s*([⏺◯◐])\s*(.+?)\s*$")
@@ -69,6 +73,46 @@ def read_recent(tid, lines=50):
         return json.loads(out)["result"]["read"]["text"]
     except Exception:
         return ""
+
+
+def git_out(path, *args):
+    try:
+        r = subprocess.run(["git", "-C", path, *args], capture_output=True, text=True, timeout=4)
+        return r.stdout if r.returncode == 0 else ""
+    except Exception:
+        return ""
+
+
+def git_badge(path):
+    """Badge compacto do estado git do space: ●dirty ↑ahead ↓behind ⚠conflito (cache TTL)."""
+    if not path:
+        return ""
+    now = time.time()
+    hit = _BADGE_CACHE.get(path)
+    if hit and hit[0] > now:
+        return hit[1]
+    parts = []
+    dirty = sum(1 for l in git_out(path, "status", "--porcelain").splitlines() if l.strip())
+    if dirty:
+        parts.append(f"{YEL}●{dirty}{R}")
+    ab = git_out(path, "rev-list", "--left-right", "--count", "@{u}...HEAD").split()
+    if len(ab) == 2:                              # sem upstream → lista vazia, não quebra
+        behind, ahead = ab[0], ab[1]
+        if ahead != "0":
+            parts.append(f"{GRN}↑{ahead}{R}")
+        if behind != "0":
+            parts.append(f"{CYA}↓{behind}{R}")
+    if git_out(path, "diff", "--name-only", "--diff-filter=U").strip():
+        parts.append(f"{RED}⚠{R}")
+    badge = " ".join(parts)
+    _BADGE_CACHE[path] = (now + BADGE_TTL, badge)
+    return badge
+
+
+def git_changes(path, n=10):
+    """Linhas de `git status -s` (até n) + total — dá 'vida' ao painel mesmo com o agente idle."""
+    lines = [l for l in git_out(path, "status", "-s").splitlines() if l.strip()]
+    return lines[:n], len(lines)
 
 
 def harness_of(subtype):
@@ -151,9 +195,10 @@ def fmt_agent(sym, txt, harness_main, model_main, amodels):
 
 
 def render():
-    ags = agents()
+    all_ags = agents()
+    ags = all_ags
     if WS:
-        ags = [a for a in ags if a.get("workspace_id") == WS]
+        ags = [a for a in all_ags if a.get("workspace_id") == WS]
     ags.sort(key=lambda x: os.path.basename((x.get("cwd") or "").rstrip("/")).lower())
     if WS:
         active, idle = ags, []            # escopo do workspace: mostra só este projeto (working ou idle)
@@ -174,9 +219,14 @@ def render():
         tid = a.get("terminal_id") or a.get("pane_id") or ""
         tasks, progress, agent_lines, branch, ctx, collapsed, model_main, amodels = parse(read_recent(tid))
 
+        badge = git_badge(a.get("cwd") or "")
         meta = []
-        if branch:
+        if branch and badge:
+            meta.append(f"{CYA}{branch}{R} {badge}")
+        elif branch:
             meta.append(f"{CYA}{branch}{R}")
+        elif badge:
+            meta.append(badge)
         if ctx:
             meta.append(f"{DIM}ctx {ctx}%{R}")
         meta.append(f"{MAG}{harness_main}{R}" + (f" {DIM}{model_main}{R}" if model_main else ""))
@@ -194,7 +244,32 @@ def render():
             out.append(f"    {DIM}─ agentes ─{R}")
             for sym, txt in agent_lines:
                 out.append(fmt_agent(sym, txt, harness_main, model_main, amodels))
+
+        # git de relance — mantém o painel "vivo" mesmo quando o agente está idle
+        cwd = a.get("cwd") or ""
+        if cwd:
+            changes, total = git_changes(cwd)
+            out.append(f"    {DIM}─ git ─{R}")
+            if changes:
+                for cl in changes:
+                    xy = cl[:2]
+                    col = RED if "U" in xy else (GRN if xy[:1] in ("A",) else (GRY if "?" in xy else YEL))
+                    out.append(f"    {col}{cl}{R}")
+                if total > len(changes):
+                    out.append(f"    {DIM}… +{total - len(changes)} arquivo(s){R}")
+            else:
+                out.append(f"    {GRY}working tree limpo{R}")
         out.append("")
+
+    # glance global: o que está rodando nos OUTROS spaces (visão de atividade ao vivo)
+    if WS:
+        others = [a for a in all_ags
+                  if a.get("workspace_id") != WS and a.get("agent_status") in ("working", "blocked")]
+        if others:
+            names = ", ".join(os.path.basename((a.get("cwd") or "").rstrip("/")) for a in others[:6])
+            out.append(f"{DIM}↗ ativos em outros spaces ({len(others)}): {names}{R}")
+        else:
+            out.append(f"{DIM}↗ nenhum outro agente ativo agora{R}")
 
     if idle:
         out.append(f"{DIM}💤 idle ({len(idle)}): {', '.join(idle)}{R}")
