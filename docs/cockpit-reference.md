@@ -1,6 +1,6 @@
 # Cockpit de Trabalho — Referência (herdr + work + cw)
 
-> Ritual de trabalho montado em 2026-06-20, **layout de 4 colunas + monitor de atividade adicionados em 2026-06-25**.
+> Ritual de trabalho montado em 2026-06-20, **layout de 4 colunas + monitor de atividade adicionados em 2026-06-25**; **col 3 virou o `git-glance` (ahead/behind + ação) em 2026-06-29**.
 > herdr = multiplexer de terminal pra agents. Abre o iTerm → `herdr` → `work` → cockpit montado com briefing por projeto.
 
 ---
@@ -13,14 +13,14 @@ Todo space montado fica **idêntico**, da esquerda pra direita:
 |---|---|---|---|
 | **1** | **spaces + agents** | ~13% | sidebar nativa do herdr (lista de workspaces + status dos agents) |
 | **2** | **claude** (a sessão) | ~36% | pane do briefing → `cw` pronto no prompt; vira o Claude ao dar Enter |
-| **3** | **lazygit** (FIXO) | ~29% | `lazygit` no repo do space ativo — sempre aberto, não sob demanda |
+| **3** | **git-glance** (FIXO) | ~29% | `herdr-git-glance.sh` no repo do space — sincronização git (ver abaixo) |
 | **4** | **monitor / atividade ao vivo** | ~22% | `herdr-agent-cockpit.py` escopado no space (ver abaixo) |
 
-**Regra: nenhum pane vazio.** As proporções são fixas e iguais em todo space (ratios de split `0.42` claude / `0.56` lazygit sobre a área de panes).
+**Regra: nenhum pane vazio.** As proporções são fixas e iguais em todo space (ratios de split `0.42` claude / `0.56` git-glance sobre a área de panes).
 
-O layout é **garantido em todos os spaces** (os que já existem e os novos) e **persiste após reiniciar o herdr** — via o *watcher* (abaixo), que reconstrói `[claude | lazygit | monitor]` no boot e ao focar cada space (idempotente: só age se estiver fora do alvo).
+O layout é **garantido em todos os spaces** (os que já existem e os novos) e **persiste após reiniciar o herdr** — via o *watcher* (abaixo), que reconstrói `[claude | git-glance | monitor]` no boot e ao focar cada space (idempotente: só age se estiver fora do alvo).
 
-> **Custo:** o lazygit fixo roda em **todos** os spaces simultaneamente (~30 MB de RAM cada, ~0% CPU ocioso). Se ficar pesado, dá pra limitar aos spaces recentes ou voltar pra sob demanda — é uma troca de uma linha.
+> **Custo:** o git-glance é um loop `bash` leve (git local a cada 15s, alguns MB). Substituiu o lazygit fixo (~30 MB/space × 26 = ~780 MB) — ficou bem mais leve **e** mais útil. O lazygit cheio agora é **sob demanda** no `shift+v`.
 
 ---
 
@@ -35,6 +35,23 @@ O layout é **garantido em todos os spaces** (os que já existem e os novos) e *
 - **glance global** (`↗ ativos em outros spaces`): o que está rodando nos demais agents
 
 > O modelo Claude **exato de um subagente enquanto ele roda** não é exposto (statusline só tem `subagent_type`); o harness (claude/codex/kimi) é inferido e o modelo aparece quando o subagente **completa**.
+
+---
+
+## Sincronização git (col 3) — `git-glance`
+
+`herdr-git-glance.sh` — painel **enxuto** por space, focado em decidir a **próxima ação**, não em mostrar o histórico:
+
+- **STATUS grande** que responde "pra frente ou pra trás?" de imediato: `↑ PRA SUBIR` (push) · `↓ PRA DESCER` (pull) · `⇅ DIVERGIU` · `✓ EM DIA` — com a **ação ao lado**.
+- **TODOS os commits pendentes** ahead/behind (cap 40 só pra não estourar num clone fresco) — você vê os commits a subir/descer, **sem** o histórico já sincronizado.
+- **working tree** (arquivos modificados) + caminho pro commit.
+- **Acionável** — teclas: `P` push · `p` pull (`--ff-only`) · `f` fetch · `r` refresh agora · `g` lazygit cheio (e `q` dentro dele volta pro painel) · `q` cai num shell livre.
+
+> **Sem fetch automático** de propósito: o ahead/behind é lido do remote-tracking ref **local** (sem rede), então o painel **não dispara** o prompt do macOS *"iTerm deseja acessar dados de outros apps"* (TCC/Keychain via credential helper). Fetch só quando você aperta `f`.
+
+> Redesenho **in-place** (cursor pro topo + sobrescreve linha a linha) em vez de `clear` — por isso **não pisca** mesmo refrescando a cada 15s.
+
+Em pastas **protegidas pelo TCC** (`~/Desktop`, `~/Documents`, …) o layout vira `[claude | monitor]` **sem** git-glance, pra não rodar git em loop perto de áreas vigiadas.
 
 ---
 
@@ -85,10 +102,10 @@ Spaces ficam sempre em **ordem alfabética** (home no topo) — `herdr-sort-spac
 | `ctrl+b` `shift+n` | novo workspace |
 | `ctrl+b` `shift+o` | **montar o cockpit** (roda `work`) de dentro do herdr |
 | `ctrl+b` `shift+a` | abrir o **cockpit de agentes** num pane à direita (escopado no space atual) |
-| `ctrl+b` `shift+v` | **focar o pane do lazygit** (col 3) — o lazygit é fixo, este atalho só pula o foco pra ele |
+| `ctrl+b` `shift+v` | **abrir o lazygit cheio** num split focado (sob demanda) — col 3 fixa já é o git-glance |
 | `ctrl+b` `?` | ajuda de atalhos |
 
-> `shift+g`/`alt+g`/`shift+l` e `g` são nativos do herdr (goto/new_worktree/swap_pane), por isso o lazygit usa `shift+v`.
+> `shift+g`/`alt+g`/`shift+l` e `g` são nativos do herdr (goto/new_worktree/swap_pane), por isso o lazygit cheio usa `shift+v`.
 
 ---
 
@@ -115,7 +132,7 @@ OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), Clau
 ## Persistência & boot
 
 - **herdr permanente** — launchd `~/Library/LaunchAgents/dev.herdr.server.plist` aponta pro wrapper `herdr-server-launch.sh`, que no boot: (1) reordena os spaces alfabético, (2) sobe o **watcher do monitor** em background, (3) sobe o `herdr server`. Ressuscita em crash (`KeepAlive`).
-- **Watcher** `herdr-monitor-watch.sh` — garante o layout `[claude | lazygit | monitor]` no boot (`relayout --all`, com wait-for-server) e ao focar cada space. Fail-open, idempotente (só age se o layout estiver fora do alvo; nunca toca o pane do claude).
+- **Watcher** `herdr-monitor-watch.sh` — garante o layout `[claude | git-glance | monitor]` no boot (`relayout --all`, com wait-for-server) e ao focar cada space. Fail-open, idempotente (só age se o layout estiver fora do alvo; nunca toca o pane do claude).
 - **`herdr-ao-watch.sh`** — poll multi-agent que notifica (macOS) a cada novo `blocked`. Rode num pane quando quiser.
 
 ---
@@ -127,16 +144,17 @@ OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), Clau
 | `~/Claude/scripts/work.sh` | orquestrador do cockpit (monta os spaces; curadoria opt-in) |
 | `~/Claude/scripts/work-brief.mjs` | engine de briefing (+ modo `--prompt` pro `cw`) |
 | `~/Claude/scripts/herdr-agent-cockpit.py` | **monitor de atividade** (col 4): agents/tasks/badges git/glance |
-| `~/Claude/scripts/herdr-monitor-ensure.py` | **relayout** idempotente: garante `[claude\|lazygit\|monitor]` num space |
+| `~/Claude/scripts/herdr-monitor-ensure.py` | **relayout** idempotente: garante `[claude\|git-glance\|monitor]` num space |
+| `~/Claude/scripts/herdr-git-glance.sh` | **col 3** (FIXO): painel git ahead/behind + ação (sem fetch auto, redesenho in-place) |
 | `~/Claude/scripts/herdr-monitor-watch.sh` | **watcher**: aplica o relayout ao focar + no boot |
-| `~/Claude/scripts/herdr-lazygit-focus.sh` | keybind `shift+v` → foca o pane fixo do lazygit |
+| `~/Claude/scripts/herdr-lazygit-open.sh` | keybind `shift+v` → abre o **lazygit cheio** num split (sob demanda) |
 | `~/Claude/scripts/herdr-cockpit-open.sh` | keybind `shift+a` → abre o cockpit num split à direita |
 | `~/Claude/scripts/herdr-sort-spaces.py` | reordena os spaces alfabético (roda antes do server) |
 | `~/Claude/scripts/herdr-server-launch.sh` | wrapper do LaunchAgent: sort + watcher + server |
 | `~/Claude/scripts/herdr-ao-watch.sh` | notifica a cada agent `blocked` |
-| `~/.zshrc` (bloco `herdr work cockpit`) | alias `work` + hook de papéis de pane (**brief / lazygit / monitor / vps**) |
+| `~/.zshrc` (bloco `herdr work cockpit`) | alias `work` + hook de papéis de pane (**brief / gitglance / monitor / vps**) |
 | `~/.local/bin/cw` · `~/.local/bin/wb` | scripts no PATH: `cw` = claude+briefing, `wb` = só briefing |
-| `~/.config/herdr/config.toml` | keybinds `prefix+shift+o` (work) · `shift+a` (cockpit) · `shift+v` (lazygit) |
+| `~/.config/herdr/config.toml` | keybinds `prefix+shift+o` (work) · `shift+a` (cockpit) · `shift+v` (lazygit cheio sob demanda) |
 | `~/Claude/.herdr/spaces` | allowlist opcional de spaces curados (1 path/linha) — usada só por `work curated` |
 | `~/.claude/hooks/herdr-agent-state.sh` | integração de status do Claude |
 
