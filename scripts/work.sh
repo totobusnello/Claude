@@ -62,6 +62,7 @@ known_projects() {
   { grep -E '^[[:space:]]+path:' "$YAML" 2>/dev/null | sed -E 's/.*path:[[:space:]]*//' | sed "s#^~#$HOME#"
     echo "$HOME/Claude/Projetos/Gordon-Gekko_Trader"
     echo "$HOME/Desktop/CIO-Booster"
+    echo "$HOME/Claude/scripts"          # o próprio setup do cockpit vira space (git opera no repo pai ~/Claude)
   } | awk 'NF && !seen[$0]++' \
     | while IFS= read -r p; do [ -d "$p" ] && printf '%s\t%s\n' "$(basename "$p")" "$p"; done \
     | sort -f | cut -f2-
