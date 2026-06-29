@@ -93,8 +93,8 @@ Ao abrir projeto novo, detectar stack via config files + estrutura + imports, su
 
 Duas coleções com propósitos distintos. **Detalhes em `agents/README.md`.**
 
-- **`00-core/`** (32 agents) — núcleo personalizado com **model routing** (variants `-low/-medium/-high` = haiku/sonnet/opus). Use **primeiro** pra qualquer task: analyst, planner, executor, architect, code-reviewer, security-reviewer, tdd-guide, explore, designer, etc.
-- **`01-09-*/`** (148 agents) — catálogo de specialists stack-specific (rust-engineer, postgres-pro, payment-integration, etc). Use **só quando** tarefa exige profundidade que o core não cobre.
+- **`00-core/`** (33 agents) — núcleo personalizado com **model routing** (variants `-low/-medium/-high` = haiku/sonnet/opus). Use **primeiro** pra qualquer task: analyst, planner, executor, architect, code-reviewer, security-reviewer, tdd-guide, explore, designer, etc.
+- **`01-09-*/`** (~46 mantidos — **podado 2026-06-29** pra reduzir contexto de sessão) — catálogo de specialists stack-specific. Mantidos os **38 citados pelo `agent-orchestrator.yaml`** (rust era órfão → arquivado; postgres-pro, react-specialist, python-pro, etc ficaram). ~104 órfãos em `~/Claude-archive/_retired/agents/`. Use **só quando** tarefa exige profundidade que o core não cobre; specialist arquivado volta sob demanda (ver `agents/README.md`).
 
 **Frontmatter patterns** (added 2026-05-06):
 - `skills: [name1, name2]` em subagent → injeta SKILL.md full no spawn (não só ref). Aplicado em `code-reviewer`, `architect`, `tdd-guide`, `security-reviewer`, `frontend-developer`.
