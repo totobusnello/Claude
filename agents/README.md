@@ -6,7 +6,7 @@ Setup do Toto. Sync pra `~/.claude/agents/` via `scripts/sync-all-to-home.sh` (l
 
 Duas coleções com propósitos distintos:
 
-### `00-core/` — Núcleo personalizado (32 agents)
+### `00-core/` — Núcleo personalizado (33 agents)
 
 **Use isso primeiro.** Agents enxutos, opinionated, com **model routing** (variants `-low`/`-medium`/`-high` mapeadas pra haiku/sonnet/opus).
 
@@ -17,9 +17,11 @@ Cobertura: análise (analyst, planner, critic), execução (executor), arquitetu
 - `-medium` ou base → padrão (sonnet)
 - `-high` → arquitetura/decisão complexa (opus)
 
-### `01-09-*/` — Catálogo de specialists (148 agents)
+### `01-09-*/` — Catálogo de specialists (~46 mantidos)
 
 Biblioteca importada de `awesome-claude-code-subagents` (ou similar). Use quando a tarefa exige expertise stack-specific que o core não cobre.
+
+> **Podado em 2026-06-29** pra reduzir contexto: ~104 specialists órfãos (nenhuma referência no `agent-orchestrator.yaml` nem no fluxo) movidos pra `~/Claude-archive/_retired/agents/`. Mantidos os **38 citados pelo AO** (`react-specialist`, `nextjs-developer`, `python-pro`, `postgres-pro`, `devops-engineer`, `quant-analyst`, etc.) + `00-core` + `review`. Specialist arquivado volta sob demanda: `cp ~/Claude-archive/_retired/agents/<dir>/<nome>.md agents/<dir>/ && bash scripts/sync-all-to-home.sh`.
 
 | Folder | Domínio | Exemplos |
 |---|---|---|
