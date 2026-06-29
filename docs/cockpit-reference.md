@@ -1,20 +1,40 @@
 # Cockpit de Trabalho — Referência (herdr + work + cw)
 
-> Ritual de trabalho montado em 2026-06-20. herdr = multiplexer de terminal pra agents.
-> Abre o iTerm → `herdr` → `work` → cockpit montado com briefing por projeto.
+> Ritual de trabalho montado em 2026-06-20, **layout de 4 colunas + monitor de atividade adicionados em 2026-06-25**.
+> herdr = multiplexer de terminal pra agents. Abre o iTerm → `herdr` → `work` → cockpit montado com briefing por projeto.
 
 ---
 
-## Iniciar / fechar
+## Layout de cada space (4 colunas)
 
-| Ação | Comando |
-|---|---|
-| Abrir/atachar o cockpit | `herdr` (num terminal de verdade, não no Claude) |
-| **Detach** (sai, agents seguem vivos) | `ctrl+b` `q` |
-| Reattach depois | `herdr` |
-| **Fechar de vez** (mata server + todos os panes) | `herdr server stop` |
-| Começar do zero (sem restaurar) | `herdr server stop && rm ~/.config/herdr/session.json` |
-| Status do server/workspaces | `herdr status` · `work list` |
+Todo space montado fica **idêntico**, da esquerda pra direita:
+
+| Col | O que é | Largura | Como |
+|---|---|---|---|
+| **1** | **spaces + agents** | ~13% | sidebar nativa do herdr (lista de workspaces + status dos agents) |
+| **2** | **claude** (a sessão) | ~36% | pane do briefing → `cw` pronto no prompt; vira o Claude ao dar Enter |
+| **3** | **lazygit** (FIXO) | ~29% | `lazygit` no repo do space ativo — sempre aberto, não sob demanda |
+| **4** | **monitor / atividade ao vivo** | ~22% | `herdr-agent-cockpit.py` escopado no space (ver abaixo) |
+
+**Regra: nenhum pane vazio.** As proporções são fixas e iguais em todo space (ratios de split `0.42` claude / `0.56` lazygit sobre a área de panes).
+
+O layout é **garantido em todos os spaces** (os que já existem e os novos) e **persiste após reiniciar o herdr** — via o *watcher* (abaixo), que reconstrói `[claude | lazygit | monitor]` no boot e ao focar cada space (idempotente: só age se estiver fora do alvo).
+
+> **Custo:** o lazygit fixo roda em **todos** os spaces simultaneamente (~30 MB de RAM cada, ~0% CPU ocioso). Se ficar pesado, dá pra limitar aos spaces recentes ou voltar pra sob demanda — é uma troca de uma linha.
+
+---
+
+## Monitor de atividade (col 4)
+
+`herdr-agent-cockpit.py --workspace <id>` — painel ao vivo, refresh **4s**, `ctrl+c` cai num shell livre. Por space mostra:
+
+- **status** do agente (idle/working/blocked) · **branch** · **badge git** · **ctx %** · harness/modelo
+- **badge git** ao lado do nome: `●N` arquivos sujos · `↑N` ahead · `↓N` behind · `⚠` conflito (cache leve, trata sem-upstream)
+- quando *working*: **tasks** com progresso (✔/▶/☐) + **árvore de agents** (`⏺ main → ◯ subagente`) com harness, modelo, tempo e tokens
+- bloco **`─ git ─`** "ao vivo" (arquivos mudando no repo) — mantém o painel útil mesmo com o agente idle
+- **glance global** (`↗ ativos em outros spaces`): o que está rodando nos demais agents
+
+> O modelo Claude **exato de um subagente enquanto ele roda** não é exposto (statusline só tem `subagent_type`); o harness (claude/codex/kimi) é inferido e o modelo aparece quando o subagente **completa**.
 
 ---
 
@@ -22,21 +42,20 @@
 
 | Comando | O que faz |
 |---|---|
-| `work` | **contextual ao cwd**: dentro de um projeto → só ele; numa raiz de projetos (ex: `~/Claude/Projetos`) → todos os filhos; em outro lugar → todos os conhecidos. Sempre **alfabético**. |
-| `work all` | força todos os projetos conhecidos |
+| `work` | **contextual ao cwd**: dentro de um projeto → só ele; numa raiz (ex: `~/Claude/Projetos`) → **TODAS as pastas** (inclusive não-git); em outro lugar → todos os conhecidos. Sempre **alfabético**. |
+| `work all` | força todos os projetos conhecidos do `agent-orchestrator.yaml` |
+| `work curated` | **opt-in**: só git repos de verdade / submódulos (`~/Claude/.gitmodules`) OU allowlist `~/Claude/.herdr/spaces` (1 path/linha, prioridade se existir). Pastas soltas não viram space. |
 | `work <nome>` | abre/foca UM projeto (fuzzy: `work gordon`, `work galap`) |
 | `work swarm <proj> N` | N git-worktrees isolados (cada agent no seu, sem contaminar HEAD) |
 | `work vps` | abre o workspace **VPS** sozinho (também abre **automático** em todo `work`/`work all`) |
-
-> O workspace **VPS** entra **sempre** no cockpit (1 pane de **saúde**, idempotente). Decisão 2026-06-20: trocado de 3 panes `journalctl -f` (firehose de heartbeat = ruído) por **sinal**. O pane mostra, com refresh 30s:
-> - status dos 3 services systemd (🟢 active / 🔴 outro): `openclaw-gateway`, `nox-mem-api`, `nox-mem-watch`
-> - só os **erros** das últimas 2h (`journalctl -p err`), não o stream inteiro
-> Responde em 1 olhada "tá de pé? teve erro?". Dashboard visual continua no atalho **`openclaw-dash`** (→ `http://localhost:18790`), sob demanda. Tudo via `ssh root@187.77.234.79`, com **reconexão automática** (`ServerAliveInterval` + loop de retry) — sobrevive a sleep do Mac / queda de wifi, não fica com pane morto. Se a conexão cair: `── conexão VPS caiu · reconectando em 8s ──` e volta sozinho.
-| `work close <nome>` | fecha UM workspace (ex: `work close VPS`; fuzzy: `work close galap`). `herdr workspace close <id>` é o equivalente cru. |
+| `work close <nome>` | fecha UM workspace (fuzzy). `herdr workspace close <id>` é o cru. |
 | `work list` | lista workspaces abertos + status |
 
-Cada workspace abre com **pane 1** (briefing de sessão + **`cw` já pronto no prompt** — só dar Enter pra cair no Claude orientado; não auto-lança) e **pane 2** estreito (~26%) = **terminal livre**: mostra `git status -sb` de relance e fica pronto pra `git diff` / testes / `gh` sem parar o Claude do lado. (Sem `tail -f` automático — agregava pouco numa sessão de agent e o git já está no statusline do Claude.)
-Lista de projetos: derivada do `agent-orchestrator.yaml` + Gordon + CIO. Editar em `scripts/work.sh` → função `projects()`/`known_projects()`.
+> **Default mostra TODAS as pastas** de `~/Claude/Projetos` de propósito — normalmente há mais pastas do que repos git. A curadoria (git/allowlist) é opt-in via `work curated`, nunca no fluxo normal.
+
+O workspace **VPS** entra **sempre** no cockpit (1 pane de **saúde**, idempotente): status dos 3 services systemd (`openclaw-gateway`, `nox-mem-api`, `nox-mem-watch`) + só os **erros** das últimas 2h, refresh 30s, **reconexão automática** (sobrevive a sleep/wifi). Dashboard visual no atalho **`ocdash`** (→ `http://localhost:18790`), sob demanda.
+
+Spaces ficam sempre em **ordem alfabética** (home no topo) — `herdr-sort-spaces.py` reordena o `session.json` antes do server subir (vale no próximo start; o herdr 0.7 não tem sort nativo).
 
 ---
 
@@ -45,15 +64,14 @@ Lista de projetos: derivada do `agent-orchestrator.yaml` + Gordon + CIO. Editar 
 | Comando | Comportamento |
 |---|---|
 | `claude` | genérico/puro (intacto) |
-| **`cw`** | **mostra** o briefing E o injeta no system-prompt do Claude. Obs: o system-prompt é invisível na tela (normal); pra confirmar que pegou, pergunte ao Claude "qual o foco e os agents deste projeto?". |
+| **`cw`** | **mostra** o briefing E o injeta no system-prompt do Claude. Pra confirmar que pegou, pergunte ao Claude "qual o foco e os agents deste projeto?". |
 | **`wb`** | só **mostra** o briefing (agents/skills/plugins/MCPs/foco), sem abrir o Claude. `wb` (pasta atual) ou `wb <pasta>` |
 
-> `cw` e `wb` são **scripts em `~/.local/bin`** (no PATH) — funcionam em **qualquer pane, sem `source`**. (Antes eram funções do `.zshrc`, que exigiam re-source em cada pane.)
+> `cw` e `wb` são **scripts em `~/.local/bin`** (no PATH) — funcionam em **qualquer pane, sem `source`**.
 
-**Fechar sessão ≠ fechar pasta:** `/exit` (ou `Ctrl+D`) **dentro do pane** encerra só o Claude e mantém o workspace na lateral. `work close <nome>` remove a pasta da lateral. Não confunda os dois.
+**Fechar sessão ≠ fechar pasta:** `/exit` (ou `Ctrl+D`) **dentro do pane** encerra só o Claude e mantém o workspace na lateral. `work close <nome>` remove a pasta da lateral.
 
-`cw` = `claude --append-system-prompt "$(work-brief.mjs --prompt)"`. É orientação, não coleira — o Claude ainda escolhe a ferramenta por tarefa.
-O **briefing** mostra: agents preferenciais (do `agentRules` do AO yaml, senão por stack), skills/plugins/MCPs, comando AO sugerido, e o **foco atual** (busca em cascata: `now.md` → `HANDOFF.md` → `STATUS.md` → `CLAUDE.md §Estado` → `CHANGELOG`…, mostra a fonte).
+`cw` = `claude --append-system-prompt "$(work-brief.mjs --prompt)"`. O **briefing** mostra: agents preferenciais (do `agentRules` do AO yaml, senão por stack), skills/plugins/MCPs, comando AO sugerido, e o **foco atual** (cascata: `now.md` → `HANDOFF.md` → `STATUS.md` → `CLAUDE.md §Estado` → `CHANGELOG`…).
 
 ---
 
@@ -62,58 +80,43 @@ O **briefing** mostra: agents preferenciais (do `agentRules` do AO yaml, senão 
 | Atalho | Ação |
 |---|---|
 | `ctrl+b` `v` / `-` | split vertical / horizontal |
-| `ctrl+b` `shift+n` | novo workspace |
 | `ctrl+b` `w` | trocar de workspace |
-| `ctrl+b` `c` | nova tab |
-| `ctrl+b` `z` | zoom no pane (foco total) |
-| `ctrl+b` `q` | detach |
+| `ctrl+b` `c` | nova tab · `z` zoom no pane · `q` detach |
+| `ctrl+b` `shift+n` | novo workspace |
 | `ctrl+b` `shift+o` | **montar o cockpit** (roda `work`) de dentro do herdr |
+| `ctrl+b` `shift+a` | abrir o **cockpit de agentes** num pane à direita (escopado no space atual) |
+| `ctrl+b` `shift+v` | **focar o pane do lazygit** (col 3) — o lazygit é fixo, este atalho só pula o foco pra ele |
 | `ctrl+b` `?` | ajuda de atalhos |
+
+> `shift+g`/`alt+g`/`shift+l` e `g` são nativos do herdr (goto/new_worktree/swap_pane), por isso o lazygit usa `shift+v`.
 
 ---
 
 ## Integrations (detecção de status dos agents)
 
 `settings > integrations` (ou `herdr integration install <agent>`). Faz o herdr mostrar **blocked/working/done** real do agent.
-- ✅ **claude** — instalado
-- ✅ **codex** — instalado (2026-06-20)
-- ✅ **kimi** — instalado (2026-06-20; kimi-code `0.18.0`, hook em `~/.kimi-code/hooks/herdr-agent-state.sh`)
-- ⚠️ **OpenClaw NÃO está na lista.** O herdr suporta: pi, omp, claude, codex, copilot, devin, droid, kimi, **opencode** (≠ OpenClaw), kilo, hermes, qodercli, cursor. Você pode **rodar** OpenClaw num pane normalmente — só não terá o status automático dele.
+- ✅ **claude** · ✅ **codex** · ✅ **kimi** (kimi-code, hook em `~/.kimi-code/hooks/herdr-agent-state.sh`)
+- ⚠️ **OpenClaw NÃO está na lista.** O herdr suporta: pi, omp, claude, codex, copilot, devin, droid, kimi, **opencode** (≠ OpenClaw), kilo, hermes, qodercli, cursor. Dá pra **rodar** OpenClaw num pane — só sem status automático.
 
 ---
 
 ## VPS / OpenClaw — conectar e enxergar o Claude de lá
 
-O OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), usa o Claude via provider `anthropic/` (OAuth). Três formas de enxergar:
+OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), Claude via provider `anthropic/` (OAuth). Três formas:
 
-1. **Dashboard do gateway** (mais visual):
-   ```bash
-   ocdash                   # 1 passo: túnel SSH + abre o Chrome + derruba o túnel no ctrl+c
-   ```
-   Cru, 2 passos: `openclaw-dash` (segura o túnel) + noutro pane `open -a "Google Chrome" http://localhost:18790`.
-2. **Sessão ao vivo (tmux)** — vê o Claude/bot rodando:
-   ```bash
-   ssh root@100.87.8.44      # Tailscale (ou 187.77.234.79)
-   tmux ls                   # lista sessões
-   tmux attach -t <sessão>   # attacha (ex: o bot do Telegram)
-   ```
-3. **herdr remoto** (se instalar herdr no VPS):
-   ```bash
-   herdr --remote root@100.87.8.44
-   ```
-   Traz panes do VPS pro seu cockpit. Requer `brew/curl install herdr` no VPS.
+1. **Dashboard** (mais visual): `ocdash` (1 passo: túnel SSH + Chrome + derruba o túnel no ctrl+c).
+2. **Sessão ao vivo (tmux):** `ssh root@100.87.8.44` → `tmux ls` → `tmux attach -t <sessão>`.
+3. **herdr remoto:** `herdr --remote root@100.87.8.44` (requer herdr instalado no VPS).
 
-> O herdr **não** tem adapter de status pro OpenClaw — mas qualquer uma das 3 vias acima te dá visão do que está rodando lá.
+> O herdr **não** tem adapter de status pro OpenClaw — mas qualquer uma das 3 vias dá visão do que roda lá.
 
 ---
 
-## O que mais vale configurar
+## Persistência & boot
 
-- ✅ **Integração `codex`** instalada (hook em `~/.codex/herdr-agent-state.sh`). Junto de claude + kimi → status blocked/working/done dos 3.
-- ✅ **herdr permanente** — launchd em `~/Library/LaunchAgents/dev.herdr.server.plist`. Sobe o `herdr server` no login e ressuscita em **crash** (`KeepAlive: SuccessfulExit=false`). Ativa no **próximo login** (não agora, p/ não conflitar com o server vivo). `herdr server stop` (saída limpa) **continua parando** de propósito; pra reativar sem reboot: `launchctl load ~/Library/LaunchAgents/dev.herdr.server.plist`.
-- ✅ **`work vps`** — feito (pane de saúde).
-- ✅ **`herdr agent wait --status blocked` → watcher** `~/Claude/scripts/herdr-ao-watch.sh`: poll multi-agent, notifica (macOS) a cada novo `blocked`. Rode num pane: `bash ~/Claude/scripts/herdr-ao-watch.sh`. Gancho `ao send` pronto (comentado) p/ ligar reação automática do AO quando os agents forem sessões do AO.
-- **Notificações nativas** (`settings > toasts`): complementam o watcher p/ `done` em swarm longo.
+- **herdr permanente** — launchd `~/Library/LaunchAgents/dev.herdr.server.plist` aponta pro wrapper `herdr-server-launch.sh`, que no boot: (1) reordena os spaces alfabético, (2) sobe o **watcher do monitor** em background, (3) sobe o `herdr server`. Ressuscita em crash (`KeepAlive`).
+- **Watcher** `herdr-monitor-watch.sh` — garante o layout `[claude | lazygit | monitor]` no boot (`relayout --all`, com wait-for-server) e ao focar cada space. Fail-open, idempotente (só age se o layout estiver fora do alvo; nunca toca o pane do claude).
+- **`herdr-ao-watch.sh`** — poll multi-agent que notifica (macOS) a cada novo `blocked`. Rode num pane quando quiser.
 
 ---
 
@@ -121,9 +124,31 @@ O OpenClaw roda no VPS (Hostinger `187.77.234.79` / Tailscale `100.87.8.44`), us
 
 | Arquivo | Papel |
 |---|---|
-| `~/Claude/scripts/work.sh` | orquestrador do cockpit |
+| `~/Claude/scripts/work.sh` | orquestrador do cockpit (monta os spaces; curadoria opt-in) |
 | `~/Claude/scripts/work-brief.mjs` | engine de briefing (+ modo `--prompt` pro `cw`) |
-| `~/.zshrc` (bloco `herdr work cockpit`) | alias `work` + hook de papéis de pane (brief/gitlog/vps) |
-| `~/.local/bin/cw` · `~/.local/bin/wb` | scripts no PATH (sem `source`): `cw` = claude+briefing, `wb` = só briefing |
-| `~/.config/herdr/config.toml` | keybinding `prefix+shift+o` |
+| `~/Claude/scripts/herdr-agent-cockpit.py` | **monitor de atividade** (col 4): agents/tasks/badges git/glance |
+| `~/Claude/scripts/herdr-monitor-ensure.py` | **relayout** idempotente: garante `[claude\|lazygit\|monitor]` num space |
+| `~/Claude/scripts/herdr-monitor-watch.sh` | **watcher**: aplica o relayout ao focar + no boot |
+| `~/Claude/scripts/herdr-lazygit-focus.sh` | keybind `shift+v` → foca o pane fixo do lazygit |
+| `~/Claude/scripts/herdr-cockpit-open.sh` | keybind `shift+a` → abre o cockpit num split à direita |
+| `~/Claude/scripts/herdr-sort-spaces.py` | reordena os spaces alfabético (roda antes do server) |
+| `~/Claude/scripts/herdr-server-launch.sh` | wrapper do LaunchAgent: sort + watcher + server |
+| `~/Claude/scripts/herdr-ao-watch.sh` | notifica a cada agent `blocked` |
+| `~/.zshrc` (bloco `herdr work cockpit`) | alias `work` + hook de papéis de pane (**brief / lazygit / monitor / vps**) |
+| `~/.local/bin/cw` · `~/.local/bin/wb` | scripts no PATH: `cw` = claude+briefing, `wb` = só briefing |
+| `~/.config/herdr/config.toml` | keybinds `prefix+shift+o` (work) · `shift+a` (cockpit) · `shift+v` (lazygit) |
+| `~/Claude/.herdr/spaces` | allowlist opcional de spaces curados (1 path/linha) — usada só por `work curated` |
 | `~/.claude/hooks/herdr-agent-state.sh` | integração de status do Claude |
+
+---
+
+## Iniciar / fechar
+
+| Ação | Comando |
+|---|---|
+| Abrir/atachar o cockpit | `herdr` (num terminal de verdade, não no Claude) |
+| **Detach** (agents seguem vivos) | `ctrl+b` `q` · reattach: `herdr` |
+| **Fechar de vez** (mata server + panes) | `herdr server stop` |
+| Reativar sem reboot | `launchctl load ~/Library/LaunchAgents/dev.herdr.server.plist` |
+| Começar do zero | `herdr server stop && rm ~/.config/herdr/session.json` |
+| Status | `herdr status` · `work list` |

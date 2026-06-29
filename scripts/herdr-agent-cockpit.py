@@ -7,7 +7,7 @@ Uso:
   python3 herdr-agent-cockpit.py [intervalo_seg]   # default 4s, ctrl+c sai
   python3 herdr-agent-cockpit.py --once            # imprime 1x e sai (teste)
 
-Mostra só workspaces working/blocked (idle vira rodapé). Por workspace:
+Mostra todos os workspaces com sessão (working/blocked primeiro, idle depois). Por workspace:
   - branch + contexto% + harness/modelo do agente principal
   - tasks com status (✔ feito / ▶ fazendo+progresso / ☐ a fazer)
   - árvore de agentes (⏺ main → ◯ subagente) com harness, modelo (quando exposto), tempo e tokens
@@ -77,7 +77,10 @@ def read_recent(tid, lines=50):
 
 def git_out(path, *args):
     try:
-        r = subprocess.run(["git", "-C", path, *args], capture_output=True, text=True, timeout=4)
+        # GIT_OPTIONAL_LOCKS=0: o monitor é read-only — não disputar o index.lock com lazygit/commits
+        # (o space "scripts" é subdir de ~/Claude, então o git aqui mexeria no repo pai).
+        env = {**os.environ, "GIT_OPTIONAL_LOCKS": "0"}
+        r = subprocess.run(["git", "-C", path, *args], capture_output=True, text=True, timeout=4, env=env)
         return r.stdout if r.returncode == 0 else ""
     except Exception:
         return ""
@@ -113,6 +116,18 @@ def git_changes(path, n=10):
     """Linhas de `git status -s` (até n) + total — dá 'vida' ao painel mesmo com o agente idle."""
     lines = [l for l in git_out(path, "status", "-s").splitlines() if l.strip()]
     return lines[:n], len(lines)
+
+
+_PROTECTED = tuple(os.path.expanduser(p) for p in ("~/Desktop", "~/Documents", "~/Downloads", "~/Library"))
+
+
+def is_protected(path):
+    """True se path está sob pasta protegida pelo TCC do macOS. Evita rodar git em loop lá —
+    senão o macOS fica pedindo 'iTerm deseja acessar dados de outros apps' a cada refresh."""
+    if not path:
+        return False
+    rp = os.path.realpath(path)
+    return any(rp == p or rp.startswith(p + os.sep) for p in _PROTECTED)
 
 
 def harness_of(subtype):
@@ -196,22 +211,18 @@ def fmt_agent(sym, txt, harness_main, model_main, amodels):
 
 def render():
     all_ags = agents()
-    ags = all_ags
-    if WS:
-        ags = [a for a in all_ags if a.get("workspace_id") == WS]
-    ags.sort(key=lambda x: os.path.basename((x.get("cwd") or "").rstrip("/")).lower())
-    if WS:
-        active, idle = ags, []            # escopo do workspace: mostra só este projeto (working ou idle)
-    else:
-        active = [a for a in ags if a.get("agent_status") in ("working", "blocked")]
-        idle = [os.path.basename((a.get("cwd") or "").rstrip("/")) for a in ags if a.get("agent_status") == "idle"]
+    ags = [a for a in all_ags if a.get("workspace_id") == WS] if WS else list(all_ags)
+    # working/blocked primeiro, idle depois; dentro de cada grupo, por nome do projeto
+    rank = {"working": 0, "blocked": 0, "unknown": 1, "idle": 2}
+    ags.sort(key=lambda x: (rank.get(x.get("agent_status"), 1),
+                            os.path.basename((x.get("cwd") or "").rstrip("/")).lower()))
 
     scope = f" · {os.path.basename((ags[0].get('cwd') or '').rstrip('/'))}" if (WS and ags) else ""
     out = [f"{B}herdr · cockpit{scope}{R}  {DIM}{time.strftime('%H:%M:%S')} · refresh {INTERVAL:.0f}s · ctrl+c{R}", ""]
-    if not active:
-        out.append(f"  {DIM}(nenhum agente ativo){R}")
+    if not ags:
+        out.append(f"  {DIM}(nenhum agente){R}")
 
-    for a in active:
+    for a in ags:
         name = os.path.basename((a.get("cwd") or "").rstrip("/")) or "?"
         st = a.get("agent_status")
         harness_main = a.get("agent") or "claude"
@@ -219,7 +230,9 @@ def render():
         tid = a.get("terminal_id") or a.get("pane_id") or ""
         tasks, progress, agent_lines, branch, ctx, collapsed, model_main, amodels = parse(read_recent(tid))
 
-        badge = git_badge(a.get("cwd") or "")
+        cwd = a.get("cwd") or ""
+        prot = is_protected(cwd)
+        badge = git_badge(cwd) if (cwd and not prot) else ""
         meta = []
         if branch and badge:
             meta.append(f"{CYA}{branch}{R} {badge}")
@@ -245,9 +258,10 @@ def render():
             for sym, txt in agent_lines:
                 out.append(fmt_agent(sym, txt, harness_main, model_main, amodels))
 
-        # git de relance — mantém o painel "vivo" mesmo quando o agente está idle
-        cwd = a.get("cwd") or ""
-        if cwd:
+        # git de relance — pulado em pastas protegidas (TCC) p/ não disparar o prompt do macOS
+        if prot:
+            out.append(f"    {DIM}─ git ─ (pasta protegida — git desligado p/ evitar prompt do macOS){R}")
+        elif cwd:
             changes, total = git_changes(cwd)
             out.append(f"    {DIM}─ git ─{R}")
             if changes:
@@ -261,18 +275,6 @@ def render():
                 out.append(f"    {GRY}working tree limpo{R}")
         out.append("")
 
-    # glance global: o que está rodando nos OUTROS spaces (visão de atividade ao vivo)
-    if WS:
-        others = [a for a in all_ags
-                  if a.get("workspace_id") != WS and a.get("agent_status") in ("working", "blocked")]
-        if others:
-            names = ", ".join(os.path.basename((a.get("cwd") or "").rstrip("/")) for a in others[:6])
-            out.append(f"{DIM}↗ ativos em outros spaces ({len(others)}): {names}{R}")
-        else:
-            out.append(f"{DIM}↗ nenhum outro agente ativo agora{R}")
-
-    if idle:
-        out.append(f"{DIM}💤 idle ({len(idle)}): {', '.join(idle)}{R}")
     return "\n".join(out)
 
 

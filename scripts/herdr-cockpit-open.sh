@@ -14,7 +14,6 @@ print(p.get('$1') or '')"
 
 CURJ=$(herdr pane current --current 2>/dev/null)
 CUR=$(printf '%s' "$CURJ" | field pane_id)
-WS=$(printf '%s' "$CURJ" | field workspace_id)
 [ -z "$CUR" ] && exit 0
 
 # vizinho à direita: só reusa se for um shell (sem agente claude); senão cria split
@@ -26,4 +25,4 @@ if [ -z "$RID" ] || [ "$RAG" = "claude" ]; then
 fi
 [ -z "$RID" ] && exit 0
 
-herdr pane run "$RID" "python3 $COCKPIT${WS:+ --workspace $WS}"
+herdr pane run "$RID" "python3 $COCKPIT"

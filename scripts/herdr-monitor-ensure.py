@@ -104,19 +104,51 @@ def run_role(pid, role, wsid):
     sh("pane", "run", pid, cmd)
 
 
+_PROTECTED = tuple(os.path.expanduser(p) for p in ("~/Desktop", "~/Documents", "~/Downloads", "~/Library"))
+
+
+def is_protected(path):
+    """Pasta protegida pelo TCC do macOS → não plantar lazygit (fsnotify/git em loop) lá,
+    senão o macOS fica pedindo 'iTerm deseja acessar dados de outros apps'."""
+    if not path:
+        return False
+    rp = os.path.realpath(path)
+    return any(rp == p or rp.startswith(p + os.sep) for p in _PROTECTED)
+
+
 def relayout(wsid):
     ps = panes_ordered(wsid)
     if not ps:
         return f"{wsid}: sem panes"
     kinds = [classify(p) for p in ps]
     tot = sum(p["_w"] for p in ps) or 1
+    base0 = next((p for p in ps if classify(p) == "claude"), ps[0])
+
+    # PASTA PROTEGIDA (TCC): layout [claude | monitor], SEM lazygit (não rodar git/fsnotify lá)
+    if is_protected(base0.get("cwd") or ""):
+        if (len(ps) == 2 and kinds[0] in ("claude", "shell") and kinds[1] in ("monitor", "shell")
+                and (ps[1].get("cwd") or "") == (ps[0].get("cwd") or "")
+                and abs(ps[0]["_w"] / tot - 0.72) <= 0.10):
+            if kinds[1] == "shell":
+                run_role(ps[1]["pane_id"], "monitor", wsid)
+                return f"{wsid}: ok protegido (religado: monitor)"
+            return f"{wsid}: ok protegido (skip)"
+        cwd = base0.get("cwd") or os.path.expanduser("~")
+        for p in ps:
+            if p["pane_id"] != base0["pane_id"] and classify(p) in ("monitor", "lazygit", "shell"):
+                sh("pane", "close", p["pane_id"])
+        sh("pane", "split", base0["pane_id"], "--direction", "right", "--ratio", "0.72",
+           "--cwd", cwd, "--env", "HERDR_PANE_ROLE=monitor", "--env", f"HERDR_WS={wsid}", "--no-focus")
+        return f"{wsid}: relayout protegido [claude | monitor] (sem lazygit — pasta TCC)"
 
     # CASO RÁPIDO: estrutura já é [base(claude-ou-shell) | lazygit-ou-shell | monitor-ou-shell].
     # O pane base (col2) pode ser shell quando o claude ainda não roda — não recebe processo.
     if (len(ps) == 3 and kinds[0] in ("claude", "shell")
             and kinds[1] in ("lazygit", "shell") and kinds[2] in ("monitor", "shell")):
         props = [p["_w"] / tot for p in ps]
-        if all(abs(props[i] - TARGETS[i]) <= TOL for i in range(3)):
+        base_cwd = ps[0].get("cwd") or ""
+        cwd_ok = all((p.get("cwd") or "") == base_cwd for p in ps[1:])  # auxiliares no MESMO repo do claude
+        if cwd_ok and all(abs(props[i] - TARGETS[i]) <= TOL for i in range(3)):
             religados = []
             if kinds[1] == "shell":
                 run_role(ps[1]["pane_id"], "lazygit", wsid); religados.append("lazygit")
