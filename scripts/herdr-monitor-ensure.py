@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
 herdr-monitor-ensure — garante o LAYOUT FIXO de 3 panes em cada space, da esquerda
-pra direita:  [ claude/brief | lazygit | monitor ]  com proporções normalizadas e
-IGUAIS em todo space (≈ claude 42% · lazygit 32.5% · monitor 25.5% da área de panes;
+pra direita:  [ claude/brief | git-glance | monitor ]  com proporções normalizadas e
+IGUAIS em todo space (≈ claude 42% · git-glance 32.5% · monitor 25.5% da área de panes;
 a col "spaces+agents" é a sidebar nativa do herdr, ~13%).
 
 Idempotente:
   • layout já certo (estrutura + proporções)  → no máximo religa processos que saíram
   • layout errado                              → rebuild (preserva o claude, recria os auxiliares)
-Persistência: os panes auxiliares carregam HERDR_PANE_ROLE (lazygit/monitor), então o
-zshrc os re-roda na recriação (inclusive pós-reboot). lazygit usa o cwd do repo do space.
+Persistência: os panes auxiliares carregam HERDR_PANE_ROLE (gitglance/monitor), então o
+zshrc os re-roda na recriação (inclusive pós-reboot). O git-glance usa o cwd do repo do space.
 
 Uso:
   herdr-monitor-ensure.py [workspace_id]   # sem arg = workspace FOCADO agora
@@ -21,14 +21,16 @@ import subprocess
 import sys
 
 COCKPIT = os.path.expanduser("~/Claude/scripts/herdr-agent-cockpit.py")
+GLANCE = os.path.expanduser("~/Claude/scripts/herdr-git-glance.sh")
 MARK = "herdr-agent-cockpit.py"
+MARK_GLANCE = "herdr-git-glance.sh"
 AGENTS = {"claude", "codex", "kimi", "pi", "copilot", "devin", "droid",
           "opencode", "kilo", "hermes", "qodercli", "cursor", "omp"}
 SHELLS = {"zsh", "bash", "sh", "fish", "-zsh", "-bash", "login"}
 
-RATIO_CLAUDE = 0.42      # split 1: claude fica com 42% da área; bloco lazy+monitor = 58%
-RATIO_LAZY = 0.56        # split 2: lazygit = 56% do bloco (→ 32.5% da área), monitor = 25.5%
-TARGETS = (0.42, 0.325, 0.255)   # proporções-alvo (claude, lazygit, monitor) na área de panes
+RATIO_CLAUDE = 0.42      # split 1: claude fica com 42% da área; bloco glance+monitor = 58%
+RATIO_LAZY = 0.56        # split 2: git-glance = 56% do bloco (→ 32.5% da área), monitor = 25.5%
+TARGETS = (0.42, 0.325, 0.255)   # proporções-alvo (claude, git-glance, monitor) na área de panes
 TOL = 0.08                       # tolerância de proporção antes de re-normalizar
 
 
@@ -82,14 +84,16 @@ def classify(p):
         return "claude"
     fps = _fg(p["pane_id"])
     names = [(x.get("name") or "").lower().lstrip("-") for x in fps]
-    # 2) monitor/lazygit detectados POR PROCESSO (não juntar cmdlines — evita falso-positivo
-    #    de um prompt/editor que apenas MENCIONE 'herdr-agent-cockpit.py')
+    # 2) monitor/git-glance/lazygit detectados POR PROCESSO (não juntar cmdlines — evita
+    #    falso-positivo de um prompt/editor que apenas MENCIONE o nome do script)
     for x in fps:
         nm = (x.get("name") or "").lower()
         cl = (x.get("cmdline") or "") + " " + " ".join(x.get("argv") or [])
         if "python" in nm and MARK in cl:
             return "monitor"
-        if "lazygit" in nm:
+        if MARK_GLANCE in cl:            # bash rodando o git-glance (col3)
+            return "gitglance"
+        if "lazygit" in nm:              # lazygit cheio aberto sob demanda
             return "lazygit"
     blob = " ".join((x.get("cmdline") or "") for x in fps)
     if "claude" in blob or "codex" in blob:
@@ -100,7 +104,10 @@ def classify(p):
 
 
 def run_role(pid, role, wsid):
-    cmd = "lazygit" if role == "lazygit" else f"python3 {COCKPIT} --workspace {wsid}"
+    if role == "gitglance":
+        cmd = f"bash {GLANCE}"   # painel enxuto: ahead/behind + ação (sem histórico, sem fetch auto)
+    else:
+        cmd = f"python3 {COCKPIT} --workspace {wsid}"
     sh("pane", "run", pid, cmd)
 
 
@@ -108,8 +115,8 @@ _PROTECTED = tuple(os.path.expanduser(p) for p in ("~/Desktop", "~/Documents", "
 
 
 def is_protected(path):
-    """Pasta protegida pelo TCC do macOS → não plantar lazygit (fsnotify/git em loop) lá,
-    senão o macOS fica pedindo 'iTerm deseja acessar dados de outros apps'."""
+    """Pasta protegida pelo TCC do macOS → não plantar git-glance/lazygit lá (evita git em loop
+    perto de áreas vigiadas), senão o macOS fica pedindo 'iTerm deseja acessar dados de outros apps'."""
     if not path:
         return False
     rp = os.path.realpath(path)
@@ -124,7 +131,7 @@ def relayout(wsid):
     tot = sum(p["_w"] for p in ps) or 1
     base0 = next((p for p in ps if classify(p) == "claude"), ps[0])
 
-    # PASTA PROTEGIDA (TCC): layout [claude | monitor], SEM lazygit (não rodar git/fsnotify lá)
+    # PASTA PROTEGIDA (TCC): layout [claude | monitor], SEM git-glance (não rodar git em loop lá)
     if is_protected(base0.get("cwd") or ""):
         if (len(ps) == 2 and kinds[0] in ("claude", "shell") and kinds[1] in ("monitor", "shell")
                 and (ps[1].get("cwd") or "") == (ps[0].get("cwd") or "")
@@ -135,43 +142,43 @@ def relayout(wsid):
             return f"{wsid}: ok protegido (skip)"
         cwd = base0.get("cwd") or os.path.expanduser("~")
         for p in ps:
-            if p["pane_id"] != base0["pane_id"] and classify(p) in ("monitor", "lazygit", "shell"):
+            if p["pane_id"] != base0["pane_id"] and classify(p) in ("monitor", "lazygit", "gitglance", "shell"):
                 sh("pane", "close", p["pane_id"])
         sh("pane", "split", base0["pane_id"], "--direction", "right", "--ratio", "0.72",
            "--cwd", cwd, "--env", "HERDR_PANE_ROLE=monitor", "--env", f"HERDR_WS={wsid}", "--no-focus")
-        return f"{wsid}: relayout protegido [claude | monitor] (sem lazygit — pasta TCC)"
+        return f"{wsid}: relayout protegido [claude | monitor] (sem git-glance — pasta TCC)"
 
-    # CASO RÁPIDO: estrutura já é [base(claude-ou-shell) | lazygit-ou-shell | monitor-ou-shell].
+    # CASO RÁPIDO: estrutura já é [base(claude-ou-shell) | gitglance-ou-shell | monitor-ou-shell].
     # O pane base (col2) pode ser shell quando o claude ainda não roda — não recebe processo.
     if (len(ps) == 3 and kinds[0] in ("claude", "shell")
-            and kinds[1] in ("lazygit", "shell") and kinds[2] in ("monitor", "shell")):
+            and kinds[1] in ("gitglance", "shell") and kinds[2] in ("monitor", "shell")):
         props = [p["_w"] / tot for p in ps]
         base_cwd = ps[0].get("cwd") or ""
         cwd_ok = all((p.get("cwd") or "") == base_cwd for p in ps[1:])  # auxiliares no MESMO repo do claude
         if cwd_ok and all(abs(props[i] - TARGETS[i]) <= TOL for i in range(3)):
             religados = []
             if kinds[1] == "shell":
-                run_role(ps[1]["pane_id"], "lazygit", wsid); religados.append("lazygit")
+                run_role(ps[1]["pane_id"], "gitglance", wsid); religados.append("git-glance")
             if kinds[2] == "shell":
                 run_role(ps[2]["pane_id"], "monitor", wsid); religados.append("monitor")
             return f"{wsid}: ok" + (f" (religado: {','.join(religados)})" if religados else " (skip)")
         # estrutura ok mas proporção fora → rebuild pra normalizar
 
-    # REBUILD: preserva o claude/brief, fecha os auxiliares, recria lazygit+monitor com ratios
+    # REBUILD: preserva o claude/brief, fecha os auxiliares, recria git-glance+monitor com ratios
     base = next((p for p in ps if classify(p) == "claude"), ps[0])
     cwd = base.get("cwd") or os.path.expanduser("~")
     for p in ps:
-        if p["pane_id"] != base["pane_id"] and classify(p) in ("monitor", "lazygit", "shell"):
+        if p["pane_id"] != base["pane_id"] and classify(p) in ("monitor", "lazygit", "gitglance", "shell"):
             sh("pane", "close", p["pane_id"])
-    laz = jget(sh("pane", "split", base["pane_id"], "--direction", "right", "--ratio", str(RATIO_CLAUDE),
-                  "--cwd", cwd, "--env", "HERDR_PANE_ROLE=lazygit", "--no-focus"),
-               "result", "pane", "pane_id")
-    if not laz:
-        return f"{wsid}: falhou criar pane lazygit"
-    mon = jget(sh("pane", "split", laz, "--direction", "right", "--ratio", str(RATIO_LAZY),
+    lz = jget(sh("pane", "split", base["pane_id"], "--direction", "right", "--ratio", str(RATIO_CLAUDE),
+                 "--cwd", cwd, "--env", "HERDR_PANE_ROLE=gitglance", "--no-focus"),
+              "result", "pane", "pane_id")
+    if not lz:
+        return f"{wsid}: falhou criar pane git-glance"
+    mon = jget(sh("pane", "split", lz, "--direction", "right", "--ratio", str(RATIO_LAZY),
                   "--cwd", cwd, "--env", "HERDR_PANE_ROLE=monitor", "--env", f"HERDR_WS={wsid}", "--no-focus"),
                "result", "pane", "pane_id")
-    return f"{wsid}: relayout [claude | lazygit | monitor]" + ("" if mon else " (monitor falhou)")
+    return f"{wsid}: relayout [claude | git-glance | monitor]" + ("" if mon else " (monitor falhou)")
 
 
 def main():

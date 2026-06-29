@@ -92,10 +92,10 @@ open_one() {  # path
   out="$(herdr workspace create --cwd "$p" --label "$n" --no-focus --env HERDR_PANE_ROLE=brief 2>/dev/null)"
   pid="$(printf '%s' "$out" | python3 -c "import json,sys;print(json.load(sys.stdin)['result']['root_pane']['pane_id'])" 2>/dev/null)"
   local wsid laz; wsid="$(ws_id "$n")"
-  # layout fixo de 3 panes: [ claude 42% | lazygit 32.5% | monitor 25.5% ]
+  # layout fixo de 3 panes: [ claude 42% | git-glance 32.5% | monitor 25.5% ]
   if [ -n "$pid" ]; then
     laz="$(herdr pane split "$pid" --direction right --ratio 0.42 --cwd "$p" \
-        --env HERDR_PANE_ROLE=lazygit --no-focus 2>/dev/null \
+        --env HERDR_PANE_ROLE=gitglance --no-focus 2>/dev/null \
         | python3 -c "import json,sys;print(json.load(sys.stdin)['result']['pane']['pane_id'])" 2>/dev/null)"
     [ -n "$laz" ] && herdr pane split "$laz" --direction right --ratio 0.56 --cwd "$p" \
         --env HERDR_PANE_ROLE=monitor --env HERDR_WS="$wsid" --no-focus >/dev/null 2>&1
