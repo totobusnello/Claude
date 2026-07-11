@@ -175,3 +175,134 @@ Destaques: Q6 com o detalhe "polinomial no nº de bits"; Q8 com o quantificador 
 **Próxima ação:** merge do PR #6 (decisão de Luiz) e abertura de PR novo para a FASE 5.
 
 ---
+
+## 2026-07-10 — CICLO 7 (início) — PR #6 MERGED · FASE 5 aberta (autorizado: "Pode")
+
+- PR #6 mergeado na main (`e102557`) — bootstrap completo (FASES 0–4, 6 ciclos, 2 revisões externas). Branch antigo removido; novo branch `feat/7problems-fase5`.
+- **Scorecard v1 criado** (`PNP_AI/09_CANDIDATE_SUBPROBLEMS.md`), estado **HEURISTIC**: 5 candidatos (C1 exact synthesis via SAT · C2 proof complexity experimental · C3 MCSP · C4 formalização Lean · C5 magnification), 8 critérios do brief, scores marcados como proposta do coordenador PENDENTE de auditoria bibliográfica real + revisão adversarial + decisão de Luiz. Liderança provisória: C1 (33/40).
+- Próximos passos declarados no próprio arquivo: (1) auditoria bibliográfica de C1/C2, (2) revisão adversarial do scorecard, (3) seleção final por Luiz.
+
+**Continuação (auditoria bibliográfica, autorizada: "Sim quero"):**
+- 4 varreduras semânticas de papers + 2 inspeções profundas. Fontes SRC-0018..0023 registradas.
+- **C1 confirmado como área ativa** (2009→2026) com fronteira prática calibrada (tamanho ~7 fácil / 13 = semanas) e **gap aberto concreto encontrado**: 2 classes NPN-4 sem valor exato de opt_AIG no catálogo do preprint Krinkin mar/2026 (timeout em k=9; dados públicos). DUP 3→2, INT 4→5.
+- **C2:** nicho ativo (shortest DRAT do PHP; parity reordenada; CDCL vs DPLL 2026), porém mais estreito; random k-SAT experimental descartado (teoria madura, campo trilhado).
+- **Scorecard v2 + proposta de seleção:** C1, com 1ª unidade de trabalho = decidir k=9 das 2 classes NPN-4 pendentes (SAT→circuito / UNSAT→DRAT), precedida de due diligence do repo de dados e checagem de que o gap segue aberto.
+- Pendente: revisão adversarial da proposta (família distinta) + decisão de Luiz.
+
+**Continuação (REV-0003, revisor escolhido por Luiz: Grok):**
+- Grok 4.5 (xAI, 4ª família — 1º uso no programa) **DERRUBOU a proposta de seleção** com 11 findings. A condição de Luiz ("se ela não derrubar") ativou: seleção NÃO registrada.
+- Adjudicação (em `09_CANDIDATE_SUBPROBLEMS.md`): 4 findings aceitos (confirmação do gap ANTES de selecionar; risco computacional real; auditoria assimétrica de C3/C4; começar por reprodução), 2 aceitos em parte (pesos do scorecard — agora explícitos com REL×2; valor científico — reclassificado como validação de pipeline).
+- **Fato notável do scorecard v3:** mesmo com REL dobrado, C1 mantém liderança estreita (36 vs 35 vs 35) — mas a UNIDADE original (atacar o gap alheio) fica vetada na forma proposta.
+- **Proposta v3:** (A) piloto imediato de pipeline — reproduzir com DRAT valores já resolvidos do catálogo NPN-4 (risco ~zero, serve a qualquer candidato); (B) auditoria profunda de C3/C4 + confirmação do gap; (C) seleção definitiva com scorecard v4.
+- **Meta-observação:** 3 revisões, 3 famílias, 3 contribuições distintas — Codex (gap técnico pontual), Kimi (governança e precisão), Grok (estratégia e realismo de recursos). O custo de derrubar uma proposta na FASE 5 é horas; o custo de descobrir esses problemas na FASE 6 seria semanas.
+
+**Chamadas externas de modelo (ciclo 7 total):** 1 (Grok). Buscas de papers não contam.
+
+**Continuação (Etapa B, escolhida por Luiz — ordem invertida, B antes do piloto):**
+- **Gap confirmado vivo** (repo krinkin/bounds: "220 exact, 2 upper bounds", commit 2026-03-10) — SRC-0027.
+- **C4 rebaixado como pesquisa:** Cook–Levin já mecanizado em Coq (SRC-0024); P/NP em Mathlib sendo formalizado por terceiros AGORA (issue #35366, SRC-0025). Permanece como infra p/ claims próprios. Alerta ambiental: "provas Lean" de P≠NP E de P=NP circulando — regra do charter sobre auditoria de axiomas confirmada como necessária.
+- **C3 auditado:** teoria ativa (MCSP total ainda aberto), ESP baixo confirmado; **convergência estrutural: a face experimental de C3 é C1** (catálogos exatos = dados de meta-complexidade) → REL de C1 3→4 com fonte.
+- **Scorecard v4 final:** C1-restrito 38 · C2 35 · C3 33 · C4 33 · C5 27. Proposta final registrada com as salvaguardas do Grok (piloto reprodutivo primeiro; sonda k=9 só com budget+aborto aprovados).
+- Aguardando decisão de Luiz (etapa C — seleção definitiva).
+
+**Continuação (REV-0004, pedida por Luiz "pra garantir", 2026-07-11):**
+- Solicitado GPT-5.6; canal Codex/OAuth rejeitou o model id (plano ChatGPT) — usado default do canal (GPT-5-based), registrado sem simulação.
+- **Correção (2026-07-11, verificada com chamada real — call log #7):** o id correto do GPT-5.6 no canal Codex/ChatGPT é **`gpt-5.6-sol`** (default do `~/.codex/config.toml`). A "indisponibilidade" acima era erro de model id (`gpt-5.6`/`gpt-5.6-codex` não existem no canal), não limitação do plano. A REV-0004 permanece válida como executada.
+- **Segundo DERRUBAR da FASE 5.** Codex confirmou e aprofundou a linha do Grok: seleção fechada sem executar o próprio gate; REL 3→4 revertido (relação temática ≠ avanço demonstrado); scorecard pós-hoc; e o finding metodológico mais importante do ciclo — **DRAT valida a CNF, não o encoding** — que virou regra permanente (validação semântica independente: enumeração cruzada + simulação de circuitos encontrados).
+- **Proposta v5 vigente:** seleção PENDENTE; gate de qualificação PRÉ-REGISTRADO (G1 SAT + G2 UNSAT + G3 validação semântica; budget 4h/instância; estouro = falha; falha reprova C1 com dado real); pré-requisitos da seleção definitiva: alvo de C2 na mesma granularidade + busca fora da shortlist + pesos ex-ante.
+- **Meta-observação:** as duas famílias (xAI e OpenAI) convergiram INDEPENDENTEMENTE na mesma direção — validar o pipeline antes de selecionar — cada uma com findings distintos e complementares. O processo da FASE 5 está funcionando exatamente como o charter desenhou: a proposta melhorou 3 versões sob fogo adversarial sem gastar um minuto de computação em alvo errado.
+
+**Chamadas externas de modelo (acumulado FASE 5):** 2 (Grok, Codex). Dentro do limite de 5 por ciclo.
+
+---
+
+## 2026-07-11 — CICLO 8 — GATE DE QUALIFICAÇÃO EXECUTADO: **PASSOU** (autorizado: "Aprovo")
+
+**Setup:** CSV do catálogo baixado (2 classes pendentes identificadas: **0x1669 e 0x166b**, ambas ub=10); kissat instalado (brew); drat-trim compilado do fonte.
+
+**Execução (EXP-GATE-0001):**
+1. **1ª rodada: REPROVADO pela validação semântica** — o assert de simulação pegou bug real no encoder (constantes 0/1 colidindo com literais DIMACS ±1). Corrigido. **O finding central da REV-0004 (DRAT ≠ validação de encoding) se provou empiricamente na primeira execução.**
+2. **2ª rodada: G3 ∧ G1 ∧ G2 PASSARAM em 1,9s** (budget 4h/instância): encoder ≡ enumeração independente (n=2 completo, n=3 bidirecional k≤3); classe 0x0016 com circuito de 7 portas verificado por simulação; UNSAT k=6 com DRAT de 3,6MB verificada por drat-trim.
+3. Claim **7P-PNP-CLM-0021** (opt_AIG(0x0016)=7, reprodução independente com certificados) — FINITE_SCOPE_VERIFIED.
+
+**Consequência do pré-registro:** C1 ganha **SELEÇÃO PROVISÓRIA**; sonda k=9 nas classes 0x1669/0x166b aguarda budget + critério de aborto de Luiz. Seleção definitiva ainda exige: alvo C2 comparável, busca fora da shortlist, pesos ex-ante.
+
+**Ferramentas novas testadas:** kissat (proof logging DRAT) + drat-trim (checker) — inventário atualizado.
+
+---
+
+## 2026-07-11 — CICLO 9 — EXP-PROBE-0001 CONCLUÍDO: as 2 classes pendentes FECHADAS E CERTIFICADAS
+
+**Resultado científico (o primeiro do programa):**
+- **opt_AIG(0x1669) = opt_AIG(0x166b) = 10** — claims 0022/0023 em **FINITE_SCOPE_VERIFIED**.
+- Cadeia de evidência por classe: encoder validado semanticamente (G3) · UNSAT k=9 com prova DRAT verificada **2× em máquinas independentes** (Mac + pod EPYC) · circuito de 10 portas explícito conferido por simulação. Nada herdado do catálogo.
+- O catálogo público de tamanhos exatos AIG das 222 classes NPN-4 fica completo (220 do autor + 2 nossos).
+- A previsão de Luiz ("vai ser bem mais rápido") venceu: vereditos em 21–26 min contra timeout do autor e budget de 12h. Fator provável: quebra de simetria por deduplicação de portas.
+
+**Infra:** pod RunPod (16c EPYC/124GB) configurado por Luiz mid-ciclo após 2 OOM locais; certificação em duplicata Mac+pod. Decisão de Luiz registrada: próxima etapa migra para VPS maior (spec com dados reais quando o escopo n=5 for definido).
+
+**Falhas de engenharia do ciclo (todas registradas em 12_EXPERIMENTS):** 2 kills por OOM (proof logging paralelo + drat-trim em máquina de RAM curta); 1 bug de observabilidade (awk buffering engolindo eventos de monitor). Nenhuma afetou a ciência — afetaram o relógio.
+
+**Chamadas externas de modelo:** 0 neste ciclo.
+
+**Pendências que passam a decisão de Luiz:** (a) destino do resultado — contato com o autor do catálogo e/ou nota pública exigem autorização explícita (10_PUBLICATION_RULES); (b) conclusão formal da FASE 5 — pré-requisitos restantes da seleção definitiva (alvo C2 comparável, busca fora da shortlist, pesos ex-ante); (c) desligar o pod (custo/hora) até a próxima campanha.
+
+---
+
+## 2026-07-11 — CICLO 10 — Re-check de novidade (Krinkin) + fecho do lema k≤8
+
+**Pedido de Luiz:** "faça um re-check para termos certeza (Krinkin) — use grok, glm ou kimi, o que achar melhor — 1 só."
+
+**Escolha do revisor:** GLM-5.2 (Zhipu) — única família ainda não usada no programa (valida o canal de quebra) e formato adequado ao wrapper read-only: Claude coleta a evidência web/GitHub, o modelo externo audita o dossiê adversarialmente.
+
+**Evidência coletada (ferramentas reais, 2026-07-11):**
+- arXiv 2603.09379: SOMENTE v1 (2026-03-10), sem revisões.
+- Repo krinkin/bounds: 4 commits, todos de 2026-03-10; zero issues; zero PRs.
+- CSV público `data/npn4_opt_aig.csv` (HEAD): `0x1669,…,10,improved_ub` e `0x166b,…,10,improved_ub`; 220 `exact` + 2 `improved_ub`; **SHA-256 idêntico à nossa cópia local** (`5328e44f…ba49`) — sem drift de dados.
+- Semantic Scholar: lista de citações VAZIA (endpoint de metadata deu 429; o de citations respondeu).
+- Buscas web direcionadas (classes/valores): zero resultados além do próprio paper. Autor: Constructor University, Bremen (ResearchGate).
+
+**REV-0005 (GLM-5.2, 1 chamada, registro em 07_MODEL_CALL_LOG):** veredito **SUSTENTADA** — "gap continua aberto; resultado novo o suficiente para contribuir ao repo do autor". Findings adjudicados:
+1. Semantic Scholar era a lacuna de maior impacto → **fechada no mesmo ciclo** (0 citações).
+2. Literatura clássica de exact synthesis (ABC/mockturtle, Haaswijk/Soeken) não varrida → **ressalva declarada** no ledger; varredura fica para antes de qualquer nota pública (não bloqueia contato com o autor, que pergunta e não afirma).
+3. **Finding real de soundness (aceito e fechado):** encoder pergunta "exatamente k"; UNSAT k=9 não decide k≤8 sem o lema de minimalidade — que estava implícito. Resposta: lema explicitado em 12_EXPERIMENTS + **varredura empírica k=1..8: UNSAT em todos, nas duas classes** (k=8 em ≤48s; `lowk_check.py`). opt≥9 agora tem duas vias independentes.
+4. Doc stale em 12_EXPERIMENTS (cabeçalho "EM ANDAMENTO", conclusões intermediárias) → **corrigido com supersessão datada**.
+5. Guia para o contato com o autor: anexar circuitos + CNFs + hashes + versões + comando de regeneração; perguntar "gap ainda aberto?" antes de reivindicar; framing "fechando o gap declarado no seu abstract" (o abstract diz "220 of 222" — corrobora a leitura de gap real).
+
+**Interpretação de `improved_ub` (risco 3 do dossiê):** corroborada pelo abstract; risco residual é o autor considerar o valor "conjecturado" — indiferente para o ato de contribuir, relevante só para a narrativa.
+
+**Chamadas externas de modelo:** 1 (REV-0005). Limite do ciclo respeitado.
+
+**Estado ao fim do ciclo:** re-check CONCLUÍDO com novidade SUSTENTADA; claims 0022/0023 fortalecidos (adição datada no ledger); canal GLM validado (inventário atualizado). Contato com o autor SEGUE BLOQUEADO aguardando autorização explícita de Luiz (10_PUBLICATION_RULES).
+
+### Adendo do Ciclo 10 (2026-07-11) — CONTATO EXTERNO AUTORIZADO E EXECUTADO
+
+**Autorização de Luiz (verbatim):** "vamos fazer a pergunta pro Krinkin primeiro certo? pode fazer" — após revisar o draft (commit `13c4684` + fix `aa6c11a`).
+
+**Ação:** Issue aberta em `krinkin/bounds` — **https://github.com/krinkin/bounds/issues/1** — pela conta `totobusnello`. Primeiro contato externo do programa. Formato pergunta-antes-de-afirmar (REV-0005): pergunta se o gap segue aberto, oferece PR, entrega cadeia de verificação completa (hashes DRAT/CNF, circuitos + snippet de simulação, efeito no verify_all.py dele: 987→995 arestas com bound PASS) e nota de proveniência AI-assisted explícita.
+
+**Bloqueios remanescentes:** Parte B (PR com o diff do CSV/README) aguarda resposta do autor + novo OK de Luiz. Provas grandes (4,5/3,9GB): hospedagem só se ele pedir (Zenodo vs link direto — decisão de Luiz pendente).
+
+## 2026-07-11 — CICLO 11 — FASE 5 FORMALMENTE ENCERRADA (pré-requisitos da v5 cumpridos; C1 seleção DEFINITIVA)
+
+**Contexto:** Luiz aprovou a fila de 5 itens ("vamos atacar a fila sugerida! qualquer coisa me chama"). Item 1: fechar a dívida de governança da FASE 5 — os 3 pré-requisitos que a REV-0004 impôs à seleção definitiva.
+
+**Executado (registro integral em 09_CANDIDATE_SUBPROBLEMS.md, seção v6):**
+- **(i) Alvo concreto de C2** formulado na mesma granularidade da Unidade 1 de C1: shortest DRAT proofs de PHP(n) (SRC-0022) — binário, verificável por drat-trim, custo horas–dias. Fica como reserva ativável.
+- **(ii) Busca fora da shortlist** documentada (queries reais registradas): candidato C6 — combinatória extremal/conjecturas via SAT certificado (linha Heule/MathCheck; SRC-0028 e SRC-0029 novos no ledger). Pontuado: 27/40 — não supera a shortlist (REL=1, DUP=1: nicho dominado, provas de ~2PB fora do envelope).
+- **(iii) Pesos e âncoras fixados:** REL×2, âncoras 1/3/5 por critério — vinculantes para seleções FUTURAS; limitação retrospectiva declarada explicitamente (não são ex-ante para ESTA seleção; mitigação = análise de sensibilidade).
+- **Análise de sensibilidade (honesta):** C1 lidera sob pesos uniformes e REL×2; sob REL×3 há EMPATE técnico C1/C2. O scorecard não decide sozinho — o desempate é dado real vs estimativa: FER/INT de C1 MEDIDOS e ENTREGUES (gate 1,9s; sonda 21–26min; claims 0021–0023 verificados; novidade sustentada), C2 só estimado.
+
+**SELEÇÃO DEFINITIVA: C1-restrito**, com termos consolidados: n=5 segue HIPÓTESE sujeita a benchmark + decisão de Luiz (FASE 6); ponte C1→C3 como critério de desenho; C2/C6 como reservas; pesos vinculantes daqui em diante. Sujeita a veto de Luiz.
+
+**Chamadas externas de modelo:** 0 neste ciclo (buscas web não contam como chamadas de modelo).
+
+## 2026-07-11 — CICLO 12 — REV-0006: claim 0010 VALIDADO pela 2ª família (GLM) — dupla família cumprida
+
+**Item 2 da fila aprovada por Luiz.** GLM-5.2 (Zhipu) revisou adversarialmente o claim 7P-PNP-CLM-0010 (lema 3COL→SAT): **VALIDADO, 0 findings críticos/importantes, 5 MENOR** — com verificação empírica independente da aritmética (35/85/34 cláusulas e 75/180/72 literais conferidos), das duas direções da prova e da redundância do grupo (2).
+
+**Adjudicação (5/5 aceitos, correções aplicadas e re-executadas no mesmo ciclo):** encoding p-razoável explicitado na hipótese word-RAM (F2 — o único que tocava a alegação de polinomialidade); multiarestas rejeitadas na implementação (F1); n=0 na bateria (F3); 3n variáveis explícitas (F4); F5 = estilo.
+
+**Consequência:** claim 0010 com **dupla família CUMPRIDA** (REV-0001 OpenAI + REV-0006 Zhipu) — primeiro claim do programa **LIBERADO como dependência**. As 4 famílias adversariais (OpenAI, Moonshot, xAI, Zhipu) estão agora todas testadas e operacionais.
+
+**Chamadas externas de modelo:** 1 (REV-0006).

@@ -25,7 +25,11 @@
 | SAT solver pysat (Glucose4) | **DISPONÍVEL E TESTADA** (2026-07-10) | smoke test real: modelo SAT retornado |
 | SMT solver Z3 4.16.0 | **DISPONÍVEL E TESTADA** (2026-07-10) | smoke test real: modelo SAT retornado |
 | pypdf | **DISPONÍVEL E TESTADA** (2026-07-10) | usada na verificação verbatim do PDF oficial de P vs NP |
-| SAT solvers nativos (cryptominisat, kissat) | **INDISPONÍVEL** (instalável) | `brew install cryptominisat kissat` — quando experimentos exigirem performance |
+| kissat (nativo, com proof logging DRAT) | **DISPONÍVEL E TESTADA** (2026-07-11, EXP-GATE-0001) | UNSAT k=6 com emissão de prova DRAT |
+| drat-trim (checker independente de provas) | **DISPONÍVEL E TESTADA** (2026-07-11) | compilado do fonte (marijnheule/drat-trim); "s VERIFIED" no gate |
+| cryptominisat | **INDISPONÍVEL** (instalável) | `brew install cryptominisat` — se precisar de 2º solver |
+| **Pod RunPod dedicado (compute)** | **DISPONÍVEL E TESTADA** (2026-07-11, configurado por Luiz) | AMD EPYC 4564P 16 cores / 124GB RAM / 100GB disco / Ubuntu 24.04 · $0,64/h · SSH root@157.157.221.177:24959 · Stack instalado: kissat (source), CaDiCaL 3.0 (rota LRAT), drat-trim + lrat-check, Python 3.12 · tools em /workspace/tools · **desligar quando ocioso** |
+| **VPS maior (próxima etapa — decisão de Luiz 2026-07-11)** | PLANEJADA | Após fechar as tarefas atuais, migrar p/ VPS com mais CPUs/RAM. Dimensionamento com dados reais de n=4 (21–26min/classe em k=9, 1 core): p/ n=5 (616.126 classes NPN) o gargalo é CORES × single-thread + RAM p/ verificação de provas. Especificar quando o escopo n=5 for definido (FASE 6) |
 | SMT solver cvc5 | **INDISPONÍVEL** (instalável) | `brew install cvc5` — segunda opinião de solver |
 | CAS SageMath | **PRECISA DE CONFIGURAÇÃO HUMANA** | Instalação pesada (~1GB+); avaliar necessidade real antes |
 
@@ -54,7 +58,7 @@
 | OpenAI via Codex MCP (OAuth ChatGPT) | **DISPONÍVEL E TESTADA — CANAL OFICIAL** | Decisão de Luiz (2026-07-10): este é o canal OpenAI do programa. Chamada real: identifica-se como "Codex, an OpenAI agent based on GPT-5"; contexto isolado confirmado; apto a referee adversarial |
 | OpenAI API direta (key) | **DESCARTADA POR DECISÃO** (2026-07-10) | Key do `~/.zshrc` inválida E desnecessária — OAuth via Codex cobre o caso de uso. Reconsiderar só se surgirem chamadas programáticas em lote fora do MCP |
 | Kimi (Moonshot) | **DISPONÍVEL, AINDA NÃO TESTADA** | `/kimi:{review,challenge,ask}` — OAuth ativo |
-| GLM-5.2 (Zhipu) | **DISPONÍVEL, AINDA NÃO TESTADA** | wrapper `~/Claude/scripts/glm`, read-only |
+| GLM-5.2 (Zhipu) | **DISPONÍVEL E TESTADA** (2026-07-11, REV-0005) | wrapper `~/Claude/scripts/glm`, read-only; auditoria do re-check Krinkin |
 | Grok 4.5 (xAI) | **DISPONÍVEL, AINDA NÃO TESTADA** | wrapper `~/Claude/scripts/grok`, pay-as-you-go |
 
 4 famílias de treino independentes de Claude (OpenAI, Moonshot, Zhipu, xAI) → revisão adversarial multi-modelo é viável hoje.
