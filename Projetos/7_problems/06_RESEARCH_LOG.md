@@ -436,3 +436,7 @@ Pedido de Luiz: "resolve o kimi setup pra mim". Diagnóstico com o `setup --chec
 **Escala de confiança final do claim 0024:** testemunhas = kernel puro · lema estrutural = kernel puro · varredura finita = native_decide · Khrapchenko (não formalizado) segue como cinto analítico independente. Lean 4 promovido a DISPONÍVEL E TESTADA no inventário.
 
 **Chamadas externas de modelo:** 0.
+
+### Incidente 2026-07-11 (~16h BRT) — pod preemptado/recriado DURANTE o piloto; recuperação + lição operacionalizada
+
+Pod ficou `connection refused` com o piloto em 22/320; Luiz forneceu endpoint novo (porta 38250) — container recriado ZERADO (volume não sobrevive). Perdidos ~17 resultados não sincronizados (5 tinham backup local e foram semeados no resume). Stack reinstalado (kissat 4.0.4 source + drat-trim 2e3b2dc), 16 workers relançados. **Lição operacionalizada, não só anotada:** o monitor agora SINCRONIZA os outputs (scp) a cada ciclo de 15min para `exp_pilot_n5/out_pod/` — perda máxima futura = 15min de compute. Estrato do Mac não foi afetado (7/150 no momento do incidente, incluindo a 1ª classe opt=10 decidida). Interim pré-incidente do pod (dado válido, preservado no log): 6 decididas {0,4,8,8,9,9} + 16 censuradas {k=9: 11, k=10: 5}.
