@@ -1,0 +1,25 @@
+# PNP-AI — 12 — EXPERIMENTS
+
+> Todo experimento registra: código, versão, parâmetros, hardware (quando relevante), entradas, saídas, seeds, tempo, memória, limite do experimento, conclusão permitida e conclusão NÃO permitida.
+
+---
+
+## EXP-PED-0001 — Redução 3-COLORING → SAT (pedagógico)
+
+- **Data:** 2026-07-10 · **Fase:** 2 (pedagógica) · **Código:** `experiments/exp_ped_0001_3col_to_sat.py`
+- **Ambiente:** Python 3.14.3, python-sat (Glucose4), macOS darwin 25.6.0. Determinístico (sem seeds).
+- **Codificação:** x[v,c] = "vértice v tem cor c"; cláusulas: ≥1 cor por vértice, ≤1 cor por vértice, vizinhos com cores distintas. Tamanho exato: 4n+3|E| cláusulas e 9n+6|E| literais (grupo 1: n×3; grupo 2: 3n×2; grupo 3: 3|E|×2) [contagem de literais explicitada após REV-0002]; construção O(n+|E|) em word-RAM com lista de arestas, O((n+|E|)·log n) em bits — em qualquer caso polinomial (complexidade corrigida pela REV-0001; ver claim 7P-PNP-CLM-0010).
+- **Hardening pós-REV-0002 (Kimi):** verificação independente agora exige EXATAMENTE UMA cor por vértice (rejeita 0 ou ≥2, sem confiar no solver) + validação de arestas na entrada (range e laços). Re-executado: mesmos resultados (C5/Petersen SAT, K4 UNSAT); testes negativos da validação passam.
+- **Entradas e saídas (execução real):**
+
+| Instância | \|V\| | \|E\| | Cláusulas | Resultado |
+|---|---|---|---|---|
+| C5 (ciclo de 5) | 5 | 5 | 35 | SAT — certificado {0:2, 1:1, 2:0, 3:1, 4:0}, conferido independentemente |
+| Petersen | 10 | 15 | 85 | SAT — certificado conferido independentemente |
+| K4 (completo) | 4 | 6 | 34 | UNSAT (K4 não é 3-colorável) |
+
+- **Limite do experimento:** 3 instâncias minúsculas; propósito exclusivamente didático.
+- **Conclusão permitida:** a redução implementada preserva SIM/NÃO nas instâncias testadas; ilustra concretamente redução polinomial, certificado e a assimetria encontrar/conferir.
+- **Conclusão NÃO permitida:** qualquer afirmação sobre P vs NP, sobre desempenho assintótico de solvers, ou sobre correção da redução para todos os grafos (a prova geral da correção da codificação é exercício da FASE 3 — candidata a primeiro lema formalizável).
+
+---
