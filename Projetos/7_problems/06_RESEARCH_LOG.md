@@ -306,3 +306,133 @@ Destaques: Q6 com o detalhe "polinomial no nº de bits"; Q8 com o quantificador 
 **Consequência:** claim 0010 com **dupla família CUMPRIDA** (REV-0001 OpenAI + REV-0006 Zhipu) — primeiro claim do programa **LIBERADO como dependência**. As 4 famílias adversariais (OpenAI, Moonshot, xAI, Zhipu) estão agora todas testadas e operacionais.
 
 **Chamadas externas de modelo:** 1 (REV-0006).
+
+## 2026-07-11 — CICLO 13 — Nota técnica escrita, revisada (REV-0007) e corrigida (v2)
+
+**Item 4 da fila.** Nota técnica em inglês (`PNP_AI/notes/technote_npn4_gap_closure.md`): método, resultado, reprodutibilidade e efeito no catálogo — primeiro manuscrito do pipeline de publicação do programa.
+
+**Processo (como planejado — revisão adversarial ANTES de Luiz ver):** v1 → REV-0007 (Codex/gpt-5.6-sol): **NEEDS_REVISION, 14 findings (6 MAJOR)** → todos aceitos → v2. Os MAJOR renderam correções que TRANSBORDARAM da nota para os registros internos:
+1. **Lema de minimalidade/normalização completado** (v1 omitia fan-ins iguais e o argumento de redirecionamento de fanouts) — agora enunciado com esboço de prova na §2.1 da nota.
+2. **Varredura k=1..8 reclassificada:** não é via independente do lema e não tem DRAT — é sanity check. Correção datada aplicada TAMBÉM no 12_EXPERIMENTS (a formulação "duas vias independentes" do Ciclo 10 era imprecisa).
+3. **Rerun do verify_all arquivado como experimento** (`experiments/exp_verify_rerun/`): diff de 2 linhas, snapshot do script do autor, saída integral (987→995 edges, PASS), hashes — baseline reproduz o Expected output do autor.
+4. **Unidades corrigidas nos registros:** provas = 4.785.094.117 e 3.871.475.211 bytes (o "4,5GB" era GiB rotulado como GB).
+5. **Proveniência honesta:** kissat do Mac é brew (não source); commit do drat-trim do pod não registrado — gap DECLARADO na nota em vez de encoberto.
+6. Codex confirmou empiricamente os números centrais (vars/cláusulas, testemunhas, tempos, hashes): "most numerical claims check out".
+
+**Estado:** nota v2 pronta para leitura de Luiz. Preprint/publicação seguem bloqueados (10_PUBLICATION_RULES).
+
+**Chamadas externas de modelo:** 1 (REV-0007).
+
+## 2026-07-11 — CICLO 14 — Plano da FASE 6 (n=5) + spec provisória de infra — PROPOSTA a Luiz
+
+**Item 5 da fila (último).** `PNP_AI/13_FASE6_PLAN.md`: números honestos de escala (616.126 classes; teto ingênuo 29 anos-core, piso 71 dias-core — a distribuição real é DESCONHECIDA), 4 recortes científicos (A catálogo completo / B parcial curado / C dataset ponte C1→C3 / D outras bases em n=4), **piloto de medição pré-registrado** (300 classes uniformes + 16 simétricas, busca ascendente sem proof logging, timeout 2h/classe, budget 72h no pod ≈ US$ 46, aborto pré-registrado), spec de infra provisória com regra de decisão (pod sob demanda vs dedicado mensal, ponto de equilíbrio ~700 h-core) e a lista explícita do que fica com Luiz: aprovar piloto, escolher recorte após os dados, contratar infra, publicar.
+
+**Recomendação do coordenador:** recorte C (dataset meta-complexidade) como espinha dorsal com B como subproduto — é o que serve à seleção definitiva de C1 (ponte C1→C3).
+
+**REV-0004 honrada:** nenhum compromisso com n=5 assumido — tudo condicionado ao piloto.
+
+**Issue Krinkin (#1):** checada neste ciclo — sem resposta ainda.
+
+**Chamadas externas de modelo:** 0 neste ciclo.
+
+**FILA DE LUIZ (aprovada 2026-07-11) — STATUS FINAL: 5/5 CONCLUÍDA.** (1) FASE 5 encerrada, C1 definitivo; (2) claim 0010 dupla família cumprida; (3) PR #7 mergeado, branch fase6 aberto; (4) nota técnica v2 revisada; (5) plano FASE 6 proposto.
+
+## 2026-07-11 — CICLO 15 — PILOTO n=5 LANÇADO (320 classes, 16 workers no pod re-provisionado)
+
+**Autorização:** Luiz respondeu ao checkpoint da FASE 6 fornecendo o SSH do pod re-provisionado (endpoint novo) — interpretado como aprovação do piloto pré-registrado (budget 72h ≈ US$ 46).
+**Antes de rodar:** pré-gate n=3 COMPLETO passou (256/256, bidirecional, k≤4) + Emenda 1 ao plano registrada ANTES da execução (amostragem uniforme-sobre-funções com pesos HT; 64 simétricas → 20 classes; correções datadas).
+**Execução:** amostra de 320 classes (seed=20260711), 16 shards, 16 workers paralelos, lançados 16:35 UTC. Smoke test local: 0x00000001 → opt=4 (AND de 5 entradas, correto). Stack do pod reinstalado do fonte com commits REGISTRADOS (fecha o gap de proveniência da REV-0007 p/ execuções futuras).
+**Chamadas externas de modelo:** 0.
+
+## 2026-07-11 — CICLO 16 — REV-0008 (Kimi): "concern" no runner do piloto — 2 bugs operacionais corrigidos EM VOO
+
+**Contexto:** Luiz pediu paralelização + review do Kimi. 1ª tentativa via subagente morreu no teto de ~10min do Bash de subagente (turn.cancel aos 11min); 2ª tentativa manual falhou por CLAUDE_PLUGIN_DATA ausente (MESMA pegadinha da REV-0002 — anotada mas não operacionalizada). Resposta estrutural: **`tools/rev.sh`** (lançador único dos 4 canais com pre-flight `doctor`) + HARD RULE no CLAUDE.md do projeto + memória persistente. 3ª tentativa (background da sessão principal, env correto): SUCESSO.
+
+**REV-0008 (Kimi, kimi-for-coding, thinking high): veredito "concern", 5 findings.** Ciência confirmada correta (canonicalização NPN 7.680 transformações ✓, encoding ✓, direção dos pesos HT ✓). Adjudicação:
+- **F1 (MEDIUM, ACEITO+CORRIGIDO):** budget da classe não recontava o tempo de encode/escrita do CNF antes do kissat — em k alto o kissat estourava o budget, e no pior caso `subprocess.run(timeout<=0)` derrubaria o shard inteiro. Corrigido (recomputa+clampa) — runner v2.
+- **F2 (MEDIUM, ACEITO+CORRIGIDO):** `assert` de verificação e parse frágil de modelo abortavam o shard; agora falha vira registro recuperável (`error`) e o loop continua — runner v2.
+- **F3 (MEDIUM, ACEITO+EM EXECUÇÃO):** varredura k=1..8 do n=4 sem DRAT quando certificar é barato — `cert_lowk.py` lançado (prova→check→hash→apaga, 16 execuções).
+- **F4 (LOW, ACEITO+CORRIGIDO):** tempos por k não incluíam encode — agora `enc_times` separado (extrapolação de custo fica honesta).
+- **F5 (LOW, ACEITO, documentado):** pesos HT são aproximação sob o desenho "sorteia até 300 distintas" — ok para distribuições (constante cancela); totais exigem normalização. Vai declarado na análise.
+
+**Redeploy em voo com resume:** pod e Mac migrados pro runner v2 (classes concluídas preservadas). Dois incidentes operacionais no redeploy, ambos diagnosticados e corrigidos: pkill remoto auto-casou com o próprio `bash -c` (matou a sessão antes de relançar — padrão `pilot_[r]un.py` resolve) e pkill local não pegou os PIDs antigos do Mac (kill explícito).
+
+**Alerta de segurança do plugin (para Luiz):** o safety hook do kimi-plugin-cc está com path drift (aponta pra versão antiga do cache) — sem ele, o modo `-p` do kimi-code auto-aprova QUALQUER tool call, incluindo Write/Bash, mesmo em comandos documentados como read-only. Recomendação: rodar `/kimi:setup` para re-pinar. Até lá, chamadas kimi só nos modos read-only e com diff conferido.
+
+**Chamadas externas de modelo:** 1 (REV-0008; as 2 tentativas falhas não geraram chamada faturável — morreram antes/no transporte).
+
+### Adendo do Ciclo 16 — "kimi setup" resolvido: era falso positivo, correção foi no NOSSO lançador
+
+Pedido de Luiz: "resolve o kimi setup pra mim". Diagnóstico com o `setup --check` do próprio plugin, rodado do root CORRETO (cache versionado 1.5.0): **hook instalado, probe passou** ("deny reason captured" — o hook nega Bash em modo review como deve), node pinado existe, review gate no default. O warning de "path drift" da REV-0008 foi **falso positivo do nosso lançamento** (root do marketplace ≠ root pinado no config) — e, pior, aquele run rodou SEM hook ativo. Auditoria do working tree pós-REV-0008: nenhuma escrita inesperada (kimi comportou-se read-only).
+
+**Correções:** `tools/rev.sh` agora resolve o root do plugin dinamicamente pelo cache versionado (à prova de update do plugin) e o `doctor` ganhou o probe do hook como check obrigatório. Config do Luiz: intocada (não precisou de /kimi:setup).
+
+## 2026-07-11 — CICLO 17 — SRC-0032 ("The Unit Gap", Krinkin): Teorema 2, Corolário 6 e Teorema 7 REFUTADOS (claims 0024/0025)
+
+**Origem:** leitura pré-campanha do 2º paper do autor do catálogo (obrigação da Emenda 2). O abstract afirma gap(fórmula, circuito) ∈ {0,1} para TODA função booleana na base AIG — em tensão direta com separações clássicas. Leitura verbatim (pypdf) localizou a causa: a identidade do §2 usa opt (circuitos) nos filhos onde a recursão de fórmula exige tree (árvores).
+
+**Contraexemplo (⊕₃, verificado mecanicamente, artefatos em `experiments/exp_unitgap_check/`):**
+- opt(⊕₃)=6: UNSAT@5 com DRAT "s VERIFIED" + testemunha de 6 portas simulada. tree(⊕₃)=9 pelo DP exato de ponto fixo (256 funções); sanduíche independente do DP: Khrapchenko ⟹ ≥8, construção explícita ⟹ ≤9. **gap ∈ {2,3} ∌ {0,1}** — Teorema 2 falso sob a definição que o próprio paper enuncia.
+- A Tabela 1 do paper lista "2 funções gap=1 em opt=6" no n=3 completo — são exatamente ⊕₃ e ¬⊕₃, cujo gap real é 3: o experimento dele computou a grandeza errada (tree_oneshot), não formula size.
+- **REV-0009 (Grok, via rev.sh): SUSTENTADA** — e derivou refutação ADICIONAL, independente da disputa de definição: s=3 no circuito ótimo de ⊕₃ (filhos da saída compartilham as 3 portas de x1⊕x2; 1+4+4−3=6 conferido com opt(filho)=4, UNSAT@3 DRAT) ⟹ Corolário 6 (s∈{0,1}) e Teorema 7 caem juntos. Teoremas 3 e 4 SOBREVIVEM.
+
+**Claims:** 7P-PNP-CLM-0024 (gap≥2/=3) e 0025 (s=3) — COMPUTATIONALLY_TESTED, 1 família revisou (Grok); **regra de dupla família pendente** antes de qualquer comunicação técnica formal. SRC-0032 marcado GAP_FOUND no source ledger (não usar Thm2/Cor6/Thm7 como dependência).
+
+**Também neste ciclo:** cadeia k=1..9 do resultado 0x1669/0x166b ficou 100% DRAT-certificada (16/16 "s VERIFIED", fecho do F3 da REV-0008).
+
+**Decisão que passa a Luiz:** comunicar (ou não) o achado ao autor — sensível: temos issue amigável aberta no outro repo dele. Recomendação do coordenador: 2ª revisão de família antes (Codex ou Kimi, 1 chamada), e só então decidir o canal/tom.
+
+**Chamadas externas de modelo:** 1 (REV-0009).
+
+## 2026-07-11 — CICLO 18 — REV-0010 (gpt-5.6-sol): refutação SUSTENTADA pela 2ª família — dupla família CUMPRIDA nos claims 0024/0025
+
+**Pedido de Luiz:** "gpt-5.6-sol roda". Codex revisou adversarialmente com re-derivação independente: enumeração própria por camadas confirmou **tree(⊕₃)=9 exato** (⊕₃/¬⊕₃ são as duas únicas funções de custo 9 em n=3); re-executou os UNSATs; auditou o DP e a aplicação de Khrapchenko; confirmou s=3 e o Cor. 6 falso (e de quebra: o Remark 5 do paper — optimal substructure — também falha com portas compartilhadas).
+
+**Refinamentos adjudicados (ambos aceitos, ledger corrigido com data):**
+1. **Thm 7:** ⊕₃ (gap 3) não satisfaz a hipótese "gap=1" do enunciado condicional — logo não o refuta sob a definição padrão; o que se estabelece é: prova INVALIDADA (usa Cor. 6), alegação universal FALSA, e contradição direta sob a grandeza que o autor computou. Claim 0025 precisado.
+2. **Thm 3:** furo de contagem na prova publicada (|S|≥k−1 falha quando g é porta de entrada); prova corrigida fornecida (contagem de fan-out, 2m≥n+m ⟹ m≥n, para todo gap>0). Material adicional para eventual comunicação.
+
+**Fecho de reprodutibilidade (F5):** CNF+DRAT de ⊕₃@k=5 e do filho@k=3 arquivados permanentemente em `exp_unitgap_check/certs/` — regeneração byte-idêntica (hashes iguais aos da 1ª execução).
+
+**Estado final do pacote Unit Gap:** Thm 2 e Cor. 6 REFUTADOS (dupla família: Grok + Codex, ambas SUSTENTADA); Thm 7 sem prova e com alegação universal falsa; Thms 3–4 sobrevivem (Thm 3 com prova corrigida nossa). Claims 0024/0025 liberados como dependência. **Comunicação ao autor: DESBLOQUEADA pela governança, aguardando decisão de Luiz** (recomendação: draft respeitoso, mesmo tom da issue #1, possivelmente aguardando a resposta dele lá).
+
+**Chamadas externas de modelo:** 1 (REV-0010).
+
+## 2026-07-11 — CICLO 19 — Certeza máxima: 4/4 famílias SUSTENTARAM a refutação do Unit Gap
+
+**Pedido de Luiz:** "precisamos ter mta certeza hein! melhor mais um review?" — rodadas as DUAS famílias restantes em paralelo (via rev.sh, background).
+
+**REV-0011 (Kimi/Moonshot): SUSTENTADA** — re-derivação própria completa; validou REV-0009/0010 sem erro material. **REV-0012 (GLM/Zhipu): SUSTENTADA, confiança "Total"** — re-resolveu com kissat E Glucose4; re-hasheou os DRATs versionados (matching); s=3 por 2 vias; "assinatura" diagnóstica: das 18 funções opt=6 em n=3, exatamente as 2 paridades têm custo real 9 (as demais 16 têm 7) — a Tabela 1 do autor computou tree_oneshot.
+
+**PLACAR FINAL: 4 famílias de treino independentes (xAI, OpenAI, Moonshot, Zhipu), 4 SUSTENTADA, zero findings contra o núcleo.** Elo adicional fechado neste ciclo: a fórmula-testemunha de 9 portas foi verificada por simulação (upper bound com artefato físico, independente do DP). Estrutura final da evidência: tree≤9 (testemunha simulada) · tree≥9 (DP exato + enumeração por camadas independente) · tree≥8 analítico (Khrapchenko — suficiente sozinho para refutar) · opt=6 (DRAT + testemunha) · s=3 (estrutural + aritmético, DRAT do filho).
+
+**Ressalva do GLM incorporada ao plano de contato:** anexar os DRATs pequenos (11KB/147KB, já versionados em certs/) em vez de só hashes.
+
+**Estado: PRONTO PARA COMUNICAÇÃO EXTERNA — aguardando decisão e aprovação de texto por Luiz.**
+
+**Chamadas externas de modelo:** 2 (REV-0011, REV-0012).
+
+## 2026-07-11 — CICLO 20 — Issue #2 ENVIADA: a refutação do Unit Gap comunicada ao autor
+
+**Autorização de Luiz:** "então vamos" — após a pergunta "temos 100% de certeza mesmo?" respondida com o mapa honesto de certeza (elos mecânicos + fail-safe analítico de Khrapchenko: pior cenário residual dá gap=2, que refuta igualmente; único risco real = definição pretendida divergente, coberto pelo formato-pergunta).
+
+**Ação:** https://github.com/krinkin/unit-gap/issues/1 — aberta pela conta `totobusnello` no repo próprio do paper. Conteúdo: pergunta sobre a identidade do §2 (typo ou definição?); contraexemplo ⊕₃ (opt=6 concordante com a Tabela 1 dele; tree=9 com snippet verificável em segundos); a assinatura na Tabela 1 dele; o ponto independente s=3 (Cor. 6); oferta construtiva (prova corrigida do Thm 3); proveniência AI-assisted com menção às 4 famílias de revisão. **Anexos viraram links**: o repo umbrella é PÚBLICO — artefatos versionados linkados diretamente (certs/, scripts, outputs).
+
+**Estado das frentes externas:** issue #1 (bounds — contribuição) e issue #2 (unit-gap — refutação respeitosa) abertas, ambas aguardando o autor. Qualquer follow-up (PR no bounds, resposta a réplicas) exige novo OK de Luiz.
+
+**Chamadas externas de modelo:** 0 neste ciclo.
+
+## 2026-07-11 — CICLO 21 — Contraexemplo FORMALIZADO em Lean 4 (padrão-ouro atingido)
+
+**Pedido de Luiz:** merge do branch (PR #9 criado — o merge automático foi bloqueado pelo classificador por ser PR criado por mim; aguarda o clique dele) + formalização Lean.
+
+**Entregue: `PNP_AI/formal/UnitGap.lean`** (Lean 4.31.0, ~360 linhas, ZERO dependências — nem Mathlib):
+- Modelo: fórmulas AIG como tipo indutivo (árvore com polaridades nas arestas — fan-out 1 automático pela estrutura, folhas repetíveis); circuitos como programas em linha reta (compartilhamento livre); semântica por truth tables de 8 bits.
+- **`complete` (o coração):** todo φ com `gates φ ≤ c` tem `eval φ` no nível `D c` do DP — provado por INDUÇÃO ESTRUTURAL, verificado pelo kernel (axiomas: só os padrão do Lean).
+- **`tree_lower`:** toda fórmula que computa ⊕₃ tem ≥ 9 portas (completude + fato finito `⊕₃ ∉ D₈` por native_decide — único elo que confia no compilador; kernel bateu em profundidade de recursão na tentativa de decide puro, 2min+, documentado).
+- **`tree_upper` e `circuit_upper`:** testemunhas de 9 portas (fórmula) e 6 portas (circuito, nó compartilhado com fan-out 2) verificadas pelo KERNEL (`decide`; axioma: só propext). O native_decide de desenvolvimento PEGOU UM BUG REAL na primeira testemunha w9 (polaridade faltando colapsava para ⊕₂) — o processo funcionou.
+- **`unit_gap_refuted`:** pacote final — gap(⊕₃) ≥ 3 ∉ {0,1}. Auditoria de axiomas inline (#print axioms).
+
+**Escala de confiança final do claim 0024:** testemunhas = kernel puro · lema estrutural = kernel puro · varredura finita = native_decide · Khrapchenko (não formalizado) segue como cinto analítico independente. Lean 4 promovido a DISPONÍVEL E TESTADA no inventário.
+
+**Chamadas externas de modelo:** 0.

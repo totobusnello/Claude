@@ -37,7 +37,7 @@
 
 | Ferramenta | Estado | Ação |
 |---|---|---|
-| Lean 4 + Mathlib | **INDISPONÍVEL** (instalável) | `elan` toolchain; Mathlib tem `Mathlib.Computability` (TMs, P, NP parciais) — melhor candidato p/ PNP-AI |
+| Lean 4 | **DISPONÍVEL E TESTADA** (2026-07-11): elan + Lean 4.31.0; primeira formalização real do programa compilada (`PNP_AI/formal/UnitGap.lean` — refutação do Unit Gap, kernel + native_decide, sem Mathlib) | Mathlib ainda NÃO instalado (instalar quando a formalização precisar de teoria além do finito) |
 | Coq / Rocq | **INDISPONÍVEL** (instalável) | Alternativa; menor prioridade inicial |
 | Isabelle | **INDISPONÍVEL** (instalável) | Alternativa; menor prioridade inicial |
 
@@ -62,6 +62,8 @@
 | Grok 4.5 (xAI) | **DISPONÍVEL, AINDA NÃO TESTADA** | wrapper `~/Claude/scripts/grok`, pay-as-you-go |
 
 4 famílias de treino independentes de Claude (OpenAI, Moonshot, Zhipu, xAI) → revisão adversarial multi-modelo é viável hoje.
+
+**Lançador único (2026-07-11): `tools/rev.sh`** — encapsula env vars/model ids/modos corretos dos 4 canais + `doctor` de pre-flight. HARD RULE no CLAUDE.md do projeto: nunca lançar revisor manualmente; chamadas longas sempre em background da sessão principal (nunca Bash de subagente, teto ~10min).
 
 ## Gaps prioritários (atualizado 2026-07-10, pós-Ciclo 2)
 

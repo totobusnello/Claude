@@ -78,6 +78,21 @@
 - **Motivação:** o encoder pergunta "existe circuito com **exatamente** k portas". UNSAT em k=9 refuta opt=9; para opt≤8 o argumento era só o lema de minimalidade (se opt=m, um circuito mínimo de m portas é livre de duplicatas, tem todas as portas usadas e saída na última — logo satisfaz o CNF de k=m; UNSAT em k=m refuta opt=m). A REV-0005 (GLM) apontou que esse lema estava implícito e não testado. Fecho empírico: rodar k=1..8 nas duas classes (`lowk_check.py`).
 - **k=0 fora do SAT:** 5737 e 5739 não são constantes nem literais (conferido no script).
 - **Resultado (execução real, Mac, kissat, `lowk_sweep.log`):** **UNSAT em TODOS os k=1..8, para AMBAS as classes.** Tempos: k≤6 sub-segundo; k=7 ≈ 4–5s; k=8 = 47,9s (0x166b) e 39,2s (0x1669). Tamanhos: k=8 → 993 vars / 89.495 cláusulas. Vereditos sem proof logging (sanidade); o resultado de claim continua ancorado no k=9 com DRAT + este fecho empírico + o lema de minimalidade agora EXPLÍCITO (acima).
-- **Consequência:** opt ≥ 9 fica estabelecido por duas vias independentes (lema + varredura empírica); com UNSAT k=9 (DRAT 2×) e SAT k=10 (simulado), opt = 10 sem elo implícito na cadeia.
+- **Atualização 2026-07-11 (fecho do finding 3 da REV-0008/Kimi): a varredura k=1..8 foi CERTIFICADA.** `cert_lowk.py` no pod EPYC (kissat 4.0.4 source, drat-trim 2e3b2dc source): **16/16 execuções (2 classes × k=1..8) UNSAT com prova DRAT "s VERIFIED"**; hashes SHA-256 e tamanhos em `experiments/exp_probe_0001/cert_lowk_results.jsonl` (versionado; maiores provas: k=8 = 203,6MB/0x166b e 170,4MB/0x1669, verificadas em 144s/152s). **Com isso a cadeia inteira k=1..9 é DRAT-certificada** — nenhum elo "confie no solver" resta no lower bound.
+- **Consequência:** opt ≥ 9 fica estabelecido pelo lema de minimalidade/normalização (agora explícito) + UNSAT certificado em k=9; a varredura k=1..8 rechecagem cada m≤8 empiricamente. **Correção datada 2026-07-11 (REV-0007/Codex, finding 3):** a formulação anterior "duas vias independentes" era imprecisa — a varredura TAMBÉM depende do lema (UNSAT em k=m só refuta opt=m via o lema) e é NÃO CERTIFICADA (sem DRAT). Status correto: cadeia certificada = lema + DRAT k=9; varredura = sanity check adicional.
+- **Correção de unidades (datada 2026-07-11, REV-0007 finding 7):** tamanhos exatos das provas: 0x1669 = 4.785.094.117 bytes (≈4,79 GB decimais; os "4,5GB" registrados acima eram GiB de display do filesystem rotulados como GB); 0x166b = 3.871.475.211 bytes (≈3,87 GB). CNFs: 1.781.704 bytes cada.
 
 ---
+## EXP-PILOT-N5 — Piloto de medição do n=5 (FASE 6) — EM ANDAMENTO
+
+- **Data:** 2026-07-11 · **Código:** `experiments/exp_pilot_n5/` (`sample_n5.py` amostrador,
+  `pilot_run.py` runner) · **Pré-registro:** `13_FASE6_PLAN.md` §3 + Emenda 1.
+- **Amostra:** 320 classes NPN de n=5 (300 uniformes sobre funções, seed=20260711, com órbita p/
+  reponderação HT + 20 simétricas distintas). **Pré-gate:** n=3 completo 256/256 bidirecional ✓.
+- **Protocolo:** busca ascendente k=0,1,... até SAT (verificado por simulação) ou censura em
+  7.200s/classe; sem proof logging; tempos e tamanhos de CNF registrados por k.
+- **Infra:** pod EPYC 16c/124GB re-provisionado (Ubuntu 20.04; kissat 4.0.4 source; drat-trim
+  2e3b2dc source). 16 workers, lançados 16:35 UTC.
+- **Conclusão permitida (quando terminar):** distribuição empírica de opt e custo em n=5 NA AMOSTRA;
+  extrapolações via pesos HT com incerteza declarada. **NÃO permitida:** valores individuais como
+  claims (sem certificação DRAT nesta fase); nada sobre a cauda censurada além de "≥ k censurado".
