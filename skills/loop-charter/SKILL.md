@@ -39,7 +39,7 @@ Não avance enquanto a resposta não passar no critério.
 2. **Retorna boolean?** Reduz a pronto/não-pronto. "Melhorou" não é boolean; "teste X passa" é.
 3. **Roda sem humano?** Um comando/check que a máquina executa sozinha. Se precisa de alguém olhando, é gate humano (Q5), não o da Q3.
 4. **Falsificável?** Existe um resultado observável que PROVA que falhou. Se nada pode reprová-lo, ele não prova nada.
-Falhou em qualquer uma → devolva pro usuário e reformule. Ex.: "revisado" → falha (1,2,4). Reformula pra "todos os campos obrigatórios preenchidos + lint sai 0". Se DE VERDADE não dá pra mecanizar, aí sim cai no Check 2 (LLM-reviewer) — mas só depois de tentar a rubrica.
+Precedência: falhou na 3 → NÃO reformule, é gate humano — move pra Q5. Falhou em 1/2/4 → devolva pro usuário e reformule. Ex.: "revisado" → se quem revisa é humano, é Q5 (falha a 3); se é LLM, falha (1,2,4). Reformula pra "todos os campos obrigatórios preenchidos + lint sai 0". Se DE VERDADE não dá pra mecanizar, aí sim cai no Check 2 (LLM-reviewer) — mas só depois de tentar a rubrica.
 
 Se o projeto **ainda não tem a lista de itens**, avise que o charter inclui um bloco
 DISCOVERY (Run 0) que popula o LOOP-STATE — confiável pra fontes enumeráveis (arquivos,
@@ -82,14 +82,15 @@ EXECUÇÃO
 
 GATE-DO-ITEM — check mecânico primeiro, LLM-reviewer só de fallback
 Maker: produz o resultado do item.
-Check 1 (mecânico, sempre que der): roda {{GATE_ITEM}} como prova de máquina — comando sai 0 / teste passa / campo existe / arquivo bate contra checklist. Passou → `pronto` + registra a PROVA (output do comando / path do artifact) na coluna `prova` do LOOP-STATE. Modelos iguais erram junto; não gaste 2ª opinião LLM onde a máquina já decide.
-Check 2 (LLM-reviewer, SÓ no que não dá pra mecanizar): checker SEPARADO julga contra {{GATE_ITEM}}. Ordem de preferência da separação: (a) outro modelo (glm-adversary/kimi) se você tiver como rotear; (b) se o motor é o mesmo modelo (ScheduleWakeup nativo é), no MÍNIMO fresh-context — spawn novo, SEM o raciocínio do maker no contexto. Um checker que herda o contexto do maker não é checker, é o maker se aprovando. A prova a registrar é o veredito + a razão citando {{GATE_ITEM}}.
-Só o checker marca `pronto`; o maker nunca aprova o próprio trabalho.
-Falhou → maker tenta de novo. Após 3 tentativas → `bloqueado` + motivo, segue.
+Check 1 (mecânico, sempre que der): roda {{GATE_ITEM}} como prova de máquina — comando sai 0 / teste passa / campo existe / arquivo bate contra checklist. Gate mecânico é objetivo: tanto faz quem roda o comando — a regra maker≠checker vale pro juízo LLM (Check 2), não pra check determinístico. Passou → `pronto` + registra a PROVA na coluna `prova` (1 linha: comando + exit code, ou path pra log — nunca output bruto multi-linha). Modelos iguais erram junto; não gaste 2ª opinião LLM onde a máquina já decide.
+Check 2 (LLM-reviewer, SÓ no que não dá pra mecanizar): checker SEPARADO julga contra {{GATE_ITEM}}. Ordem de preferência da separação: (a) outro modelo (glm-adversary/kimi) se você tiver como rotear; (b) se o motor é o mesmo modelo (verifique — ScheduleWakeup nativo geralmente é), no MÍNIMO fresh-context — spawn novo, SEM o raciocínio do maker no contexto. Um checker que herda o contexto do maker não é checker, é o maker se aprovando. Fresh-context mitiga anchoring, não blind spots do modelo — por isso outro modelo é a preferência (a). A prova a registrar é o veredito + razão em 1 linha citando {{GATE_ITEM}}.
+No Check 2, só o checker marca `pronto`; o maker nunca julga o próprio trabalho.
+Falhou → maker tenta de novo. Após 3 tentativas → `bloqueado` + motivo; em `prova`, o erro/output da última tentativa (1 linha). Segue.
 
 GATE-DO-RUN
-Um checker (não o maker) confirma: todo item está `pronto` ou `bloqueado`. Zero pendentes.
-RECONCILIAÇÃO (o disco pode mentir): antes de declarar convergência, re-roda {{GATE_ITEM}} numa amostra de itens `pronto` (default: √n, mín. 2). Se algum falhar agora — artifact revertido, dependência quebrou, prova desatualizada — o item volta pra `pendente` e o run NÃO convergiu. Loop sobre fonte enumerável barata: reconcilia todos. State-on-disk só vale se bater com a realidade.
+Confirma: todo item está `pronto` ou `bloqueado`. Zero pendentes. Loop 100% mecânico dispensa agente checker aqui — o gate do run É re-rodar os checks; havendo itens de Check 2, quem confirma é o checker, não o maker.
+Bloqueados > 0 → o run terminou INCOMPLETO, não "convergiu" — o relatório usa essa palavra.
+RECONCILIAÇÃO (o disco pode mentir): antes de declarar convergência, re-roda o gate numa amostra ALEATÓRIA de k = min(prontos, max(2, ⌈√n⌉)) itens `pronto` (n = itens prontos). SÓ pra gate mecânico (Check 1) — re-rodar juízo LLM é re-rolar dado; item de Check 2 só volta pro checker se o artifact mudou desde a prova. Se algum falhar agora — artifact revertido, dependência quebrou — volta pra `pendente` e o run NÃO convergiu; 2ª falha de reconciliação do MESMO item → `bloqueado` (motivo: "reconciliação falhou 2×"), senão o item cicla pronto↔pendente pra sempre sem escalar. Gate barato (segundos/item) e idempotente (sem side effects): reconcilia todos, não amostra. State-on-disk só vale se bater com a realidade.
 
 ESTADO
 Mantém LOOP-STATE-<proj>.md. Início do run: lê esse arquivo PRIMEIRO; reconstrói o pendente
@@ -99,7 +100,7 @@ ANTES de pegar o próximo. Anota no log de runs quando um item bloqueia, pra det
 PARADA
 Para quando GATE-DO-RUN é verdade, OU após {{N}} itens neste run.
 Entrega relatório: feitos | bloqueados (com motivo) | precisa do Toto (com a pergunta exata).
-Lembrete: `pronto` é uma claim do checker, não prova. Toto lê o que o loop fez antes de confiar.
+Lembrete: `pronto` é claim; a prova está na coluna `prova` — coluna vazia = desconfie. Toto lê o que o loop fez antes de confiar.
 ```
 
 **Arquivo B — `LOOP-STATE-<proj>.md`:**
@@ -109,7 +110,7 @@ Lembrete: `pronto` é uma claim do checker, não prova. Toto lê o que o loop fe
 Atualizado: [data] · Run: 0
 
 ## Itens
-| item | status | o que mudou | prova (output/path do gate) | motivo (se bloqueado) |
+| item | status | o que mudou | prova (1 linha ou path) | motivo (se bloqueado) |
 |---|---|---|---|---|
 | (preencha, ou deixe o DISCOVERY popular) | pendente | — | — | — |
 
@@ -135,9 +136,10 @@ bash `while` + `claude -p` (isolamento por processo, Ralph clássico — ver ski
 
 - **Check mecânico > 2ª opinião LLM.** O gate da Q3 roda como máquina primeiro (sai 0, teste
   passa, campo existe). LLM-reviewer só onde não dá pra mecanizar — modelos iguais erram junto.
-- **Maker ≠ checker — e separação real.** Quem produz nunca aprova o próprio item. Outro
-  modelo se der; senão, no mínimo fresh-context (checker herdando o contexto do maker é o
-  maker se aprovando). É o que faz "pronto" valer quando o Toto sai da cadeira.
+- **Maker ≠ checker — no juízo LLM, com separação real.** Check mecânico é objetivo: tanto
+  faz quem roda. No Check 2, quem produz nunca julga o próprio item — outro modelo se der;
+  senão, no mínimo fresh-context, que mitiga anchoring mas não blind spots (checker herdando
+  o contexto do maker é o maker se aprovando). É o que faz "pronto" valer quando o Toto sai da cadeira.
 - **Estado no disco, não no contexto.** O agente esquece entre runs; o LOOP-STATE não.
   Item que bloqueia 2 runs seguidos vira precisa-do-Toto — o loop não martela.
 - **`pronto` é claim, e a prova fica na state.** Anti cognitive-surrender: cada `pronto`
