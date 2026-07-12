@@ -470,3 +470,7 @@ Luiz aprovou acelerar e forneceu o 2º pod (mesmas specs: EPYC 16c/124GB, porta 
 **Estado do claim 0026:** COMPUTATIONALLY_TESTED com dupla implementação + família externa. Pronto para uso em eventual réplica ao Krinkin (que segue sem responder às duas issues).
 
 **Chamadas externas de modelo:** 1 (REV-0013, registrada no call log #16). Piloto n=5: 3 frentes rodando pós-rebalanceamento (pod1 187, pod2 186, Mac 70).
+
+### Adendo do Ciclo 23 — REV-0014 (Kimi, pedido de Luiz): SUSTENTADA, 0 findings materiais
+
+Sanity pass adversarial no branch do claim 0026: relaxação Bellman v2 sound/completa (semântica do `np.minimum.at` conferida; menor ponto fixo = mínimo verdadeiro), independência v1/v2 real (corroborada pelos contadores por nível idênticos aos da re-derivação do Codex/REV-0013), upgrade do CSV legítimo com a guarda certa. Sugestão aceita p/ futuro: centralizar a leitura do catálogo com rejeição de linhas não-exact por default (sem editar scripts congelados agora). **Claim 0026 fechado com: dupla implementação + 2 famílias externas (Codex + Kimi).** Chamadas externas do ciclo: 2 (call log #16-17).
