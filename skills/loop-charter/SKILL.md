@@ -28,7 +28,7 @@ Não avance enquanto a resposta não passar no critério.
 | # | Pergunta | Pushback — não aceite se… |
 |---|---|---|
 | 1. GOAL | "Qual o estado final, em 1 frase?" | …vier vago ou com 3 cláusulas. Force 1 frase medível. |
-| 2. ITEM | "Onde vive o trabalho e o que conta como 1 item?" | …não apontar um arquivo/fonte concreto + uma unidade contável. Sem isso, não há loop — pare e diga isso. |
+| 2. ITEM | "Onde vive o trabalho e o que conta como 1 item? A fonte é snapshot fixo ou fila viva (ganha itens com o tempo)?" | …não apontar um arquivo/fonte concreto + uma unidade contável. Sem isso, não há loop — pare e diga isso. |
 | 3. GATE_ITEM | "Como uma MÁQUINA prova que 1 item ficou pronto?" | …não passar na RUBRICA abaixo. **Insista aqui. É o ponto que faz ou quebra o loop.** |
 | 4. ESCOPO | "Quantos itens por run (teto N)? Toca código/git? Se sim, quem faz o merge-back do worktree?" | …não der um N numérico. Git=sim → liga worktree + exige decisão de merge (default: gate humano). |
 | 5. GATE_HUMANO | "O que neste projeto exige VOCÊ? (gastar dinheiro, deletar, enviar externo, julgar o que máquina não julga)" | (sempre pergunte — popula a regra "precisa do Toto"; recebe também os gates que falharam a pergunta 3 da rubrica) |
@@ -57,7 +57,7 @@ As perguntas 1–3 são abertas e precisam de pushback — faça em texto.
 
 Pergunte onde salvar (default: cwd do projeto). Pergunte o nome curto do projeto (`<proj>`).
 Escreva com a tool Write. Substitua os {{...}} pelas respostas. Apague a linha `[GIT]` se
-o loop não toca git.
+o loop não toca git, e a linha `[VIVA]` se a fonte é snapshot fixo.
 
 **Arquivo A — `LOOP-charter-<proj>.md`:**
 
@@ -70,10 +70,10 @@ GOAL
 TRABALHO
 {{ITEM}}
 
-DISCOVERY (só roda se o LOOP-STATE ainda não existir)
-Fonte ENUMERÁVEL (arquivos, linhas, registros): varre {{ITEM}} e cria um item `pendente` por unidade. Confiável, segue direto pra EXECUÇÃO.
+DISCOVERY (só roda se a tabela de itens está vazia ou só tem a linha placeholder)
+Fonte ENUMERÁVEL (arquivos, linhas, registros): varre {{ITEM}}, cria um item `pendente` por unidade e APAGA a linha placeholder. Confiável, segue direto pra EXECUÇÃO.
 Código de escopo ABERTO (CI falhando, issues, commits): DISCOVERY só PROPÕE a lista — NÃO processa. Para no fim do Run 0 e registra em "precisa do Toto" pra validar o escopo antes de qualquer maker rodar.
-Se a lista já existe, pula este bloco.
+Se a tabela já tem itens reais, pula este bloco.
 
 EXECUÇÃO
 - Um item por vez, termina antes de começar o próximo.
@@ -93,6 +93,7 @@ Falhou → maker tenta de novo. Após 3 tentativas → `bloqueado` + motivo; em 
 
 GATE-DO-RUN — 3 passos, nesta ordem:
 1. STATUS: zero `pendente`; todo item ∈ {`pronto`, `bloqueado`, `precisa-do-Toto`}.
+[VIVA] Fonte é fila viva: re-enumera {{ITEM}} e diffa contra a state — item novo entra como `pendente` e o passo 1 não fecha neste run.
 2. RECONCILIAÇÃO (o disco pode mentir; só gate mecânico — re-rodar juízo LLM é re-rolar dado): re-roda o gate numa amostra ALEATÓRIA de k = min(n, max(2, ⌈√n⌉)) itens `pronto`, com n = total de `pronto`. Falhou (artifact revertido, dependência quebrou) → `pendente` (maker retoma no PRÓXIMO run) + anota "reconciliação-fail <item>" no log de runs. 2ª anotação do mesmo item → `bloqueado` (motivo: "reconciliação falhou 2×"), senão cicla pronto↔pendente sem nunca escalar. Item de Check 2: só volta pro checker se o artifact mudou desde a prova. Gate barato (segundos/item) e idempotente: reconcilia todos, não amostra.
 3. RÓTULO: reconciliação limpa + zero `bloqueado`/`precisa-do-Toto` → CONVERGIU. Qualquer `bloqueado` ou `precisa-do-Toto` → INCOMPLETO — o relatório usa essa palavra, nunca "convergiu".
 Loop 100% mecânico dispensa agente checker aqui — o gate do run É re-rodar os checks. Havendo Check 2, quem confirma é o checker, não o maker.
