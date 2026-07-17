@@ -76,3 +76,6 @@
 [submodule "Projetos/Posts Linkedin"]
 	path = Projetos/Posts Linkedin
 	url = https://github.com/totobusnello/posts-linkedin.git
+[submodule "Projetos/AVC_Fund"]
+	path = Projetos/AVC_Fund
+	url = https://github.com/totobusnello/AVC_Fund.git
