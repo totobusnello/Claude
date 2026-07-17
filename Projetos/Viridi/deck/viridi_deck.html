@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIRIDI — Plano Executivo</title>
+<!--
+  Deck executivo Viridi — gerado pela skill visual-explainer.
+  Preset: "Botanical Editorial" (riff do Midnight Editorial) — verde botânico profundo,
+  serif Fraunces, creme, accent verde-folha + dourado para números financeiros.
+  surf indisponível: fallback em gradientes CSS + SVG orgânico (comentário mantido p/ retry futuro).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ THEME: Botanical Editorial ============ */
+  :root {
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --bg: #0b1710;
+    --surface: #122419;
+    --surface2: #183020;
+    --surface-elevated: #1f3d29;
+    --border: rgba(163, 224, 135, 0.09);
+    --border-bright: rgba(163, 224, 135, 0.18);
+    --text: #ece9dc;
+    --text-dim: #97a695;
+    --accent: #8fd97a;
+    --accent-dim: rgba(143, 217, 122, 0.09);
+    --gold: #d9b04c;
+    --gold-dim: rgba(217, 176, 76, 0.12);
+    --red: #e8896f;
+    --red-dim: rgba(232, 137, 111, 0.12);
+    --code-bg: #07110b;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f4ea;
+      --surface: #ffffff;
+      --surface2: #edf0e2;
+      --surface-elevated: #fbfcf5;
+      --border: rgba(20, 50, 30, 0.09);
+      --border-bright: rgba(20, 50, 30, 0.18);
+      --text: #16251b;
+      --text-dim: #5f6e5e;
+      --accent: #2e7d4f;
+      --accent-dim: rgba(46, 125, 79, 0.08);
+      --gold: #a87d1d;
+      --gold-dim: rgba(168, 125, 29, 0.1);
+      --red: #c05a3d;
+      --red-dim: rgba(192, 90, 61, 0.1);
+      --code-bg: #14231a;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* ============ DECK ENGINE ============ */
+  .deck {
+    height: 100dvh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  .slide {
+    height: 100dvh;
+    scroll-snap-align: start;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(40px, 6vh, 80px) clamp(40px, 8vw, 120px);
+    isolation: isolate;
+    opacity: 0;
+    transform: translateY(40px) scale(0.98);
+    transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
+  }
+  .slide.visible { opacity: 1; transform: none; }
+  .slide .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .slide.visible .reveal { opacity: 1; transform: none; }
+  .slide.visible .reveal:nth-child(1) { transition-delay: 0.1s; }
+  .slide.visible .reveal:nth-child(2) { transition-delay: 0.2s; }
+  .slide.visible .reveal:nth-child(3) { transition-delay: 0.3s; }
+  .slide.visible .reveal:nth-child(4) { transition-delay: 0.4s; }
+  .slide.visible .reveal:nth-child(5) { transition-delay: 0.5s; }
+  .slide.visible .reveal:nth-child(6) { transition-delay: 0.6s; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide, .slide .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+
+  /* ============ TYPOGRAPHY ============ */
+  .slide__display {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 10vw, 120px);
+    font-weight: 600;
+    letter-spacing: -2px;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+  .slide__heading {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4.6vw, 48px);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+  .slide__body { font-size: clamp(16px, 2.2vw, 22px); line-height: 1.6; text-wrap: pretty; }
+  .slide__label {
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 1.2vw, 13px);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: clamp(10px, 1.6vh, 18px);
+  }
+  .slide__subtitle {
+    font-family: var(--font-mono);
+    font-size: clamp(13px, 1.7vw, 18px);
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+  }
+
+  /* ============ NAV CHROME ============ */
+  .deck-progress {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: var(--accent); z-index: 100;
+    transition: width 0.3s ease; pointer-events: none;
+  }
+  .deck-dots {
+    position: fixed; right: clamp(12px, 2vw, 24px); top: 50%;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100;
+    background: color-mix(in srgb, var(--bg) 65%, transparent 35%);
+    padding: 8px 6px; border-radius: 20px;
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .deck-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-dim); opacity: 0.3; border: none; padding: 0;
+    cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .deck-dot:hover { opacity: 0.6; }
+  .deck-dot.active { opacity: 1; transform: scale(1.5); background: var(--accent); }
+  .deck-counter {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); right: clamp(12px, 2vw, 24px);
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);
+    z-index: 100; font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  .deck-hints {
+    position: fixed; bottom: clamp(12px, 2vh, 24px); left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+    opacity: 0.6; z-index: 100; transition: opacity 0.5s ease; white-space: nowrap;
+  }
+  .deck-hints.faded { opacity: 0; pointer-events: none; }
+
+  /* ============ SLIDE TYPES ============ */
+  .slide--title { justify-content: center; align-items: center; text-align: center; }
+  .slide--divider { justify-content: center; }
+  .slide--divider .slide__number {
+    font-family: var(--font-display);
+    font-size: clamp(120px, 24vw, 280px); font-weight: 300; line-height: 0.85;
+    opacity: 0.07; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -55%); pointer-events: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .slide--content .slide__inner {
+    display: grid; grid-template-columns: 3fr 2fr;
+    gap: clamp(24px, 4vw, 60px); align-items: center; width: 100%;
+  }
+  .slide--content.slide--rightheavy .slide__inner { grid-template-columns: 2fr 3fr; }
+  .slide__bullets { list-style: none; padding: 0; }
+  .slide__bullets li {
+    padding: clamp(6px, 1vh, 10px) 0 clamp(6px, 1vh, 10px) 24px; position: relative;
+    font-size: clamp(15px, 1.9vw, 21px); line-height: 1.55; color: var(--text-dim);
+  }
+  .slide__bullets li strong { color: var(--text); font-weight: 600; }
+  .slide__bullets li::before {
+    content: ''; position: absolute; left: 0; top: clamp(15px, 2vh, 19px);
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  }
+  .slide--split { padding: 0; }
+  .slide--split .slide__panels { display: grid; grid-template-columns: 1fr 1fr; height: 100%; }
+  .slide--split .slide__panel {
+    padding: clamp(36px, 5.5vh, 72px) clamp(30px, 3.6vw, 56px);
+    display: flex; flex-direction: column; justify-content: center; min-width: 0;
+  }
+  .slide--split .slide__panel--primary { background: var(--surface); }
+  .slide--split .slide__panel--secondary { background: var(--surface2); }
+  .slide--quote {
+    justify-content: center; align-items: center; text-align: center;
+    padding: clamp(60px, 10vh, 120px) clamp(60px, 12vw, 200px);
+  }
+  .slide__quote-mark {
+    font-size: clamp(80px, 14vw, 180px); line-height: 0.5; opacity: 0.09;
+    font-family: var(--font-display); pointer-events: none; margin-bottom: -10px;
+    color: var(--accent);
+  }
+  .slide--quote blockquote {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 4vw, 50px); font-weight: 400; line-height: 1.3;
+    font-style: italic; margin: 0;
+  }
+  .slide--quote blockquote em { color: var(--accent); font-style: italic; }
+  .slide--quote cite {
+    font-family: var(--font-mono); font-size: clamp(11px, 1.4vw, 14px);
+    font-style: normal; margin-top: clamp(16px, 3vh, 32px); display: block;
+    letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim);
+  }
+  .slide--bleed { padding: 0; justify-content: flex-end; }
+  .slide__bg { position: absolute; inset: 0; background-size: cover; background-position: center; z-index: 0; }
+  .slide__scrim {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(to top, rgba(4,12,7,0.82) 0%, rgba(4,12,7,0.25) 55%, transparent 100%);
+  }
+  .slide--bleed .slide__content {
+    position: relative; z-index: 2;
+    padding: clamp(40px, 6vh, 80px) clamp(40px, 8vw, 120px);
+    color: #f0eee2;
+  }
+
+  /* KPI dashboard */
+  .slide__kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 1.8vw, 22px);
+    margin-top: clamp(10px, 2vh, 22px);
+  }
+  .slide__kpi {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: clamp(16px, 2.8vh, 30px) clamp(16px, 1.8vw, 24px);
+    min-width: 0; overflow: hidden; position: relative;
+  }
+  .slide__kpi::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--kpi-accent, var(--accent)); border-radius: 14px 14px 0 0; opacity: 0.7;
+  }
+  .slide__kpi-val {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4.6vw, 56px); font-weight: 600; letter-spacing: -1px;
+    line-height: 1.05; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .slide__kpi-label {
+    font-family: var(--font-mono); font-size: clamp(9px, 1.1vw, 12px); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.4px; color: var(--text-dim);
+    margin-top: 8px; line-height: 1.5;
+  }
+  .slide__kpi-note { font-size: clamp(11px, 1.2vw, 13px); color: var(--text-dim); margin-top: 6px; line-height: 1.4; }
+
+  /* Tables */
+  .table-wrap { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--surface); }
+  .data-table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.6vw, 18px); }
+  .data-table th {
+    font-family: var(--font-mono); font-size: clamp(10px, 1.2vw, 13px);
+    text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim);
+    text-align: left; padding: clamp(10px, 1.6vh, 15px) clamp(12px, 1.8vw, 20px);
+    border-bottom: 1px solid var(--border-bright); background: var(--surface2);
+  }
+  .data-table td {
+    padding: clamp(9px, 1.4vh, 14px) clamp(12px, 1.8vw, 20px);
+    border-bottom: 1px solid var(--border); color: var(--text-dim); line-height: 1.45;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: color-mix(in srgb, var(--surface2) 45%, transparent 55%); }
+  .data-table td strong { color: var(--text); font-weight: 600; }
+  .badge {
+    display: inline-block; font-family: var(--font-mono);
+    font-size: clamp(9px, 1.05vw, 12px); font-weight: 600;
+    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.8px; white-space: nowrap;
+  }
+  .badge--high  { background: var(--red-dim);    color: var(--red); }
+  .badge--med   { background: var(--gold-dim);   color: var(--gold); }
+  .badge--low   { background: var(--accent-dim); color: var(--accent); }
+  .badge--empty { background: var(--accent); color: var(--bg); }
+
+  /* Pipeline (CSS flow) */
+  .pipeline { display: flex; align-items: stretch; gap: 0; flex: 0 1 auto; min-height: 0; margin-top: clamp(14px, 2.4vh, 28px); }
+  .pipeline__step {
+    flex: 1; background: var(--surface); border: 1px solid var(--border);
+    border-top: 3px solid var(--accent); border-radius: 12px;
+    padding: clamp(14px, 2.4vh, 26px) clamp(12px, 1.4vw, 20px);
+    display: flex; flex-direction: column; min-width: 0; overflow-wrap: break-word;
+  }
+  .pipeline__num { font-family: var(--font-mono); font-size: clamp(10px, 1.1vw, 13px); font-weight: 600; color: var(--accent); letter-spacing: 1px; }
+  .pipeline__name { font-family: var(--font-display); font-size: clamp(16px, 2vw, 24px); font-weight: 600; margin: clamp(4px, 0.8vh, 8px) 0; line-height: 1.15; }
+  .pipeline__desc { font-size: clamp(12px, 1.3vw, 15px); color: var(--text-dim); line-height: 1.5; flex: 1; }
+  .pipeline__file {
+    font-family: var(--font-mono); font-size: clamp(9px, 1vw, 11px); color: var(--accent);
+    background: var(--accent-dim); padding: 3px 8px; border-radius: 4px;
+    margin-top: clamp(8px, 1.4vh, 14px); align-self: flex-start;
+  }
+  .pipeline__arrow { display: flex; align-items: center; padding: 0 clamp(3px, 0.4vw, 6px); color: var(--accent); flex-shrink: 0; opacity: 0.45; }
+
+  /* WhatsApp chat mock */
+  .chat {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+    padding: clamp(14px, 2.2vh, 24px); display: flex; flex-direction: column; gap: 8px;
+    max-width: 400px; width: 100%;
+  }
+  .chat__title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; }
+  .chat__bubble {
+    font-size: clamp(12px, 1.4vw, 15px); line-height: 1.4;
+    padding: 8px 14px; border-radius: 14px; max-width: 85%;
+  }
+  .chat__bubble--out { background: var(--accent-dim); color: var(--text); border-bottom-right-radius: 4px; align-self: flex-end; }
+  .chat__bubble--in  { background: var(--surface2);  color: var(--text-dim); border-bottom-left-radius: 4px; align-self: flex-start; }
+
+  /* Funnel TAM/SAM/SOM */
+  .funnel { display: flex; flex-direction: column; gap: clamp(12px, 2vh, 20px); margin-top: clamp(14px, 2.4vh, 26px); }
+  .funnel__row { display: grid; grid-template-columns: 110px 1fr; gap: clamp(12px, 1.6vw, 22px); align-items: center; }
+  .funnel__tag { font-family: var(--font-mono); font-size: clamp(11px, 1.3vw, 14px); font-weight: 600; color: var(--text-dim); letter-spacing: 1.5px; }
+  .funnel__bar {
+    border-radius: 10px; padding: clamp(12px, 2vh, 20px) clamp(14px, 1.8vw, 24px);
+    display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  }
+  .funnel__val { font-family: var(--font-display); font-size: clamp(20px, 3vw, 34px); font-weight: 600; line-height: 1.1; white-space: nowrap; }
+  .funnel__desc { font-size: clamp(11px, 1.25vw, 14px); opacity: 0.85; line-height: 1.4; }
+
+  /* Layer stack (produto) */
+  .stack { display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 16px); margin-top: clamp(14px, 2.4vh, 26px); }
+  .stack__layer {
+    display: grid; grid-template-columns: auto 1fr auto; gap: clamp(14px, 2vw, 26px); align-items: center;
+    background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+    border-radius: 12px; padding: clamp(14px, 2.4vh, 24px) clamp(16px, 2.2vw, 30px);
+  }
+  .stack__num { font-family: var(--font-mono); font-size: clamp(10px, 1.2vw, 13px); color: var(--accent); font-weight: 600; letter-spacing: 1px; }
+  .stack__name { font-family: var(--font-display); font-size: clamp(17px, 2.3vw, 26px); font-weight: 600; }
+  .stack__desc { font-size: clamp(12px, 1.4vw, 16px); color: var(--text-dim); line-height: 1.45; margin-top: 2px; }
+  .stack__tag { font-family: var(--font-mono); font-size: clamp(9px, 1.05vw, 12px); color: var(--gold); background: var(--gold-dim); padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+
+  /* Mini compare (Carrinho Direto) */
+  .compare { display: flex; flex-direction: column; gap: clamp(8px, 1.4vh, 14px); }
+  .compare__row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(8px, 1.2vw, 14px);
+  }
+  .compare__cell {
+    background: var(--surface-elevated); border: 1px solid var(--border); border-radius: 10px;
+    padding: clamp(10px, 1.6vh, 16px) clamp(12px, 1.4vw, 18px); min-width: 0;
+  }
+  .compare__cell-label { font-family: var(--font-mono); font-size: clamp(8px, 0.95vw, 11px); text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim); }
+  .compare__cell-val { font-family: var(--font-display); font-size: clamp(16px, 2vw, 24px); font-weight: 600; margin-top: 4px; white-space: nowrap; }
+  .compare__cell--bad .compare__cell-val { color: var(--red); }
+  .compare__cell--good .compare__cell-val { color: var(--accent); }
+  .compare__verdict {
+    background: var(--gold-dim); border: 1px solid color-mix(in srgb, var(--gold) 30%, transparent 70%);
+    border-radius: 10px; padding: clamp(12px, 1.8vh, 18px) clamp(14px, 1.6vw, 20px);
+    font-size: clamp(13px, 1.5vw, 17px); line-height: 1.5; color: var(--text);
+  }
+  .compare__verdict strong { color: var(--gold); }
+
+  /* Timeline (GTM) */
+  .timeline { display: flex; flex-direction: column; gap: clamp(10px, 1.6vh, 16px); margin-top: clamp(12px, 2vh, 22px); }
+  .timeline__item {
+    display: grid; grid-template-columns: 96px 1fr; gap: clamp(12px, 1.8vw, 24px);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: clamp(12px, 2vh, 20px) clamp(14px, 1.8vw, 24px); align-items: baseline;
+  }
+  .timeline__when { font-family: var(--font-mono); font-size: clamp(11px, 1.3vw, 14px); font-weight: 600; color: var(--accent); }
+  .timeline__what { font-size: clamp(13px, 1.5vw, 17px); color: var(--text-dim); line-height: 1.5; }
+  .timeline__what strong { color: var(--text); }
+
+  /* Checklist (kill criteria / próximos passos) */
+  .checks { display: flex; flex-direction: column; gap: clamp(8px, 1.4vh, 14px); margin-top: clamp(10px, 1.8vh, 18px); }
+  .check {
+    display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start;
+    font-size: clamp(13px, 1.55vw, 17px); line-height: 1.5; color: var(--text-dim);
+  }
+  .check strong { color: var(--text); }
+  .check__ico {
+    width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-dim); color: var(--accent);
+    font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+  }
+  .check__ico--warn { background: var(--red-dim); color: var(--red); }
+
+  /* Decorations */
+  .slide__decor { position: absolute; pointer-events: none; z-index: 0; }
+  .slide--with-grid::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+    background-size: 34px 34px; opacity: 0.5; pointer-events: none; z-index: 0;
+  }
+  .slide > *:not(.slide__decor):not(.slide__bg):not(.slide__scrim) { position: relative; z-index: 1; }
+
+  .footnote { font-size: clamp(10px, 1.15vw, 13px); color: var(--text-dim); opacity: 0.8; margin-top: clamp(10px, 1.8vh, 18px); line-height: 1.5; }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-height: 700px) {
+    .slide { padding: clamp(24px, 4vh, 40px) clamp(32px, 6vw, 80px); }
+    .slide__display { font-size: clamp(36px, 8vw, 72px); }
+    .slide--divider .slide__number { font-size: clamp(80px, 16vw, 160px); }
+  }
+  @media (max-height: 600px) {
+    .slide__decor { display: none; }
+    .slide__quote-mark { display: none; }
+  }
+  @media (max-height: 500px) {
+    .slide { padding: clamp(16px, 3vh, 24px) clamp(24px, 5vw, 48px); }
+    .deck-dots { display: none; }
+    .slide__display { font-size: clamp(28px, 7vw, 48px); }
+  }
+  @media (max-width: 820px) {
+    .slide--content .slide__inner, .slide--content.slide--rightheavy .slide__inner { grid-template-columns: 1fr; }
+    .slide--content .slide__aside { display: none; }
+    .slide--split .slide__panels { grid-template-columns: 1fr; }
+    .slide__kpis { grid-template-columns: repeat(2, 1fr); }
+    .pipeline { flex-direction: column; }
+    .pipeline__arrow { justify-content: center; padding: 4px 0; transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- 01 · TITLE -->
+  <section class="slide slide--title" style="background-image: radial-gradient(ellipse at 50% 120%, rgba(143,217,122,0.14) 0%, transparent 55%), radial-gradient(ellipse at 85% -10%, rgba(217,176,76,0.07) 0%, transparent 50%);">
+    <!-- surf indisponível — fallback CSS gradient + SVG orgânico -->
+    <svg class="slide__decor" style="top:8%; left:6%; opacity:0.14;" width="220" height="220" viewBox="0 0 220 220" fill="none">
+      <path d="M110 210 C 110 130, 110 90, 110 10 M110 170 C 70 150, 50 130, 40 90 M110 170 C 150 150, 170 130, 180 90 M110 120 C 80 105, 65 90, 58 60 M110 120 C 140 105, 155 90, 162 60" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <svg class="slide__decor" style="bottom:10%; right:7%; opacity:0.1; transform:rotate(180deg);" width="160" height="160" viewBox="0 0 220 220" fill="none">
+      <path d="M110 210 C 110 130, 110 90, 110 10 M110 170 C 70 150, 50 130, 40 90 M110 170 C 150 150, 170 130, 180 90" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div class="slide__content">
+      <p class="slide__label reveal" style="letter-spacing:6px;">O ECOSSISTEMA DO PAISAGISMO</p>
+      <h1 class="slide__display reveal" style="letter-spacing:10px; font-weight:700;">VIRIDI</h1>
+      <p class="reveal" style="font-family:var(--font-display); font-style:italic; font-size:clamp(18px,2.6vw,28px); color:var(--text-dim); margin-top:clamp(12px,2vh,22px);">Da origem ao jardim.</p>
+      <p class="slide__subtitle reveal" style="margin-top:clamp(20px,3.5vh,36px);">Plano executivo · Mercado, produto e modelo de negócio · Julho 2026</p>
+    </div>
+  </section>
+
+  <!-- 02 · A DOR (left-heavy + chat mock) -->
+  <section class="slide slide--content" style="background-image: radial-gradient(ellipse at 15% 85%, var(--accent-dim) 0%, transparent 50%);">
+    <div class="slide__inner">
+      <div class="slide__text">
+        <p class="slide__label reveal">O PROBLEMA</p>
+        <h2 class="slide__heading reveal">Um mercado de R$ 21 bilhões que roda no WhatsApp</h2>
+        <ul class="slide__bullets" style="margin-top:clamp(12px,2vh,22px);">
+          <li class="reveal">O paisagista <strong>liga para 15 viveiros</strong>, recebe fotos avulsas, negocia preço item a item e caça caminhão na mão.</li>
+          <li class="reveal">O viveiro <strong>produz bem mas não sabe vender digital</strong> — sem site, sem marketing, sem alcance.</li>
+          <li class="reveal">O cliente paga <strong>imposto em cascata</strong> embutido na revenda, sem transparência nem garantia.</li>
+          <li class="reveal"><strong>Não existe nenhum marketplace B2B multi-viveiro no Brasil.</strong> A categoria está vazia.</li>
+        </ul>
+      </div>
+      <div class="slide__aside reveal">
+        <div class="chat">
+          <div class="chat__title">Como o setor compra hoje</div>
+          <div class="chat__bubble chat__bubble--out">Tem Podocarpo de 2 metros?</div>
+          <div class="chat__bubble chat__bubble--in">Manda foto…</div>
+          <div class="chat__bubble chat__bubble--out">Quanto custa? Consegue entregar amanhã?</div>
+          <div class="chat__bubble chat__bubble--in">Vou ver com o motorista e te falo</div>
+          <div class="chat__bubble chat__bubble--out">Quem tem um caminhão Munck disponível??</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · DIVIDER 01 MERCADO -->
+  <section class="slide slide--divider slide--with-grid">
+    <span class="slide__number">01</span>
+    <div class="slide__content" style="text-align:center;">
+      <p class="slide__label reveal">PARTE UM</p>
+      <h2 class="slide__heading reveal" style="font-size:clamp(36px,6vw,64px);">O Mercado</h2>
+      <p class="slide__subtitle reveal" style="margin-top:12px;">Tamanho, fragmentação e a janela competitiva</p>
+    </div>
+  </section>
+
+  <!-- 04 · DASHBOARD MERCADO -->
+  <section class="slide" style="background-image: radial-gradient(ellipse at 80% 15%, var(--accent-dim) 0%, transparent 50%);">
+    <p class="slide__label reveal">OS NÚMEROS · IBRAFLOR/CEPEA 2024</p>
+    <h2 class="slide__heading reveal">Grande, crescendo — e analógico no B2B</h2>
+    <div class="slide__kpis reveal">
+      <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--gold);">R$ 21,2 bi</div><div class="slide__kpi-label">Cadeia de flores e plantas · 2024</div><div class="slide__kpi-note">+9,95% vs 2023 · +6–8% previsto 2025</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val">40%</div><div class="slide__kpi-label">Concentrado em São Paulo</div><div class="slide__kpi-note">R$ 8,49 bi · consumo per capita 87% acima da média</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val">8.300</div><div class="slide__kpi-label">Viveiros produtores</div><div class="slide__kpi-note">Média de 1,88 ha — supply pulverizado</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val">9–16 mil</div><div class="slide__kpi-label">Empresas de paisagismo</div><div class="slide__kpi-note">Demanda igualmente fragmentada</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--red);">~45%</div><div class="slide__kpi-label">Veiling Holambra no atacado</div><div class="slide__kpi-note">Único canal digital B2B — e é fechado a cooperados</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val">2×</div><div class="slide__kpi-label">Alto padrão SP em 2025</div><div class="slide__kpi-note">Paisagismo virou atributo de venda dos lançamentos</div></div>
+    </div>
+    <p class="footnote reveal">Dupla fragmentação (8,3 mil viveiros × 9–16 mil compradores) é a condição estrutural nº 1 para um marketplace funcionar.</p>
+  </section>
+
+  <!-- 05 · TAM SAM SOM -->
+  <section class="slide slide--with-grid">
+    <p class="slide__label reveal">OPORTUNIDADE</p>
+    <h2 class="slide__heading reveal">Do mercado total ao alvo dos 3 primeiros anos</h2>
+    <div class="funnel reveal">
+      <div class="funnel__row">
+        <span class="funnel__tag">TAM</span>
+        <div class="funnel__bar" style="width:100%; background:linear-gradient(90deg, var(--surface-elevated), var(--surface2));">
+          <span class="funnel__val">~R$ 26 bi/ano</span>
+          <span class="funnel__desc">Cadeia completa BR — plantas (R$ 21,2 bi verificado) + serviços de paisagismo (~R$ 5 bi est.)</span>
+        </div>
+      </div>
+      <div class="funnel__row">
+        <span class="funnel__tag">SAM</span>
+        <div class="funnel__bar" style="width:58%; background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, var(--surface) 78%), var(--surface2));">
+          <span class="funnel__val">~R$ 9 bi/ano</span>
+          <span class="funnel__desc">Fluxo B2B digitalizável (~40% da cadeia) — SP responde por ~R$ 3,7 bi</span>
+        </div>
+      </div>
+      <div class="funnel__row">
+        <span class="funnel__tag">SOM ·A3</span>
+        <div class="funnel__bar" style="width:30%; background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--surface) 45%)); color:var(--bg);">
+          <span class="funnel__val">R$ 60–120 mi GMV</span>
+          <span class="funnel__desc" style="opacity:1;">SP, ano 3 · 1,5–3% do SAM paulista · net revenue R$ 6–15 mi</span>
+        </div>
+      </div>
+    </div>
+    <p class="footnote reveal">Estimativas com premissas explícitas em docs/01_MARKET_RESEARCH.md — TAM/SAM triangulados de dados IBRAFLOR/CEPEA e participação Veiling.</p>
+  </section>
+
+  <!-- 06 · COMPETITIVO -->
+  <section class="slide" style="background-image: radial-gradient(ellipse at 10% 10%, var(--accent-dim) 0%, transparent 45%);">
+    <p class="slide__label reveal">CONCORRÊNCIA</p>
+    <h2 class="slide__heading reveal">O white space é real</h2>
+    <div class="table-wrap reveal" style="margin-top:clamp(12px,2vh,22px);">
+      <table class="data-table">
+        <thead><tr><th>Categoria</th><th>Players</th><th>Ameaça</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Marketplace B2B multi-viveiro</strong></td><td><strong>Ninguém.</strong> Categoria vazia no Brasil</td><td><span class="badge badge--empty">WHITE SPACE</span></td></tr>
+          <tr><td>Incumbente estrutural</td><td>Veiling Holambra — fechado a cooperados, DNA flor de corte</td><td><span class="badge badge--high">ALTA</span></td></tr>
+          <tr><td>Horizontais</td><td>Mercado Livre, Amazon, Shopee — porte não cabe na malha</td><td><span class="badge badge--med">MÉDIA</span></td></tr>
+          <tr><td>Varejo de capital</td><td>Cobasi+Petz (R$ 7 bi), Leroy — B2C, jardim acessório</td><td><span class="badge badge--med">BAIXA-MÉDIA</span></td></tr>
+          <tr><td>Viveiros single-seller</td><td>Oficina do Paisagista, Portal das Palmeiras — isolados</td><td><span class="badge badge--med">MÉDIA</span></td></tr>
+          <tr><td>Software &amp; apps</td><td>PictureThis, SketchUp, VerdeSoft — complementares/parceria</td><td><span class="badge badge--low">BAIXA</span></td></tr>
+          <tr><td>Serviços &amp; frete</td><td>GetNinjas, FreteBras — genéricos, sem vegetal de porte</td><td><span class="badge badge--low">BAIXA-MÉDIA</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="footnote reveal">Nenhuma startup B2B de paisagismo com aporte de VC encontrada. Risco nº 1: o Veiling verticalizar — resposta: velocidade + foco em porte/insumo/serviço, fora do DNA de flor de corte.</p>
+  </section>
+
+  <!-- 07 · BENCHMARKS (split) -->
+  <section class="slide slide--split">
+    <div class="slide__panels">
+      <div class="slide__panel slide__panel--primary">
+        <p class="slide__label reveal" style="color:var(--red);">A LIÇÃO NEGATIVA</p>
+        <h2 class="slide__heading reveal" style="font-size:clamp(22px,3vw,34px);">LandscapeHub <span style="font-style:italic; font-weight:400;">(EUA)</span></h2>
+        <div class="slide__body reveal" style="color:var(--text-dim); margin-top:clamp(10px,1.8vh,18px); font-size:clamp(14px,1.7vw,18px);">
+          O "gêmeo" da tese original: catálogo multi-viveiro com comissão.<br><br>
+          <strong style="color:var(--red);">7 anos · US$ 24M captados → ~15 funcionários.</strong> Última rodada: dívida, não equity.<br><br>
+          <em>Marketplace de listagem pura não escala — nem no mercado mais maduro do mundo.</em>
+        </div>
+      </div>
+      <div class="slide__panel slide__panel--secondary">
+        <p class="slide__label reveal">O CAMINHO VENCEDOR</p>
+        <h2 class="slide__heading reveal" style="font-size:clamp(22px,3vw,34px);">Managed marketplace</h2>
+        <div class="slide__body reveal" style="color:var(--text-dim); margin-top:clamp(10px,1.8vh,18px); font-size:clamp(14px,1.7vw,18px);">
+          <strong style="color:var(--accent);">GoMaterials</strong> (Canadá): assume sourcing, QA e logística; crédito destravou +1,2× volume/ano.<br><br>
+          <strong style="color:var(--accent);">Infra.Market</strong> (Índia): logística + fintech + private label = <strong>lucrativa a ~US$ 3 bi de valuation</strong>.<br><br>
+          <em>Serviços embarcados são o produto — e o antídoto contra desintermediação (30–80% de leakage nos que falham).</em>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 · DIVIDER 02 PRODUTO -->
+  <section class="slide slide--divider slide--with-grid">
+    <span class="slide__number">02</span>
+    <div class="slide__content" style="text-align:center;">
+      <p class="slide__label reveal">PARTE DOIS</p>
+      <h2 class="slide__heading reveal" style="font-size:clamp(36px,6vw,64px);">O Produto</h2>
+      <p class="slide__subtitle reveal" style="margin-top:12px;">Specifier-led — a plataforma onde o paisagista trabalha</p>
+    </div>
+  </section>
+
+  <!-- 09 · TESE DE PRODUTO (quote) -->
+  <section class="slide slide--quote" style="background-image: radial-gradient(ellipse at 50% 0%, var(--accent-dim) 0%, transparent 55%);">
+    <div class="slide__quote-mark reveal">&ldquo;</div>
+    <blockquote class="reveal">A Viridi não é um site onde se compra plantas.<br>É o <em>sistema operacional</em> da obra de paisagismo.</blockquote>
+    <cite class="reveal">Quem especifica decide — o marketplace é consequência</cite>
+  </section>
+
+  <!-- 10 · 3 CAMADAS -->
+  <section class="slide" style="background-image: radial-gradient(ellipse at 85% 90%, var(--accent-dim) 0%, transparent 50%);">
+    <p class="slide__label reveal">ARQUITETURA DA PLATAFORMA</p>
+    <h2 class="slide__heading reveal">Três camadas — hábito, transação, defesa</h2>
+    <div class="stack reveal">
+      <div class="stack__layer">
+        <span class="stack__num">C1</span>
+        <div><div class="stack__name">Viridi Studio</div><div class="stack__desc">Workspace do paisagista: projetos, especificação, orçamentos, cronograma, cliente. Grátis — cria o hábito diário.</div></div>
+        <span class="stack__tag">HÁBITO</span>
+      </div>
+      <div class="stack__layer">
+        <span class="stack__num">C2</span>
+        <div><div class="stack__name">Marketplace</div><div class="stack__desc">Catálogo multi-viveiro com estoque real, Cotação de Obra, Carrinho Direto, avaliações. Onde o dinheiro passa.</div></div>
+        <span class="stack__tag">TRANSAÇÃO</span>
+      </div>
+      <div class="stack__layer">
+        <span class="stack__num">C3</span>
+        <div><div class="stack__name">Infra</div><div class="stack__desc">Logística orquestrada · split &amp; custódia · compliance fiscal e fitossanitário (PTV/CFO) · crédito · dados.</div></div>
+        <span class="stack__tag">MOAT</span>
+      </div>
+    </div>
+    <p class="footnote reveal">O usuário vê o Studio. O dinheiro passa pelo Marketplace. A defesa competitiva mora na Infra.</p>
+  </section>
+
+  <!-- 11 · COTAÇÃO DE OBRA (pipeline) -->
+  <section class="slide slide--with-grid">
+    <p class="slide__label reveal">JORNADA-CHAVE · B2B</p>
+    <h2 class="slide__heading reveal">Cotação de Obra — a killer feature</h2>
+    <div class="pipeline reveal">
+      <div class="pipeline__step">
+        <div class="pipeline__num">01</div>
+        <div class="pipeline__name">Sobe a lista</div>
+        <div class="pipeline__desc">Planilha, PDF do projeto ou foto do memorial — a IA extrai espécie, porte e quantidade.</div>
+        <div class="pipeline__file">Viridi Specify</div>
+      </div>
+      <div class="pipeline__arrow"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14m-4-4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="pipeline__step">
+        <div class="pipeline__num">02</div>
+        <div class="pipeline__name">Cota multi-viveiro</div>
+        <div class="pipeline__desc">A plataforma quebra a lista em lotes e consulta os viveiros com estoque compatível — simultaneamente.</div>
+        <div class="pipeline__file">SLA &lt; 24h</div>
+      </div>
+      <div class="pipeline__arrow"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14m-4-4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="pipeline__step">
+        <div class="pipeline__num">03</div>
+        <div class="pipeline__name">Compara de verdade</div>
+        <div class="pipeline__desc">Preço, fotos reais do lote (datadas), distância, frete calculado, prazo, disponibilidade.</div>
+        <div class="pipeline__file">quadro comparativo</div>
+      </div>
+      <div class="pipeline__arrow"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M5 12h14m-4-4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="pipeline__step">
+        <div class="pipeline__num">04</div>
+        <div class="pipeline__name">Fecha a combinação</div>
+        <div class="pipeline__desc">Mistura viveiros, consolida o frete e envia o orçamento pronto para o cliente aprovar.</div>
+        <div class="pipeline__file">→ Carrinho Direto</div>
+      </div>
+    </div>
+    <p class="footnote reveal"><strong style="color:var(--text);">Hoje: 15 ligações e 3 dias de WhatsApp. Na Viridi: uma tarde.</strong></p>
+  </section>
+
+  <!-- 12 · CARRINHO DIRETO (split) -->
+  <section class="slide slide--split">
+    <div class="slide__panels">
+      <div class="slide__panel slide__panel--primary">
+        <p class="slide__label reveal">JORNADA-CHAVE · FISCAL</p>
+        <h2 class="slide__heading reveal" style="font-size:clamp(24px,3.2vw,38px);">Carrinho Direto</h2>
+        <div class="slide__body reveal" style="font-size:clamp(14px,1.65vw,18px); color:var(--text-dim); margin-top:clamp(10px,1.8vh,18px);">
+          O paisagista especifica e envia. <strong style="color:var(--text);">O cliente paga direto</strong> — Pix ou até 24×. O split (padrão Bacen, como iFood/MELI) distribui a cada um o seu, com <strong style="color:var(--text);">custódia até a entrega</strong> e 3 notas automáticas: viveiro emite produto, paisagista emite serviço, Viridi emite intermediação.
+          <br><br>
+          <em style="color:var(--accent);">O markup do paisagista vira honorário: tributado só sobre a margem, sem capital de giro, sem risco.</em>
+        </div>
+      </div>
+      <div class="slide__panel slide__panel--secondary">
+        <p class="slide__label reveal" style="color:var(--gold);">PEDIDO-EXEMPLO · R$ 30.000</p>
+        <div class="compare reveal">
+          <div class="compare__row">
+            <div class="compare__cell compare__cell--bad">
+              <div class="compare__cell-label">Imposto — modelo revenda</div>
+              <div class="compare__cell-val">≈ R$ 2.314</div>
+            </div>
+            <div class="compare__cell compare__cell--good">
+              <div class="compare__cell-label">Imposto — Carrinho Direto</div>
+              <div class="compare__cell-val">≈ R$ 690</div>
+            </div>
+          </div>
+          <div class="compare__row">
+            <div class="compare__cell compare__cell--bad">
+              <div class="compare__cell-label">Capital de giro do paisagista</div>
+              <div class="compare__cell-val">R$ 21.000</div>
+            </div>
+            <div class="compare__cell compare__cell--good">
+              <div class="compare__cell-label">Capital de giro na Viridi</div>
+              <div class="compare__cell-val">R$ 0</div>
+            </div>
+          </div>
+          <div class="compare__verdict"><strong>Economia de ~R$ 1.600–1.800 por pedido</strong> (5–6 p.p. do GMV) + caixa liberado. Sair da plataforma custa imposto, capital e risco — <strong>é o anti-desintermediação estrutural.</strong></div>
+        </div>
+        <p class="footnote reveal">Efeito cascata do Simples Nacional — estimativa a validar com tributarista (research/04).</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · LOGÍSTICA (right-heavy) -->
+  <section class="slide slide--content slide--rightheavy" style="background-image: radial-gradient(ellipse at 8% 20%, var(--accent-dim) 0%, transparent 45%);">
+    <div class="slide__inner">
+      <div class="slide__aside reveal" style="display:flex; justify-content:center;">
+        <svg width="100%" height="auto" viewBox="0 0 340 260" fill="none" style="max-width:340px; opacity:0.9;">
+          <circle cx="60" cy="60" r="34" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="60" y="56" text-anchor="middle" fill="var(--text)" font-family="Inter,sans-serif" font-size="11" font-weight="600">Viveiro</text>
+          <text x="60" y="70" text-anchor="middle" fill="var(--text-dim)" font-family="Inter,sans-serif" font-size="9">frota própria</text>
+          <circle cx="280" cy="60" r="34" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="280" y="56" text-anchor="middle" fill="var(--text)" font-family="Inter,sans-serif" font-size="11" font-weight="600">Transp.</text>
+          <text x="280" y="70" text-anchor="middle" fill="var(--text-dim)" font-family="Inter,sans-serif" font-size="9">especializada</text>
+          <circle cx="60" cy="200" r="34" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="60" y="196" text-anchor="middle" fill="var(--text)" font-family="Inter,sans-serif" font-size="11" font-weight="600">Munck</text>
+          <text x="60" y="210" text-anchor="middle" fill="var(--text-dim)" font-family="Inter,sans-serif" font-size="9">grande porte</text>
+          <circle cx="280" cy="200" r="34" fill="var(--accent-dim)" stroke="var(--accent)" stroke-width="1.5"/>
+          <text x="280" y="196" text-anchor="middle" fill="var(--text)" font-family="Inter,sans-serif" font-size="11" font-weight="600">PTV/CFO</text>
+          <text x="280" y="210" text-anchor="middle" fill="var(--text-dim)" font-family="Inter,sans-serif" font-size="9">compliance</text>
+          <circle cx="170" cy="130" r="44" fill="var(--surface-elevated)" stroke="var(--accent)" stroke-width="2"/>
+          <text x="170" y="127" text-anchor="middle" fill="var(--accent)" font-family="Fraunces,serif" font-size="16" font-weight="600">VIRIDI</text>
+          <text x="170" y="143" text-anchor="middle" fill="var(--text-dim)" font-family="Inter,sans-serif" font-size="9">orquestra</text>
+          <line x1="92" y1="78" x2="132" y2="108" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+          <line x1="248" y1="78" x2="208" y2="108" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+          <line x1="92" y1="182" x2="132" y2="152" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+          <line x1="248" y1="182" x2="208" y2="152" stroke="var(--accent)" stroke-width="1.2" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="slide__text">
+        <p class="slide__label reveal">LOGÍSTICA &amp; COMPLIANCE</p>
+        <h2 class="slide__heading reveal">Asset-light: orquestrar, não possuir</h2>
+        <ul class="slide__bullets" style="margin-top:clamp(12px,2vh,22px);">
+          <li class="reveal">Os grandes viveiros <strong>já têm carreta e Munck</strong> — a Viridi agenda, roteiriza e cobra pela orquestração, sem frota própria.</li>
+          <li class="reveal">Transportadoras especializadas (nicho concentrado) + frete genérico com sobretaxa entram como <strong>capacidade adicional</strong>.</li>
+          <li class="reveal">Entregas <strong>faseadas pelo cronograma da obra</strong>: terra antes das mudas, palmeira no dia do Munck.</li>
+          <li class="reveal"><strong>PTV/CFO automatizados no fluxo do pedido</strong> — a burocracia que trava o setor vira moat de compliance.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · IA -->
+  <section class="slide slide--content" style="background-image: radial-gradient(ellipse at 90% 80%, var(--gold-dim) 0%, transparent 50%);">
+    <div class="slide__inner">
+      <div class="slide__text">
+        <p class="slide__label reveal">INTELIGÊNCIA ARTIFICIAL</p>
+        <h2 class="slide__heading reveal">Specify: da foto ao carrinho</h2>
+        <ul class="slide__bullets" style="margin-top:clamp(12px,2vh,22px);">
+          <li class="reveal">Os apps existentes <strong>identificam</strong> plantas. A Viridi faz o inverso: <strong>especifica</strong> — foto ou planta baixa → lista de espécies → carrinho cotado.</li>
+          <li class="reveal"><strong>Catálogo mestre normalizado</strong>: 2.500 espécies, 17.500 variedades, sinônimos regionais, portes padronizados. <strong>Não existe no país — é o data moat.</strong></li>
+          <li class="reveal">Preço e frete preditivos por espécie/porte/região — <strong>ninguém sabe precificar caminhão de palmeira hoje</strong>.</li>
+          <li class="reveal">Score de qualidade por visão computacional sobre fotos de lote — reduz a necessidade de "ir ver pessoalmente".</li>
+        </ul>
+      </div>
+      <div class="slide__aside reveal" style="display:flex; flex-direction:column; gap:10px;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:clamp(12px,1.8vh,18px);">
+          <div style="font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim);">Entrada</div>
+          <div style="font-size:clamp(13px,1.5vw,16px); margin-top:6px;">📷 Foto do jardim de 650 m²</div>
+        </div>
+        <div style="text-align:center; color:var(--accent); opacity:0.6;">↓</div>
+        <div style="background:var(--surface); border:1px solid var(--border-bright); border-radius:12px; padding:clamp(12px,1.8vh,18px);">
+          <div style="font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent);">Viridi Specify</div>
+          <div style="font-size:clamp(12px,1.4vw,15px); margin-top:6px; color:var(--text-dim); line-height:1.6;">12 Clúsias · 8 Podocarpos<br>65 m² de grama · 2 Jabuticabeiras<br>Sistema de irrigação</div>
+        </div>
+        <div style="text-align:center; color:var(--accent); opacity:0.6;">↓</div>
+        <div style="background:var(--accent-dim); border:1px solid var(--border-bright); border-radius:12px; padding:clamp(12px,1.8vh,18px);">
+          <div style="font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent);">Saída</div>
+          <div style="font-size:clamp(13px,1.5vw,16px); margin-top:6px;">🛒 Carrinho cotado em 3 viveiros</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 · DIVIDER 03 MODELO -->
+  <section class="slide slide--divider slide--with-grid">
+    <span class="slide__number">03</span>
+    <div class="slide__content" style="text-align:center;">
+      <p class="slide__label reveal">PARTE TRÊS</p>
+      <h2 class="slide__heading reveal" style="font-size:clamp(36px,6vw,64px);">O Modelo de Negócio</h2>
+      <p class="slide__subtitle reveal" style="margin-top:12px;">Receita empilhada, não comissão única</p>
+    </div>
+  </section>
+
+  <!-- 16 · RECEITA EMPILHADA -->
+  <section class="slide" style="background-image: radial-gradient(ellipse at 20% 90%, var(--gold-dim) 0%, transparent 50%);">
+    <p class="slide__label reveal">MONETIZAÇÃO</p>
+    <h2 class="slide__heading reveal">Três ondas de receita</h2>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,1.8vw,22px); margin-top:clamp(14px,2.4vh,26px);" class="reveal">
+      <div style="background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--accent); border-radius:12px; padding:clamp(16px,2.6vh,26px) clamp(14px,1.6vw,22px);">
+        <div style="font-family:var(--font-mono); font-size:clamp(10px,1.1vw,12px); color:var(--accent); letter-spacing:1.2px;">ONDA 1 · MVP</div>
+        <div style="font-family:var(--font-display); font-size:clamp(17px,2.2vw,25px); font-weight:600; margin:8px 0 10px;">Transação</div>
+        <div style="font-size:clamp(12px,1.4vw,15px); color:var(--text-dim); line-height:1.7;">Comissão 6–8% do viveiro<br>Margem de frete orquestrado<br>Spread de pagamento (24× / Pix)</div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--gold); border-radius:12px; padding:clamp(16px,2.6vh,26px) clamp(14px,1.6vw,22px);">
+        <div style="font-family:var(--font-mono); font-size:clamp(10px,1.1vw,12px); color:var(--gold); letter-spacing:1.2px;">ONDA 2 · V1</div>
+        <div style="font-family:var(--font-display); font-size:clamp(17px,2.2vw,25px); font-weight:600; margin:8px 0 10px;">Lock-in</div>
+        <div style="font-size:clamp(12px,1.4vw,15px); color:var(--text-dim); line-height:1.7;">Antecipação ao viveiro<br>Net terms 30/60d à construtora<br>SaaS Viveiro Pro + ads/destaque</div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red); border-radius:12px; padding:clamp(16px,2.6vh,26px) clamp(14px,1.6vw,22px);">
+        <div style="font-family:var(--font-mono); font-size:clamp(10px,1.1vw,12px); color:var(--red); letter-spacing:1.2px;">ONDA 3 · V2</div>
+        <div style="font-family:var(--font-display); font-size:clamp(17px,2.2vw,25px); font-weight:600; margin:8px 0 10px;">Camadas</div>
+        <div style="font-size:clamp(12px,1.4vw,15px); color:var(--text-dim); line-height:1.7;">Private label de insumos<br>Seguro (carga + pega)<br>Manutenção recorrente</div>
+      </div>
+    </div>
+    <p class="footnote reveal"><strong style="color:var(--text);">Take efetivo blended: 10–14% no ano 2 → 14–18% na maturidade</strong> — com comissão nominal baixa que não assusta o supply (lição Ankorstore: comissão alta comprime; lição Infra.Market: camadas empilhadas dão lucro).</p>
+  </section>
+
+  <!-- 17 · UNIT ECONOMICS -->
+  <section class="slide slide--with-grid">
+    <p class="slide__label reveal">UNIT ECONOMICS · PEDIDO-TIPO R$ 30.000</p>
+    <h2 class="slide__heading reveal">Um take de 8,5% que compra uma economia maior que ele</h2>
+    <div class="slide__kpis reveal" style="grid-template-columns:repeat(3,1fr);">
+      <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--gold);">R$ 2.540</div><div class="slide__kpi-label">Receita Viridi por pedido</div><div class="slide__kpi-note">Comissão R$ 1.680 + frete R$ 500 + spread R$ 360</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val">~82%</div><div class="slide__kpi-label">Margem de contribuição</div><div class="slide__kpi-note">Ops assistida + adquirência + QA ≈ R$ 450/pedido</div></div>
+      <div class="slide__kpi"><div class="slide__kpi-val" style="color:var(--accent);">R$ 1.700</div><div class="slide__kpi-label">Economia fiscal do paisagista</div><div class="slide__kpi-note">+ capital de giro zerado + risco transferido</div></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(10px,1.4vw,18px); margin-top:clamp(12px,2vh,20px);" class="reveal">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:clamp(10px,1.6vh,16px);"><div style="font-size:clamp(12px,1.35vw,15px); line-height:1.5; color:var(--text-dim);"><strong style="color:var(--text);">Viveiro</strong> vende sem esforço e antecipa recebível</div></div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:clamp(10px,1.6vh,16px);"><div style="font-size:clamp(12px,1.35vw,15px); line-height:1.5; color:var(--text-dim);"><strong style="color:var(--text);">Paisagista</strong> cota em horas e preserva a margem como honorário</div></div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:clamp(10px,1.6vh,16px);"><div style="font-size:clamp(12px,1.35vw,15px); line-height:1.5; color:var(--text-dim);"><strong style="color:var(--text);">Cliente</strong> paga em 24× com custódia e garantia</div></div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:clamp(10px,1.6vh,16px);"><div style="font-size:clamp(12px,1.35vw,15px); line-height:1.5; color:var(--text-dim);"><strong style="color:var(--text);">Transportador</strong> enche a agenda com pagamento garantido</div></div>
+    </div>
+    <p class="footnote reveal">Todos os lados ganham dentro da plataforma — é isso que torna o take defensável.</p>
+  </section>
+
+  <!-- 18 · GTM -->
+  <section class="slide slide--content" style="background-image: radial-gradient(ellipse at 88% 12%, var(--accent-dim) 0%, transparent 45%);">
+    <div class="slide__inner" style="grid-template-columns: 2.4fr 2fr;">
+      <div class="slide__text">
+        <p class="slide__label reveal">GO-TO-MARKET</p>
+        <h2 class="slide__heading reveal">A vantagem injusta: demanda própria no dia 1</h2>
+        <div class="slide__body reveal" style="color:var(--text-dim); font-size:clamp(14px,1.7vw,18px); margin-top:clamp(10px,1.8vh,18px);">
+          <strong style="color:var(--text);">Helena Elias Paisagismo + Jardim Paulistano</strong> rodam as próprias obras de alto padrão na plataforma desde o início — GMV real, zero CAC, e o dataset inicial de cotações e fretes. Vinte anos de relacionamento com viveiros viram <strong style="color:var(--text);">warm intros para o supply</strong>.
+          <br><br>
+          <em style="color:var(--accent);">Sequência single-player: o Studio é útil antes da primeira transação — ferramenta grátis → hábito → cotação → GMV.</em>
+        </div>
+      </div>
+      <div class="slide__aside reveal">
+        <div class="timeline">
+          <div class="timeline__item"><span class="timeline__when">0–6m</span><span class="timeline__what"><strong>Piloto fechado SP</strong> · 20–30 viveiros âncora (Holambra/Atibaia) · 50 obras transacionadas</span></div>
+          <div class="timeline__item"><span class="timeline__when">6–18m</span><span class="timeline__what"><strong>Liquidez</strong> · 150+ viveiros integrados · 300–500 paisagistas · fintech ativa · GMV R$ 20–40 mi</span></div>
+          <div class="timeline__item"><span class="timeline__when">18–36m</span><span class="timeline__what"><strong>Escala</strong> · multi-polo · private label · B2C aberto · GMV R$ 60–120 mi · breakeven à vista</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 19 · RISCOS + KILL CRITERIA (split) -->
+  <section class="slide slide--split">
+    <div class="slide__panels">
+      <div class="slide__panel slide__panel--primary">
+        <p class="slide__label reveal">RISCOS &amp; MITIGAÇÕES</p>
+        <h2 class="slide__heading reveal" style="font-size:clamp(22px,2.8vw,32px);">O que pode dar errado</h2>
+        <div class="checks reveal">
+          <div class="check"><span class="check__ico check__ico--warn">!</span><span><strong>Desintermediação</strong> — mitigada pelo Carrinho Direto: sair custa imposto, capital e risco.</span></div>
+          <div class="check"><span class="check__ico check__ico--warn">!</span><span><strong>Veiling verticalizar</strong> — velocidade + foco em porte/insumo/serviço, fora do DNA deles.</span></div>
+          <div class="check"><span class="check__ico check__ico--warn">!</span><span><strong>Baixa frequência</strong> — cotação por obra, entregas faseadas, manutenção, construtoras.</span></div>
+          <div class="check"><span class="check__ico check__ico--warn">!</span><span><strong>Execução logística</strong> — asset-light, raio 150 km SP no início, compliance automatizado.</span></div>
+        </div>
+      </div>
+      <div class="slide__panel slide__panel--secondary">
+        <p class="slide__label reveal">KILL CRITERIA · PILOTO 6 MESES</p>
+        <h2 class="slide__heading reveal" style="font-size:clamp(22px,2.8vw,32px);">O que precisa ser verdade</h2>
+        <div class="checks reveal">
+          <div class="check"><span class="check__ico">✓</span><span>Paisagistas <strong>fora do círculo</strong> repetem (≥ 2 obras/trimestre).</span></div>
+          <div class="check"><span class="check__ico">✓</span><span>Viveiros mantêm <strong>estoque e fotos vivos</strong> sem cobrança manual.</span></div>
+          <div class="check"><span class="check__ico">✓</span><span>Cotação fecha em <strong>&lt; 24h com ops enxuto</strong>.</span></div>
+          <div class="check"><span class="check__ico">✓</span><span>Parecer tributário <strong>confirma o Carrinho Direto</strong> sem risco de autuação.</span></div>
+        </div>
+        <p class="footnote reveal" style="color:var(--red);">2+ falhas → repensar antes de escalar capital.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20 · FECHAMENTO (full-bleed) -->
+  <section class="slide slide--bleed">
+    <div class="slide__bg" style="background: linear-gradient(160deg, #0e2416 0%, #0b1710 45%, #142d1d 100%);"></div>
+    <div class="slide__bg" style="background-image: radial-gradient(ellipse at 75% 25%, rgba(143,217,122,0.16) 0%, transparent 50%), radial-gradient(ellipse at 15% 85%, rgba(217,176,76,0.1) 0%, transparent 45%);"></div>
+    <div class="slide__scrim"></div>
+    <svg class="slide__decor" style="top:10%; right:8%; opacity:0.16; z-index:2;" width="200" height="200" viewBox="0 0 220 220" fill="none">
+      <path d="M110 210 C 110 130, 110 90, 110 10 M110 170 C 70 150, 50 130, 40 90 M110 170 C 150 150, 170 130, 180 90 M110 120 C 80 105, 65 90, 58 60 M110 120 C 140 105, 155 90, 162 60" stroke="#8fd97a" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div class="slide__content">
+      <p class="slide__label reveal" style="color:#8fd97a;">PRÓXIMOS PASSOS</p>
+      <h2 class="slide__heading reveal" style="font-size:clamp(30px,5vw,56px); max-width:14em;">A categoria está vazia. A cadeia é nossa conhecida. A janela é agora.</h2>
+      <div class="reveal" style="display:flex; flex-wrap:wrap; gap:clamp(8px,1.2vw,14px); margin-top:clamp(16px,3vh,30px);">
+        <span style="font-family:var(--font-mono); font-size:clamp(11px,1.25vw,14px); background:rgba(143,217,122,0.12); border:1px solid rgba(143,217,122,0.3); color:#cfe8c4; padding:8px 16px; border-radius:24px;">1 · Validar o plano com Elias</span>
+        <span style="font-family:var(--font-mono); font-size:clamp(11px,1.25vw,14px); background:rgba(143,217,122,0.12); border:1px solid rgba(143,217,122,0.3); color:#cfe8c4; padding:8px 16px; border-radius:24px;">2 · Parecer tributário</span>
+        <span style="font-family:var(--font-mono); font-size:clamp(11px,1.25vw,14px); background:rgba(143,217,122,0.12); border:1px solid rgba(143,217,122,0.3); color:#cfe8c4; padding:8px 16px; border-radius:24px;">3 · 30 entrevistas de validação</span>
+        <span style="font-family:var(--font-mono); font-size:clamp(11px,1.25vw,14px); background:rgba(143,217,122,0.12); border:1px solid rgba(143,217,122,0.3); color:#cfe8c4; padding:8px 16px; border-radius:24px;">4 · Protótipo do Studio</span>
+        <span style="font-family:var(--font-mono); font-size:clamp(11px,1.25vw,14px); background:rgba(143,217,122,0.12); border:1px solid rgba(143,217,122,0.3); color:#cfe8c4; padding:8px 16px; border-radius:24px;">5 · Estrutura societária</span>
+      </div>
+      <p class="reveal" style="font-family:var(--font-display); font-style:italic; font-size:clamp(16px,2.2vw,24px); color:#9fb59a; margin-top:clamp(18px,3.2vh,32px);">VIRIDI — Da origem ao jardim.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+function autoFit() {
+  document.querySelectorAll('.mermaid svg').forEach(function(svg) {
+    svg.removeAttribute('height');
+    svg.style.width = '100%'; svg.style.maxWidth = '100%'; svg.style.height = 'auto';
+    svg.parentElement.style.width = '100%';
+  });
+  document.querySelectorAll('.slide__kpi-val').forEach(function(el) {
+    if (el.scrollWidth > el.clientWidth) {
+      var s = el.clientWidth / el.scrollWidth;
+      el.style.transform = 'scale(' + s + ')';
+      el.style.transformOrigin = 'left top';
+    }
+  });
+  document.querySelectorAll('.slide--quote blockquote').forEach(function(el) {
+    var len = el.textContent.trim().length;
+    if (len > 130) {
+      var scale = Math.max(0.5, 130 / len);
+      var fs = parseFloat(getComputedStyle(el).fontSize);
+      el.style.fontSize = Math.max(16, Math.round(fs * scale)) + 'px';
+    }
+  });
+}
+
+class SlideEngine {
+  constructor() {
+    this.deck = document.querySelector('.deck');
+    this.slides = [...document.querySelectorAll('.slide')];
+    this.current = 0;
+    this.total = this.slides.length;
+    this.buildChrome(); this.bindEvents(); this.observe(); this.update();
+  }
+  buildChrome() {
+    var bar = document.createElement('div'); bar.className = 'deck-progress';
+    document.body.appendChild(bar); this.bar = bar;
+    var dots = document.createElement('div'); dots.className = 'deck-dots';
+    var self = this;
+    this.slides.forEach(function(_, i) {
+      var d = document.createElement('button'); d.className = 'deck-dot';
+      d.title = 'Slide ' + (i + 1); d.onclick = function() { self.goTo(i); };
+      dots.appendChild(d);
+    });
+    document.body.appendChild(dots);
+    this.dots = [].slice.call(dots.children);
+    var ctr = document.createElement('div'); ctr.className = 'deck-counter';
+    document.body.appendChild(ctr); this.counter = ctr;
+    var hints = document.createElement('div'); hints.className = 'deck-hints';
+    hints.textContent = '← → ou scroll para navegar';
+    document.body.appendChild(hints); this.hints = hints;
+    this.hintTimer = setTimeout(function() { hints.classList.add('faded'); }, 4000);
+  }
+  bindEvents() {
+    var self = this;
+    document.addEventListener('keydown', function(e) {
+      if (e.target.closest('.mermaid-wrap, .table-scroll, .code-scroll, input, textarea, [contenteditable]')) return;
+      if (['ArrowDown', 'ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); self.next(); }
+      else if (['ArrowUp', 'ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); self.prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); self.goTo(0); }
+      else if (e.key === 'End') { e.preventDefault(); self.goTo(self.total - 1); }
+      self.fadeHints();
+    });
+    var touchY;
+    this.deck.addEventListener('touchstart', function(e) { touchY = e.touches[0].clientY; }, { passive: true });
+    this.deck.addEventListener('touchend', function(e) {
+      var dy = touchY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) { dy > 0 ? self.next() : self.prev(); }
+    });
+  }
+  observe() {
+    var self = this;
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          self.current = self.slides.indexOf(entry.target);
+          self.update();
+        }
+      });
+    }, { threshold: 0.5 });
+    this.slides.forEach(function(s) { obs.observe(s); });
+  }
+  goTo(i) { this.slides[Math.max(0, Math.min(i, this.total - 1))].scrollIntoView({ behavior: 'smooth' }); }
+  next() { if (this.current < this.total - 1) this.goTo(this.current + 1); }
+  prev() { if (this.current > 0) this.goTo(this.current - 1); }
+  update() {
+    this.bar.style.width = ((this.current + 1) / this.total * 100) + '%';
+    var self = this;
+    this.dots.forEach(function(d, i) { d.classList.toggle('active', i === self.current); });
+    this.counter.textContent = (this.current + 1) + ' / ' + this.total;
+  }
+  fadeHints() { clearTimeout(this.hintTimer); this.hints.classList.add('faded'); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  autoFit();
+  new SlideEngine();
+});
+</script>
+</body>
+</html>
