@@ -81,10 +81,15 @@ Fable-specific rules (measured failure modes from the source A/B):
 3. **Plan (inline)** — wave-based workplan with explicit dependencies. Any verdict that will
    feed an automated gate must decompose into explicit yes/no discriminator checks, aggregated
    fail-safe toward DEFER/NO.
-4. **Dispatch** — large multi-phase feature: drive `/ship` (state.json, resumable). Smaller
-   scope: spawn the ladder directly. **HARD RULE: any agent that mutates git runs in
-   `isolation: "worktree"`** — or a fresh `/tmp/<task>-$(uuidgen)` shallow clone (see
-   `~/Claude/CLAUDE.md`, multi-agent branch-checkout incidents).
+4. **Dispatch** — large multi-phase feature: Read `~/Claude/commands/ship/ship.md` and drive
+   its pipeline **inline in this session** — do NOT fork a second orchestrator. The point is
+   context continuity: the same mind that wrote the spec gates the execution (and skips the
+   ~20K cold-start of a `/ship` fork). Your artifacts from steps 2–3 satisfy the pipeline's
+   Phase 1–2 skip condition — enter at Phase 3 (plan) or 4 (execute); keep its `state.json`
+   contract so the run stays resumable. Smaller scope: spawn the ladder directly.
+   **HARD RULE: any agent that mutates git runs in `isolation: "worktree"`** — or a fresh
+   `/tmp/<task>-$(uuidgen)` shallow clone (see `~/Claude/CLAUDE.md`, multi-agent
+   branch-checkout incidents).
 5. **Gate each wave (inline)** — adjudicate outputs against the discriminator checks from
    step 3. Ground every call in primary state (the actual code, the actual CI result, the
    actual migration chain), not the plausible surface — the surface lies in specific ways.
@@ -131,12 +136,19 @@ Fable-specific rules (measured failure modes from the source A/B):
 | | `/cto` (opus) | `/ship` | `/cto-fable` |
 |---|---|---|---|
 | Role | advisor: routine reviews, audits, security | execution pipeline (resumable state.json) | CTO brain: orchestration + hard calls |
-| Default for | everything routine | features invoked directly | escalated work only |
-| Invoked by | user, or this skill (security/fallback) | user, or this skill (step 4) | user |
+| Default for | everything routine | features invoked directly, no fable brain needed | escalated work only |
+| Invoked by | user, or this skill (security/fallback) | user directly; this skill READS it and drives it inline (step 4 — never as a second fork) | user |
+
+Why three files and not one: `/cto` cannot merge (security must run on opus — hard boundary),
+and inlining the 850-line ship pipeline here would make every 5-minute GATE call pay its token
+cost. Progressive disclosure: this file stays thin; the pipeline loads only in EXECUTE mode.
+The condensation that matters is at runtime — one fable mind drives spec → plan → execution →
+gates in a single context.
 
 ## Version
 
 1.0.0-toto (2026-07-17) — adapted from cto-fable export 1.0.0 (pre-registered A/B, 2026-07-08).
-Adaptations: baseline wired to `/cto`, ledger → nox-mem decisions, swarm → ladder + `/ship` +
-council, CTO-EXECUTE mode added (end-to-end delegation on invocation). Local pressure-tests not
-re-run — provenance relies on the upstream A/B; gate future edits on the same backtest corpus.
+Adaptations: baseline wired to `/cto`, ledger → nox-mem decisions, swarm → ladder + council,
+CTO-EXECUTE mode added (end-to-end delegation on invocation), ship pipeline driven inline in
+the fable context (no second fork). Local pressure-tests not re-run — provenance relies on the
+upstream A/B; gate future edits on the same backtest corpus.
