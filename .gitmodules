@@ -79,3 +79,6 @@
 [submodule "Projetos/AVC_Fund"]
 	path = Projetos/AVC_Fund
 	url = https://github.com/totobusnello/AVC_Fund.git
+[submodule "Projetos/CIO-Booster"]
+	path = Projetos/CIO-Booster
+	url = https://github.com/totobusnello/CIO-Booster.git
