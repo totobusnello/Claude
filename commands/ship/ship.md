@@ -29,7 +29,7 @@ allowed-tools:
   - WebSearch
   - WebFetch
   - mcp__sequential-thinking__*
-  - mcp__memory__*
+  - mcp__nox-mem__*
   - mcp__chrome-devtools__*
   - mcp__postgres__*
 memory: user
