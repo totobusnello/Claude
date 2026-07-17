@@ -331,9 +331,9 @@
   .funnel__tag { font-family: var(--font-mono); font-size: clamp(11px, 1.3vw, 14px); font-weight: 600; color: var(--text-dim); letter-spacing: 1.5px; }
   .funnel__bar {
     border-radius: 10px; padding: clamp(12px, 2vh, 20px) clamp(14px, 1.8vw, 24px);
-    display: flex; flex-direction: column; gap: 2px; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px; min-width: min(100%, 430px);
   }
-  .funnel__val { font-family: var(--font-display); font-size: clamp(20px, 3vw, 34px); font-weight: 600; line-height: 1.1; white-space: nowrap; }
+  .funnel__val { font-family: var(--font-display); font-size: clamp(20px, 3vw, 34px); font-weight: 600; line-height: 1.1; }
   .funnel__desc { font-size: clamp(11px, 1.25vw, 14px); opacity: 0.85; line-height: 1.4; }
 
   /* Layer stack (produto) */
@@ -521,10 +521,10 @@
         </div>
       </div>
       <div class="funnel__row">
-        <span class="funnel__tag">SOM ·A3</span>
-        <div class="funnel__bar" style="width:30%; background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--surface) 45%)); color:var(--bg);">
+        <span class="funnel__tag">SOM·ANO 3</span>
+        <div class="funnel__bar" style="width:38%; background:linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--surface) 45%)); color:var(--bg);">
           <span class="funnel__val">R$ 60–120 mi GMV</span>
-          <span class="funnel__desc" style="opacity:1;">SP, ano 3 · 1,5–3% do SAM paulista · net revenue R$ 6–15 mi</span>
+          <span class="funnel__desc" style="opacity:1;">SP, ano 3 · 1,5–3% do SAM paulista · net R$ 6–15 mi</span>
         </div>
       </div>
     </div>
