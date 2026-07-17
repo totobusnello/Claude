@@ -4,6 +4,7 @@ description: "End-to-end feature shipping: CPO product spec â†’ CTO tech spec â†
 argument-hint: "<feature description, sprint plan, or --resume>"
 user-invocable: true
 context: fork
+model: opus
 allowed-tools:
   - Read
   - Write
