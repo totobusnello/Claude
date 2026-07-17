@@ -4,7 +4,6 @@ description: "End-to-end feature shipping: CPO product spec â†’ CTO tech spec â†
 argument-hint: "<feature description, sprint plan, or --resume>"
 user-invocable: true
 context: fork
-model: opus
 allowed-tools:
   - Read
   - Write
@@ -29,7 +28,7 @@ allowed-tools:
   - WebSearch
   - WebFetch
   - mcp__sequential-thinking__*
-  - mcp__memory__*
+  - mcp__nox-mem__*
   - mcp__chrome-devtools__*
   - mcp__postgres__*
 memory: user

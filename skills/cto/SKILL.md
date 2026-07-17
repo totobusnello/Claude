@@ -27,7 +27,7 @@ allowed-tools:
   - WebFetch
   - Task
   - AskUserQuestion
-  - mcp__memory__*
+  - mcp__nox-mem__*
 ---
 
 # CTO - Universal AI Technical Advisor
