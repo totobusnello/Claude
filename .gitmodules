@@ -82,3 +82,6 @@
 [submodule "Projetos/CIO-Booster"]
 	path = Projetos/CIO-Booster
 	url = https://github.com/totobusnello/CIO-Booster.git
+[submodule "Projetos/Viridi"]
+	path = Projetos/Viridi
+	url = https://github.com/totobusnello/Viridi.git
