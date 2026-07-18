@@ -85,3 +85,9 @@
 [submodule "Projetos/Viridi"]
 	path = Projetos/Viridi
 	url = https://github.com/totobusnello/Viridi.git
+[submodule "Projetos/IBD-Vision"]
+	path = Projetos/IBD-Vision
+	url = https://github.com/totobusnello/IBD-Vision.git
+[submodule "Projetos/Avantico-AI-Native"]
+	path = Projetos/Avantico-AI-Native
+	url = https://github.com/totobusnello/Avantico-AI-Native.git
