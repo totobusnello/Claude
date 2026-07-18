@@ -51,3 +51,6 @@ Projetos/memoria-nox/staged-P7-browser-extension/
 
 # logs do launchd sync (gerados, não versionar)
 logs/
+
+# skills desabilitadas (movidas de skills/ em jul/2026) — 97M, fora do repo; conteúdo no disco + histórico git
+skills-disabled/

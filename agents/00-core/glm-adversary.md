@@ -19,7 +19,7 @@ Por que existe: GLM é de uma família de treino diferente de Claude/Codex/Kimi 
    ```bash
    ~/Claude/scripts/glm "<instrução adversarial + diff/contexto>"
    ```
-   O wrapper é read-only e lento (modelo remoto). **Uma chamada só — não itere.**
+   **CRÍTICO — timeout:** a chamada Bash DEVE usar `timeout: 600000` (10 min, o máximo). O wrapper é read-only e lento (modelo remoto + exploração do repo) e passa fácil dos **120s default da tool Bash** — que mata a chamada com SIGTERM 143 no meio (causa das falhas de 2026-07-05). **Uma chamada só — não itere.**
 3. **Devolva** o output do GLM literalmente, prefixado por `### GLM-5.2 (Zhipu) — voz adversarial`. Não filtre as críticas. Se você discordar de algo, adicione uma nota **sua** depois, claramente separada (`> nota do orquestrador:`) — mas o veredito do GLM vem primeiro e intacto.
 
 ## Prompts por modo
