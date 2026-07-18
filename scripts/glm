@@ -12,11 +12,11 @@
 # Uso:
 #   glm "revise a abordagem deste diff: ..."     # explora o cwd, devolve veredito
 #   glm "explique o módulo X em 5 linhas"
-#   GLM_MODEL=glm-5.2 glm "..."                   # override de modelo (sem 1M)
+#   GLM_MODEL='glm-5.2[1m]' glm "..."             # opt-in p/ 1M de contexto (mais lento)
 set -euo pipefail
 
 TOKEN_FILE="${GLM_TOKEN_FILE:-$HOME/.config/glm/token}"
-MODEL="${GLM_MODEL:-glm-5.2[1m]}"
+MODEL="${GLM_MODEL:-glm-5.2}"
 BASE_URL="${GLM_BASE_URL:-https://api.z.ai/api/anthropic}"
 
 if [ ! -r "$TOKEN_FILE" ]; then
