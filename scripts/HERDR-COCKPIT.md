@@ -17,6 +17,9 @@ Construído 2026-06-22 · atualizado **2026-07-20** (Fase 1 da poda: frota 32→
 | `prefix+shift+f` | plugin `herdr-file-viewer` | **file viewer** git-aware (split) |
 | `prefix+shift+e` | plugin `herdr-file-viewer` | file viewer em tab cheia |
 | `prefix+shift+u` | plugin `usagebar` | usage/rate limits por provider |
+| `prefix+shift+j` | plugin `herdr-navigator` | **fuzzy jump** (workspace/agent/projeto) |
+| `prefix+shift+b` | plugin `herdr-navigator` | volta pro anterior |
+| `prefix+shift+i` | plugin `reviewr` | **review do diff** do agent (`s` manda de volta) |
 
 **Nativos ocupados — NÃO rebindar:** `prefix+shift+` **d/g/n/p/r/t/w/x** (`close_workspace` / `new_worktree` / `new_workspace` / … / **`rename_tab`=shift+t**) e `prefix+g`/`alt+g`/`shift+l`. Por isso os custom usam **o/a/v/h/f/e/u**.
 
@@ -113,8 +116,29 @@ O plugin popula os tokens `$limit` / `$context` no `[ui.sidebar.agents]` do `con
 
 **Não instalar `0xGosu/herdr-auto-pilot`** — auto-prompta o agent no seu lugar ("Full-Self Prompting"). Colide com maker-checker e verification-first.
 
-### Pendente: `thanhdat77/herdr-navigator` (fuzzy jump) precisa de Rust
-Falhou o install: o manifest força `[[build]] cargo build --release` e não há `cargo` na máquina — **mesmo o repo publicando binário arm64 pré-compilado** na release (v0.3.3). Diferente do file-viewer, cujo script resolve prebuilt-vs-source sozinho. Para instalar: `brew install rust` (~1,3 GB) — destrava também os outros ~6 plugins Rust do ecossistema (leap, sidebar, board, deck-navigation).
+### Rust instalado (`brew install rust`, cargo 1.97.1) — 6 plugins no total
+
+O `navigator` força `[[build]] cargo build --release` **mesmo publicando binário arm64** na release. Lição: *"tem release binária" ≠ "instala sem cargo"* — depende do manifest. O file-viewer tem script que resolve prebuilt-vs-source; o navigator não.
+
+| Plugin | ⭐ | Papel | Precisou de Rust? |
+|---|---|---|---|
+| `smarzban/herdr-file-viewer` | 179 | Árvore + conteúdo git-aware | não (prebuilt) |
+| `persiyanov/herdr-reviewr` | 152 | **Review do diff do agent**, comentário linha-a-linha, `s` manda pro input dele | **não** (prebuilt) |
+| `dcolinmorgan/herdr-remote` | 100 | Dashboard menu bar / celular | não (Python) |
+| `yuk1ty/herdr-spreader` | 41 | Layout de workspace via **YAML** (estilo tmuxinator) | **sim** |
+| `thanhdat77/herdr-navigator` | 16 | Fuzzy jump | **sim** |
+| `senna-lang/herdr-agent-usage` | 4 | Context meters + rate limits | não (Go) |
+
+**`reviewr` é o mais relevante pro fluxo multi-família:** o loop `/kimi:review` · `/glm:review` · `/grok:review` continua valendo pelo que ele é (famílias de treino distintas). O reviewr não substitui as vozes — substitui o **transporte** do feedback de volta pro agent, e é agnóstico de harness. Auto-abre em `worktree.created`.
+
+**`herdr-remote` tem 2 partes — só o plugin está instalado:**
+1. **Plugin relay** (event hook em `pane.agent_status_changed`) ✅ instalado
+2. **Herdi.app** (menu bar, zero config, sem relay/conta) — [download manual](https://github.com/dcolinmorgan/herdr-remote/releases/latest), arrastar pra Applications
+3. Para celular/cross-machine: `export HERDR_RELAY_TOKEN="$(openssl rand -hex 16)" && uv run relay/herdr_relay.py`
+
+**`spreader` está SEM keybinding de propósito** — o `apply` precisa de um `config.yaml` que ainda não existe. Ele é o candidato a aposentar `work.sh` (179 linhas) + `herdr-monitor-ensure.py` (164) — os **dois donos do layout** que causaram o bug do git-glance recriado em 32 workspaces. Quando o YAML existir, bindar em `prefix+shift+y`.
+
+> `shift+` livres hoje: **c k l m q s y z**
 
 ## 5. Hardening pós-`herdr update`
 

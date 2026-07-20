@@ -94,3 +94,16 @@ key = "prefix+shift+b"
 type = "plugin_action"
 command = "herdr-navigator.jump-back"
 description = "navigator: volta pro anterior"
+
+# reviewr: review do diff do agent com comentário linha-a-linha; `s` manda os
+# comentários de volta pro input do agent. Também auto-abre em worktree.created.
+# `i` de Inspect — `r` é nativo (rename).
+[[keys.command]]
+key = "prefix+shift+i"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "reviewr (review do diff do agent)"
+
+# spreader (layout YAML) fica SEM bind de propósito: o `apply` precisa de um
+# config.yaml que ainda não existe. Bindar antes disso é atalho pra um no-op.
+# Quando o work.sh virar YAML, bindar em prefix+shift+y.
