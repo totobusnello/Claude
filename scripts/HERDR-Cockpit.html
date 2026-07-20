@@ -1,0 +1,253 @@
+<title>HERDR Cockpit — cola do Toto</title>
+<style>
+  :root {
+    --bg: #fbfaf8; --fg: #1a1a1a; --dim: #6b6b6b; --line: #e2ded8;
+    --card: #ffffff; --accent: #b8562f; --accent-soft: #f5e9e3;
+    --key-bg: #2a2a2a; --key-fg: #f5f5f5; --ok: #2d6a4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14140f; --fg: #ebe7df; --dim: #96918a; --line: #2e2c27;
+      --card: #1c1b17; --accent: #e08256; --accent-soft: #2b1f19;
+      --key-bg: #3a3833; --key-fg: #f0ece5; --ok: #6ba585;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14140f; --fg: #ebe7df; --dim: #96918a; --line: #2e2c27;
+    --card: #1c1b17; --accent: #e08256; --accent-soft: #2b1f19;
+    --key-bg: #3a3833; --key-fg: #f0ece5; --ok: #6ba585;
+  }
+  :root[data-theme="light"] {
+    --bg: #fbfaf8; --fg: #1a1a1a; --dim: #6b6b6b; --line: #e2ded8;
+    --card: #ffffff; --accent: #b8562f; --accent-soft: #f5e9e3;
+    --key-bg: #2a2a2a; --key-fg: #f5f5f5; --ok: #2d6a4f;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.5rem 4rem;
+    background: var(--bg); color: var(--fg);
+    font: 15px/1.55 ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  header { border-bottom: 2px solid var(--fg); padding-bottom: 1rem; margin-bottom: 2rem; }
+  h1 { font-size: 2rem; margin: 0 0 .3rem; letter-spacing: -.02em; }
+  .sub { color: var(--dim); font-size: .9rem; }
+
+  h2 {
+    font-size: 1.05rem; text-transform: uppercase; letter-spacing: .09em;
+    margin: 2.4rem 0 .9rem; color: var(--accent);
+    border-bottom: 1px solid var(--line); padding-bottom: .4rem;
+  }
+  h3 { font-size: .95rem; margin: 1.4rem 0 .5rem; color: var(--dim);
+       text-transform: uppercase; letter-spacing: .06em; }
+
+  kbd {
+    display: inline-block; background: var(--key-bg); color: var(--key-fg);
+    padding: .16em .5em; border-radius: 4px; font-size: .82em;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; white-space: nowrap;
+  }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    background: var(--accent-soft); padding: .12em .4em; border-radius: 3px; font-size: .88em;
+  }
+
+  .hero {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: .5rem;
+  }
+  .hero p { margin: .4rem 0 0; color: var(--dim); font-size: .92rem; }
+  .hero .big { font-size: 1.15rem; font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.1rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1rem 1.2rem; }
+  .card h3 { margin-top: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  td { padding: .38rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { width: 42%; padding-right: .8rem; }
+
+  ol.flow { counter-reset: s; list-style: none; padding: 0; margin: 0; }
+  ol.flow li {
+    counter-increment: s; position: relative; padding: .55rem 0 .55rem 2.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+  ol.flow li:last-child { border-bottom: none; }
+  ol.flow li::before {
+    content: counter(s); position: absolute; left: 0; top: .55rem;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: .78rem; font-weight: 700;
+    display: grid; place-items: center;
+  }
+  ol.flow .note { display: block; color: var(--dim); font-size: .85rem; margin-top: .15rem; }
+
+  .callout {
+    background: var(--accent-soft); border-radius: 6px;
+    padding: .9rem 1.1rem; margin: 1rem 0; font-size: .92rem;
+  }
+  .callout strong { color: var(--accent); }
+
+  .pill { display:inline-block; background: var(--accent-soft); color: var(--accent);
+          border-radius: 20px; padding: .1em .7em; font-size: .78rem; font-weight: 600; }
+
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line);
+           color: var(--dim); font-size: .84rem; }
+
+  @media print {
+    body { padding: 0; font-size: 11px; }
+    h2 { margin-top: 1.2rem; }
+    .card, .hero { break-inside: avoid; }
+  }
+</style>
+
+<div class="wrap">
+
+<header>
+  <h1>HERDR Cockpit</h1>
+  <div class="sub">herdr 0.7.4 · 17 workspaces curados · 6 plugins · prefix <kbd>Ctrl+B</kbd></div>
+</header>
+
+<div class="hero">
+  <div class="big">Toda tecla é <kbd>Ctrl+B</kbd> → <em>solta</em> → a tecla.</div>
+  <p>Não é acorde simultâneo. <kbd>prefix+shift+j</kbd> = aperta Ctrl+B, solta, aperta Shift+J.</p>
+  <p><strong>Esqueceu algum?</strong> <kbd>Ctrl+B</kbd> solta <kbd>Shift+/</kbd> (que é o <code>?</code>) lista todos ao vivo. Sai com <kbd>Esc</kbd>.</p>
+  <p><strong>Ou nem use teclado:</strong> o herdr é mouse-native — clique em pane/tab/workspace, arraste bordas, botão direito abre menu.</p>
+</div>
+
+<h2>O fluxo do dia</h2>
+<ol class="flow">
+  <li><code>herdr</code> no iTerm
+    <span class="note">Conecta na sessão que já está rodando. De qualquer diretório. Nunca rode dentro de um pane do herdr.</span></li>
+  <li><kbd>prefix+shift+o</kbd> — monta os 17 workspaces curados
+    <span class="note">Lê a allowlist <code>~/Claude/.herdr/spaces</code>. Projeto faltando? Adicione o path lá.</span></li>
+  <li><kbd>prefix+shift+j</kbd> — pula pro projeto
+    <span class="note">Digita "viridi", Enter. É o atalho mais útil do dia.</span></li>
+  <li><code>cw</code> no pane da esquerda
+    <span class="note">Briefing do projeto + Claude já com o contexto. <code>wb</code> mostra só o briefing.</span></li>
+  <li><kbd>prefix+shift+i</kbd> — revisa o diff quando o agent terminar</li>
+  <li><kbd>prefix+q</kbd> — sai, e <strong>tudo continua rodando</strong>
+    <span class="note">Pode fechar o iTerm e o notebook. Volta com <code>herdr</code>.</span></li>
+</ol>
+
+<h2>Atalhos</h2>
+
+<div class="grid">
+
+  <div class="card">
+    <h3>Navegar</h3>
+    <table>
+      <tr><td><kbd>prefix+shift+j</kbd></td><td>fuzzy jump <span class="pill">principal</span></td></tr>
+      <tr><td><kbd>prefix+shift+b</kbd></td><td>volta pro anterior</td></tr>
+      <tr><td><kbd>prefix+h j k l</kbd></td><td>move entre panes ← ↓ ↑ →</td></tr>
+      <tr><td><kbd>prefix+w</kbd></td><td>lista de workspaces</td></tr>
+      <tr><td><kbd>prefix+n</kbd></td><td>próxima tab</td></tr>
+      <tr><td><kbd>prefix+z</kbd></td><td>pane em tela cheia</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Trabalhar</h3>
+    <table>
+      <tr><td><kbd>prefix+shift+o</kbd></td><td>monta os workspaces</td></tr>
+      <tr><td><kbd>prefix+shift+a</kbd></td><td>cockpit de agentes</td></tr>
+      <tr><td><kbd>prefix+shift+f</kbd></td><td>file viewer (split)</td></tr>
+      <tr><td><kbd>prefix+shift+e</kbd></td><td>file viewer (tab cheia)</td></tr>
+      <tr><td><kbd>prefix+shift+u</kbd></td><td>usage / rate limits</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Git &amp; review</h3>
+    <table>
+      <tr><td><kbd>prefix+shift+i</kbd></td><td>reviewr — review do diff</td></tr>
+      <tr><td><kbd>prefix+shift+h</kbd></td><td>hunk review (changeset)</td></tr>
+      <tr><td><kbd>prefix+shift+v</kbd></td><td>lazygit cheio</td></tr>
+      <tr><td><kbd>prefix+shift+g</kbd></td><td>novo worktree</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Panes &amp; tabs</h3>
+    <table>
+      <tr><td><kbd>prefix+c</kbd></td><td>nova tab</td></tr>
+      <tr><td><kbd>prefix+v</kbd></td><td>split à direita</td></tr>
+      <tr><td><kbd>prefix+minus</kbd></td><td>split abaixo</td></tr>
+      <tr><td><kbd>prefix+x</kbd></td><td>fecha o pane</td></tr>
+      <tr><td><kbd>prefix+[</kbd></td><td>copy mode (scroll/busca)</td></tr>
+      <tr><td><kbd>prefix+q</kbd></td><td>detach — sai sem matar</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<h2>Dentro do reviewr <span class="pill">o loop de review</span></h2>
+
+<div class="card">
+  <p style="margin-top:0;color:var(--dim);font-size:.92rem">Abre com <kbd>prefix+shift+i</kbd> quando o agent terminar de escrever código. Abre sozinho quando um worktree é criado.</p>
+  <table>
+    <tr><td><kbd>v</kbd> depois <kbd>j</kbd> <kbd>k</kbd></td><td>seleciona linhas (ou arrasta com o mouse)</td></tr>
+    <tr><td><kbd>c</kbd></td><td>comenta na seleção</td></tr>
+    <tr><td><kbd>e</kbd> / <kbd>d</kbd></td><td>edita / apaga o comentário</td></tr>
+    <tr><td><kbd>n</kbd> / <kbd>N</kbd></td><td>próximo / anterior comentário</td></tr>
+    <tr><td><kbd>l</kbd></td><td>lista todos</td></tr>
+    <tr><td><kbd>s</kbd></td><td><strong>manda os comentários pro input do agent</strong></td></tr>
+  </table>
+</div>
+
+<div class="callout">
+  <strong>O que o reviewr é — e o que não é.</strong> Ele não substitui <code>/kimi:review</code>, <code>/glm:review</code>, <code>/grok:review</code>. Essas valem pelo que são: famílias de treino distintas te dando divergência real. O reviewr substitui o <em>transporte</em> do feedback de volta pro agent — o copiar-e-colar.
+</div>
+
+<h2>Comandos</h2>
+
+<div class="grid">
+  <div class="card">
+    <h3>Dia a dia</h3>
+    <table>
+      <tr><td><code>herdr</code></td><td>abre / reconecta</td></tr>
+      <tr><td><code>work &lt;projeto&gt;</code></td><td>monta um só (fuzzy)</td></tr>
+      <tr><td><code>cw</code></td><td>briefing + Claude</td></tr>
+      <tr><td><code>wb</code></td><td>só o briefing</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Quando algo quebra</h3>
+    <table>
+      <tr><td><code>herdr status</code></td><td>server está de pé?</td></tr>
+      <tr><td><code>herdr-doctor.sh</code></td><td>diagnostica</td></tr>
+      <tr><td><code>herdr-doctor.sh --fix</code></td><td>repara do snapshot</td></tr>
+      <tr><td><code>herdr plugin list</code></td><td>os 6 plugins</td></tr>
+    </table>
+    <p style="color:var(--dim);font-size:.85rem;margin-bottom:0">Em <code>~/Claude/scripts/</code></p>
+  </div>
+</div>
+
+<div class="callout">
+  <strong>A regra que vale ouro.</strong> Mexeu no <code>config.toml</code> à mão? Rode <code>herdr-doctor.sh --save</code> depois. Senão o próximo <code>herdr update</code> restaura o snapshot antigo e sua mudança evapora — o doctor é um sistema imunológico, ele rejeita o que não conhece.
+</div>
+
+<div class="callout">
+  <strong>Atualizar o herdr:</strong> é <code>brew upgrade herdr</code>, não <code>herdr update</code> — o self-update recusa em instalação Homebrew. Depois, restart: <code>launchctl kickstart -k gui/$(id -u)/dev.herdr.server</code>.
+</div>
+
+<h2>Os 6 plugins</h2>
+<div class="card">
+  <table>
+    <tr><td><strong>file-viewer</strong> <span class="pill">179★</span></td><td>árvore + conteúdo git-aware, read-only</td></tr>
+    <tr><td><strong>reviewr</strong> <span class="pill">152★</span></td><td>review do diff, comentário volta pro agent</td></tr>
+    <tr><td><strong>herdr-remote</strong> <span class="pill">100★</span></td><td>dashboard na barra de menu (Herdi.app)</td></tr>
+    <tr><td><strong>spreader</strong> <span class="pill">41★</span></td><td>layout via YAML — <em>sem atalho ainda</em></td></tr>
+    <tr><td><strong>navigator</strong> <span class="pill">16★</span></td><td>fuzzy jump</td></tr>
+    <tr><td><strong>agent-usage</strong> <span class="pill">4★</span></td><td>context meters no sidebar</td></tr>
+  </table>
+</div>
+
+<footer>
+  Gerado em 20/07/2026 · PR #28 (Fases 1 e 2) · doc técnica completa em <code>~/Claude/scripts/HERDR-COCKPIT.md</code><br>
+  <kbd>Ctrl+B</kbd> <kbd>Shift+/</kbd> lista tudo ao vivo — esta cola é para quando o terminal não está aberto.
+</footer>
+
+</div>
