@@ -4,7 +4,7 @@ Setup pessoal sobre o **herdr 0.7.3** (terminal workspace manager pra AI coding 
 
 **Prefix = `Ctrl+B`** (default do herdr, não customizado). Todo `prefix+X` abaixo = aperta Ctrl+B, solta, depois X. `Ctrl+B` então `?` = referência nativa completa.
 
-Construído 2026-06-22 · atualizado **2026-07-19** (auto-sync + auto-reorder + doctor + hunk; git-glance removido).
+Construído 2026-06-22 · atualizado **2026-07-20** (Fase 1 da poda: frota 32→17 workspaces curados; auto-sync + auto-reorder aposentados; `[worktrees]` nativo).
 
 ## Keybindings (`~/.config/herdr/config.toml`)
 
@@ -63,27 +63,46 @@ Sem painel git fixo (git-glance saiu). Três caminhos:
 
 Lazygit e hunk abrem split à direita + zoom (tela cheia); `q` sai, `; exit` fecha o pane e volta ao layout. O hunk (brew, `hunkdiff`) é review-first; o `delta` segue como git pager default, e `git hdiff`/`git hshow` chamam o hunk sob demanda em qualquer pane.
 
-## 4. Spaces auto-geridos (sync + ordem alfabética)
+## 4. Spaces curados (frota enxuta, sob demanda) — reescrito 2026-07-20
 
-O herdr não escaneia o filesystem nem tem sort nativo (`herdr config` só `reset-keys`). Dois automatismos (19/07) resolvem:
+**O modelo mudou.** Antes: espelhar `~/Claude/Projetos/*` inteiro na sidebar (32 workspaces, 64 panes permanentes) + reordenar alfabético de madrugada. O diagnóstico que matou isso: **47% da frota estava parada há 1+ mês** e o sidebar nativo do herdr — feito pra você bater o olho e ver quem está `blocked` — vira ruído com 32 linhas. O cockpit custom (§2) era a compensação.
 
-**Auto-sync** — `herdr-sync-projects.sh` + LaunchAgent `com.toto.herdr-sync-projects` (`WatchPaths=~/Claude/Projetos`). Pasta nova → workspace criado **AO VIVO** (~10s, sem restart). Dedup por `identity_cwd` (não por label — labels são customizados). Log: `~/Library/Logs/herdr-sync-projects.log`.
+Hoje: **~17 workspaces curados**, abertos porque há trabalho neles. O resto volta com `work <projeto>` em segundos.
 
-**Auto-reorder** — `herdr-sort-spaces.py` (reordena alfabético, **home `~` cru fixo no topo**, locale-aware, atômico + `.bak`, fail-safe se server vivo) rodado por `herdr-auto-reorder.sh` + LaunchAgent `com.toto.herdr-auto-reorder` (**04:37**). Reordenar exige **restart do server** (relê `session.json` só no start; restart recria panes), então roda de madrugada com **3 gates**: server up · nenhum agente working/blocked · de fato desordenado (`--dry-run`). Forçar agora (se idle): `zsh herdr-auto-reorder.sh`. O sort roda também no boot via wrapper `herdr-server-launch.sh` (antes do server subir).
+**Aposentados** (em `~/Claude-archive/_retired/`):
 
-> Não existe reorder ao vivo — workspaces novos entram no **fim** da sidebar até o próximo reorder (madrugada ou boot). Restart manual: `launchctl kickstart -k gui/$(id -u)/dev.herdr.server` ⚠️ recria panes.
+| O quê | Por quê |
+|---|---|
+| `herdr-sync-projects.sh` + LaunchAgent `com.toto.herdr-sync-projects` | Espelhava todo subdir de `~/Claude/Projetos` → recriava o que você fechasse |
+| `herdr-sort-spaces.py` + `herdr-auto-reorder.sh` + LaunchAgent `com.toto.herdr-auto-reorder` | Ordenar 32 spaces exigia **restart do server** (recria panes). Com 17, não paga |
+
+⚠️ **Ao fechar workspaces, desligue o auto-sync ANTES** — ele era `WatchPaths` e recriava na hora. (Hoje já está desligado; a nota vale se alguém reverter.)
+
+**O que ficou:** `herdr-monitor-watch.sh` + `herdr-monitor-ensure.py` — o enforcer do layout de 2 panes. Continua útil com 17.
+
+**Ordem da sidebar:** sem sort automático, workspaces novos entram no fim. Para navegar sem depender de ordem, o caminho é fuzzy jump (avaliar o plugin `thanhdat77/herdr-navigator` na Fase 2), não reintroduzir o restart noturno.
+
+**Worktrees agora são nativos** (`[worktrees] directory = "~/.herdr/worktrees"` no config):
+
+```bash
+herdr worktree create --branch feat/x --base main --focus
+herdr worktree remove --workspace wN     # git worktree remove; nunca deleta a branch
+```
+
+A raiz fica **fora de qualquer repo** de propósito — worktree dentro do repo (`.claude/worktrees/`) usa sparse-checkout e causa HEAD desync entre agents paralelos: a raiz dos 8 leaks de 2026-05-24. Ver a hard-rule em `~/Claude/CLAUDE.md`.
 
 ## 5. Hardening pós-`herdr update`
 
 O plist, o `config.toml` e os scripts são customizados à mão (não geridos pelo herdr) — um `herdr update` pode sobrescrevê-los.
 
-- **`herdr-doctor.sh`** (`--check` / `--fix` / `--save`): valida e reaplica config.toml, plist do server, scripts, LaunchAgents e a integração claude. Snapshots do estado bom em `~/Claude/scripts/herdr/expected/`. `--save` re-snapshota após mudança intencional.
+- **`herdr-doctor.sh`** (`--check` / `--fix` / `--save`): valida e reaplica config.toml, plist do server, os 7 scripts vivos e a integração claude. Snapshots do estado bom em `~/Claude/scripts/herdr/expected/`. `--save` re-snapshota após mudança intencional.
+  > ⚠️ **O doctor é um sistema imunológico — ele rejeita mudança que você não ensinar.** O `--fix` restaura o `config.toml` do snapshot e (até 20/07) fazia `launchctl bootstrap` dos LaunchAgents. Toda mudança intencional no config/plist exige `--save` depois, senão o próximo `herdr update` reverte via wrapper do `~/.zshrc`.
 - **Wrapper no `~/.zshrc`:** a function `herdr()` intercepta **só** `herdr update` — roda o update e, se ok, chama `herdr-doctor.sh --fix` sozinho. Qualquer outro subcomando passa direto (`command herdr`). Vale só em shells novos.
 
 ## Reversão
 
 - **hunk / git-glance:** restaurar o bloco git-glance **nos dois** — `work.sh` (workspaces novos) **e** `herdr-monitor-ensure.py` (enforcer: ratios `0.42`/`0.56`, `TARGETS` de 3 col, branch de 3 panes), via git history / `.bak-doctor`; depois `python3 herdr-monitor-ensure.py --all`. Remover o keybinding `prefix+shift+h` do config.toml; `herdr server reload-config`.
 - **Cockpit:** remover `prefix+shift+a` do config.toml + `herdr server reload-config`.
-- **Auto-sync / auto-reorder:** `launchctl bootout gui/$(id -u)/com.toto.herdr-sync-projects` (e `…herdr-auto-reorder`).
+- **Frota de 32 workspaces (desfazer a poda de 20/07):** restaurar os 3 scripts de `~/Claude-archive/_retired/scripts/` e os 2 plists de `~/Claude-archive/_retired/launchagents/` → `~/Library/LaunchAgents/`; `launchctl bootstrap gui/$(id -u) <plist>` nos dois; reintroduzir as refs no `herdr-doctor.sh` (lista de scripts + bloco LaunchAgents) e a linha do sort no `herdr-server-launch.sh`; `herdr-doctor.sh --save`. Backup do `session.json` de 32 workspaces em `~/Claude/scripts/herdr/backup-20260720-080922/`.
 - **Wrapper update:** remover o bloco `# >>> herdr update -> reaplica >>>` do `~/.zshrc`.
 - **Config/plist corrompidos:** `herdr-doctor.sh --fix` restaura do snapshot; `session.json.bak` restaura a ordem.
