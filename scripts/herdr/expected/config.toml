@@ -1,14 +1,44 @@
 onboarding = false
+
+# ── UI ────────────────────────────────────────────────────────────────────────
 [ui]
 agent_panel_scope = "all"
-
-# montar o cockpit de dentro do herdr (added 2026-06-20)
 show_agent_labels_on_pane_borders = true
+
+[ui.toast]
+delivery = "herdr"
+
+# Linhas do sidebar (recurso da 0.7.4). Os tokens $limit e $context são
+# preenchidos pelo plugin `usagebar` (herdr-agent-usage), que lê as fontes
+# locais de Claude (~/.claude.json), Codex (~/.codex/sessions/) e Grok.
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "tab", "pane"],
+  ["agent", "$limit"],
+  ["$context"],
+]
+
+# ── Worktrees ─────────────────────────────────────────────────────────────────
+# Raiz FORA de qualquer repo. Isso é deliberado: worktrees dentro do repo
+# (ex: .claude/worktrees/) usam sparse-checkout e causam HEAD desync entre agents
+# paralelos — a raiz dos 8 leaks de 2026-05-24. Ver hard-rule no ~/Claude/CLAUDE.md.
+#   herdr worktree create --branch feat/x --base main --focus
+#   herdr worktree remove --workspace wN        # nunca deleta a branch
+[worktrees]
+directory = "~/.herdr/worktrees"
+
+# ── Keybindings custom ────────────────────────────────────────────────────────
+# Nativos ocupados (NÃO rebindar): prefix+g / shift+g / alt+g (goto / new_worktree /
+# swap_pane) e shift+l. Por isso os custom usam letras livres: o / a / v / h.
+
+# `curated` (não `work` cru): respeita a allowlist ~/Claude/.herdr/spaces.
+# `work.sh` sem arg varre ~/Claude/Projetos/* e remontaria os 32 — desfazendo a poda.
 [[keys.command]]
 key = "prefix+shift+o"
 type = "shell"
-command = "bash ~/Claude/scripts/work.sh"
-description = "work cockpit (montar workspaces)"
+command = "bash ~/Claude/scripts/work.sh curated"
+description = "work cockpit (spaces curados via allowlist)"
 
 [[keys.command]]
 key = "prefix+shift+a"
@@ -16,22 +46,64 @@ type = "shell"
 command = "bash ~/Claude/scripts/herdr-cockpit-open.sh"
 description = "cockpit de agentes (painel direito)"
 
-# col3 fixa = git-glance (panorama read-only); shift+v abre o lazygit CHEIO sob demanda — updated 2026-06-29
-# prefix+g/shift+g/alt+g e shift+l são todos nativos (goto/new_worktree/swap_pane);
-# usamos prefix+shift+v (Version control) — livre. Trocável p/ qualquer shift+ livre.
 [[keys.command]]
 key = "prefix+shift+v"
 type = "shell"
 command = "bash ~/Claude/scripts/herdr-lazygit-open.sh"
 description = "lazygit cheio (sob demanda)"
 
-# hunk = review-first diff viewer do changeset (sob demanda) — added 2026-07-19
-# h livre (nativos: g/shift+g/alt+g/shift+l). git-glance fixo removido; review agora é sob demanda.
 [[keys.command]]
 key = "prefix+shift+h"
 type = "shell"
 command = "bash ~/Claude/scripts/herdr-hunk-open.sh"
 description = "hunk review (diff do changeset, sob demanda)"
 
-[ui.toast]
-delivery = "herdr"
+# ── Plugins (Fase 2, 2026-07-20) ──────────────────────────────────────────────
+# file-viewer: árvore + conteúdo git-aware, read-only. É o substituto sob demanda
+# do git-glance fixo removido em 19/07 — sem custar largura permanente.
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "file viewer (split, git-aware)"
+
+# shift+e (Explorer), NÃO shift+t: prefix+shift+t é o rename_tab nativo.
+[[keys.command]]
+key = "prefix+shift+e"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-tab"
+description = "file viewer (tab cheia)"
+
+# agent-usage: pane com janelas de rate limit por provider.
+[[keys.command]]
+key = "prefix+shift+u"
+type = "plugin_action"
+command = "usagebar.open-limits"
+description = "usage/limits dos providers"
+
+# navigator: fuzzy jump pra qualquer workspace/agent/projeto/sessão.
+# Substitui a navegação que o sort alfabético dava (aposentado na Fase 1).
+[[keys.command]]
+key = "prefix+shift+j"
+type = "plugin_action"
+command = "herdr-navigator.open"
+description = "navigator (fuzzy jump)"
+
+[[keys.command]]
+key = "prefix+shift+b"
+type = "plugin_action"
+command = "herdr-navigator.jump-back"
+description = "navigator: volta pro anterior"
+
+# reviewr: review do diff do agent com comentário linha-a-linha; `s` manda os
+# comentários de volta pro input do agent. Também auto-abre em worktree.created.
+# `i` de Inspect — `r` é nativo (rename).
+[[keys.command]]
+key = "prefix+shift+i"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle"
+description = "reviewr (review do diff do agent)"
+
+# spreader (layout YAML) fica SEM bind de propósito: o `apply` precisa de um
+# config.yaml que ainda não existe. Bindar antes disso é atalho pra um no-op.
+# Quando o work.sh virar YAML, bindar em prefix+shift+y.

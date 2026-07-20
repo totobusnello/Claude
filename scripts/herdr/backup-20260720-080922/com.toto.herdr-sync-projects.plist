@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.toto.herdr-sync-projects</string>
+    <!-- roda o sync quando ~/Claude/Projetos muda (subdir criado/removido) e no login -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>/Users/lab/Claude/scripts/herdr-sync-projects.sh</string>
+    </array>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Users/lab/Claude/Projetos</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <!-- SEM KeepAlive: é one-shot disparado por WatchPaths, não um daemon -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/lab/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>/Users/lab</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/Users/lab/Library/Logs/herdr-sync-projects.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/lab/Library/Logs/herdr-sync-projects.log</string>
+</dict>
+</plist>

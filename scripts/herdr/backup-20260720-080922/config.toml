@@ -1,0 +1,37 @@
+onboarding = false
+[ui]
+agent_panel_scope = "all"
+
+# montar o cockpit de dentro do herdr (added 2026-06-20)
+show_agent_labels_on_pane_borders = true
+[[keys.command]]
+key = "prefix+shift+o"
+type = "shell"
+command = "bash ~/Claude/scripts/work.sh"
+description = "work cockpit (montar workspaces)"
+
+[[keys.command]]
+key = "prefix+shift+a"
+type = "shell"
+command = "bash ~/Claude/scripts/herdr-cockpit-open.sh"
+description = "cockpit de agentes (painel direito)"
+
+# col3 fixa = git-glance (panorama read-only); shift+v abre o lazygit CHEIO sob demanda — updated 2026-06-29
+# prefix+g/shift+g/alt+g e shift+l são todos nativos (goto/new_worktree/swap_pane);
+# usamos prefix+shift+v (Version control) — livre. Trocável p/ qualquer shift+ livre.
+[[keys.command]]
+key = "prefix+shift+v"
+type = "shell"
+command = "bash ~/Claude/scripts/herdr-lazygit-open.sh"
+description = "lazygit cheio (sob demanda)"
+
+# hunk = review-first diff viewer do changeset (sob demanda) — added 2026-07-19
+# h livre (nativos: g/shift+g/alt+g/shift+l). git-glance fixo removido; review agora é sob demanda.
+[[keys.command]]
+key = "prefix+shift+h"
+type = "shell"
+command = "bash ~/Claude/scripts/herdr-hunk-open.sh"
+description = "hunk review (diff do changeset, sob demanda)"
+
+[ui.toast]
+delivery = "herdr"

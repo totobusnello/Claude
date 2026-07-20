@@ -2,9 +2,16 @@
 # herdr-doctor.sh — valida e reaplica as customizações à mão do herdr que um
 # `herdr update`/reinstalação pode sobrescrever ou apagar. Idempotente.
 #
-# Protege: config.toml (keybindings prefix+shift+o/a/v, [ui], [ui.toast]),
-# o plist do server (wrapper que roda o sort no boot), os scripts referenciados,
-# os LaunchAgents de automação (auto-sync + auto-reorder) e o hook da integração claude.
+# Protege: config.toml (keybindings prefix+shift+o/a/v/h, [ui], [ui.toast], [worktrees]),
+# o plist do server (wrapper que sobe o watcher do monitor), os scripts referenciados
+# e o hook da integração claude.
+#
+# 2026-07-20 (Fase 1 da poda): saíram daqui os LaunchAgents com.toto.herdr-sync-projects
+# e com.toto.herdr-auto-reorder, junto com herdr-sort-spaces.py / herdr-auto-reorder.sh /
+# herdr-sync-projects.sh — os 3 scripts viraram ~/Claude-archive/_retired/scripts/ e os
+# 2 plists ~/Claude-archive/_retired/launchagents/. NÃO reintroduzir sem reverter a poda:
+# o --fix fazia `launchctl bootstrap` deles, o que religaria o espelhamento automático
+# dos 32 workspaces.
 #
 # Uso:
 #   herdr-doctor.sh            # --check (default): só reporta; exit 1 se algo divergiu
@@ -76,28 +83,14 @@ fi
 
 # --- 3. scripts referenciados (keybindings + automações) ---
 echo "[3] scripts"
-for s in work.sh herdr-cockpit-open.sh herdr-lazygit-open.sh herdr-sort-spaces.py \
-         herdr-server-launch.sh herdr-sync-projects.sh herdr-auto-reorder.sh \
+for s in work.sh herdr-cockpit-open.sh herdr-lazygit-open.sh \
+         herdr-server-launch.sh \
          herdr-monitor-ensure.py herdr-monitor-watch.sh herdr-hunk-open.sh; do
   [[ -x "$BASE/$s" ]] && ok "$s" || bad "$s FALTANDO ou não-executável"
 done
 
-# --- 4. LaunchAgents de automação ---
-echo "[4] LaunchAgents"
-for label in com.toto.herdr-sync-projects com.toto.herdr-auto-reorder; do
-  if launchctl print "gui/$UID_N/$label" >/dev/null 2>&1; then
-    ok "$label carregado"
-  else
-    bad "$label NÃO carregado"
-    if [[ "$MODE" == "fix" && -f "$HOME/Library/LaunchAgents/$label.plist" ]]; then
-      launchctl bootstrap "gui/$UID_N" "$HOME/Library/LaunchAgents/$label.plist" 2>/dev/null \
-        && echo "       -> bootstrap ✅"
-    fi
-  fi
-done
-
-# --- 5. integração claude (hook de status) ---
-echo "[5] integração claude"
+# --- 4. integração claude (hook de status) ---
+echo "[4] integração claude"
 if grep -q 'herdr-agent-state.sh' "$HOME/.claude/settings.json" 2>/dev/null; then
   ok "hook presente no settings.json"
 else
@@ -106,6 +99,22 @@ fi
 if [[ "$MODE" == "fix" ]]; then
   "$HERDR" integration install claude >/dev/null 2>&1 && echo "       -> integration install claude reaplicado"
 fi
+
+# --- 5. plugins (Fase 2) ---
+# Plugins persistem no plugins.json (registry do herdr), não em snapshot nosso.
+# Este bloco só ALERTA se sumirem/desabilitarem — o --fix não reinstala sozinho
+# (reinstalar baixa código de terceiro; isso é decisão consciente, não auto-reparo).
+echo "[5] plugins"
+for p in herdr-file-viewer usagebar herdr-navigator persiyanov.reviewr herdr-spreader herdr-remote.relay; do
+  line="$("$HERDR" plugin list 2>/dev/null | grep "^- $p ")"
+  if [[ -z "$line" ]]; then
+    bad "$p NÃO instalado — reinstalar à mão: herdr plugin install <owner>/<repo>"
+  elif [[ "$line" == *disabled* ]]; then
+    bad "$p instalado mas DESABILITADO — herdr plugin enable $p"
+  else
+    ok "$p"
+  fi
+done
 
 # --- 6. wrapper do herdr update no zshrc (o gatilho do auto-fix) ---
 echo "[6] wrapper 'herdr update' (~/.zshrc)"

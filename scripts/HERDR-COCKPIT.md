@@ -4,18 +4,28 @@ Setup pessoal sobre o **herdr 0.7.3** (terminal workspace manager pra AI coding 
 
 **Prefix = `Ctrl+B`** (default do herdr, não customizado). Todo `prefix+X` abaixo = aperta Ctrl+B, solta, depois X. `Ctrl+B` então `?` = referência nativa completa.
 
-Construído 2026-06-22 · atualizado **2026-07-19** (auto-sync + auto-reorder + doctor + hunk; git-glance removido).
+Construído 2026-06-22 · atualizado **2026-07-20** (Fase 1 da poda: frota 32→17 workspaces curados; auto-sync + auto-reorder aposentados; `[worktrees]` nativo).
 
 ## Keybindings (`~/.config/herdr/config.toml`)
 
 | Atalho | Abre | Papel |
 |---|---|---|
-| `prefix+shift+o` | `work.sh` | monta/foca workspaces |
+| `prefix+shift+o` | `work.sh curated` | monta/foca os spaces da allowlist |
 | `prefix+shift+a` | `herdr-cockpit-open.sh` | cockpit de agentes (split direita) |
 | `prefix+shift+v` | `herdr-lazygit-open.sh` | lazygit cheio (operar git) |
 | `prefix+shift+h` | `herdr-hunk-open.sh` | **hunk review** (diff do changeset) |
+| `prefix+shift+f` | plugin `herdr-file-viewer` | **file viewer** git-aware (split) |
+| `prefix+shift+e` | plugin `herdr-file-viewer` | file viewer em tab cheia |
+| `prefix+shift+u` | plugin `usagebar` | usage/rate limits por provider |
+| `prefix+shift+j` | plugin `herdr-navigator` | **fuzzy jump** (workspace/agent/projeto) |
+| `prefix+shift+b` | plugin `herdr-navigator` | volta pro anterior |
+| `prefix+shift+i` | plugin `reviewr` | **review do diff** do agent (`s` manda de volta) |
 
-Nativos ocupados (**não** rebindar): `prefix+g`/`shift+g`/`alt+g` (goto / new_worktree / swap_pane), `shift+l`. Por isso os custom usam letras livres (o/a/v/h).
+**Nativos ocupados — NÃO rebindar:** `prefix+shift+` **d/g/n/p/r/t/w/x** (`close_workspace` / `new_worktree` / `new_workspace` / … / **`rename_tab`=shift+t**) e `prefix+g`/`alt+g`/`shift+l`. Por isso os custom usam **o/a/v/h/f/e/u**.
+
+> ⚠️ `prefix+shift+t` parece livre e **não é** (`rename_tab`). Antes de criar bind novo:
+> `herdr --default-config | grep -oE '"prefix\+shift\+[a-z]"' | sort -u`
+> Livres hoje: **b, i, j, k, m, y, z**.
 
 ## 1. Layout de trabalho (`work.sh`)
 
@@ -63,27 +73,85 @@ Sem painel git fixo (git-glance saiu). Três caminhos:
 
 Lazygit e hunk abrem split à direita + zoom (tela cheia); `q` sai, `; exit` fecha o pane e volta ao layout. O hunk (brew, `hunkdiff`) é review-first; o `delta` segue como git pager default, e `git hdiff`/`git hshow` chamam o hunk sob demanda em qualquer pane.
 
-## 4. Spaces auto-geridos (sync + ordem alfabética)
+## 4. Spaces curados (frota enxuta, sob demanda) — reescrito 2026-07-20
 
-O herdr não escaneia o filesystem nem tem sort nativo (`herdr config` só `reset-keys`). Dois automatismos (19/07) resolvem:
+**O modelo mudou.** Antes: espelhar `~/Claude/Projetos/*` inteiro na sidebar (32 workspaces, 64 panes permanentes) + reordenar alfabético de madrugada. O diagnóstico que matou isso: **47% da frota estava parada há 1+ mês** e o sidebar nativo do herdr — feito pra você bater o olho e ver quem está `blocked` — vira ruído com 32 linhas. O cockpit custom (§2) era a compensação.
 
-**Auto-sync** — `herdr-sync-projects.sh` + LaunchAgent `com.toto.herdr-sync-projects` (`WatchPaths=~/Claude/Projetos`). Pasta nova → workspace criado **AO VIVO** (~10s, sem restart). Dedup por `identity_cwd` (não por label — labels são customizados). Log: `~/Library/Logs/herdr-sync-projects.log`.
+Hoje: **~17 workspaces curados**, abertos porque há trabalho neles. O resto volta com `work <projeto>` em segundos.
 
-**Auto-reorder** — `herdr-sort-spaces.py` (reordena alfabético, **home `~` cru fixo no topo**, locale-aware, atômico + `.bak`, fail-safe se server vivo) rodado por `herdr-auto-reorder.sh` + LaunchAgent `com.toto.herdr-auto-reorder` (**04:37**). Reordenar exige **restart do server** (relê `session.json` só no start; restart recria panes), então roda de madrugada com **3 gates**: server up · nenhum agente working/blocked · de fato desordenado (`--dry-run`). Forçar agora (se idle): `zsh herdr-auto-reorder.sh`. O sort roda também no boot via wrapper `herdr-server-launch.sh` (antes do server subir).
+**Aposentados** (em `~/Claude-archive/_retired/`):
 
-> Não existe reorder ao vivo — workspaces novos entram no **fim** da sidebar até o próximo reorder (madrugada ou boot). Restart manual: `launchctl kickstart -k gui/$(id -u)/dev.herdr.server` ⚠️ recria panes.
+| O quê | Por quê |
+|---|---|
+| `herdr-sync-projects.sh` + LaunchAgent `com.toto.herdr-sync-projects` | Espelhava todo subdir de `~/Claude/Projetos` → recriava o que você fechasse |
+| `herdr-sort-spaces.py` + `herdr-auto-reorder.sh` + LaunchAgent `com.toto.herdr-auto-reorder` | Ordenar 32 spaces exigia **restart do server** (recria panes). Com 17, não paga |
+
+⚠️ **Ao fechar workspaces, desligue o auto-sync ANTES** — ele era `WatchPaths` e recriava na hora. (Hoje já está desligado; a nota vale se alguém reverter.)
+
+**O que ficou:** `herdr-monitor-watch.sh` + `herdr-monitor-ensure.py` — o enforcer do layout de 2 panes. Continua útil com 17.
+
+**Ordem da sidebar:** sem sort automático, workspaces novos entram no fim. Para navegar sem depender de ordem, o caminho é fuzzy jump (avaliar o plugin `thanhdat77/herdr-navigator` na Fase 2), não reintroduzir o restart noturno.
+
+**Worktrees agora são nativos** (`[worktrees] directory = "~/.herdr/worktrees"` no config):
+
+```bash
+herdr worktree create --branch feat/x --base main --focus
+herdr worktree remove --workspace wN     # git worktree remove; nunca deleta a branch
+```
+
+A raiz fica **fora de qualquer repo** de propósito — worktree dentro do repo (`.claude/worktrees/`) usa sparse-checkout e causa HEAD desync entre agents paralelos: a raiz dos 8 leaks de 2026-05-24. Ver a hard-rule em `~/Claude/CLAUDE.md`.
+
+## 4b. Plugins (Fase 2 — 2026-07-20, herdr 0.7.4)
+
+Até 20/07 havia **zero** plugins instalados e ~1.258 linhas de script custom fazendo o papel deles. Curadoria por **maturidade**, não por afinidade:
+
+| Plugin | Maturidade | Papel |
+|---|---|---|
+| `smarzban/herdr-file-viewer` | **173⭐**, v1.13.0, MIT, CI, binário assinado | Árvore + conteúdo git-aware, read-only: diffs, markdown renderizado, syntax highlight. **É o substituto sob demanda do git-glance fixo** removido em 19/07 |
+| `senna-lang/herdr-agent-usage` (`usagebar`) | 4⭐, Go, CI | Context meters + janelas de rate limit no sidebar. Lê fontes locais de **Claude** (`~/.claude.json`), **Codex** (`~/.codex/sessions/`) e **Grok** — 3 dos 4 harnesses |
+
+**`usagebar` exige herdr ≥ 0.7.4** (usa `[ui.sidebar.agents]`, que não existe na 0.7.3). Foi o motivo do upgrade 0.7.3→0.7.4. Instalação é **`brew upgrade herdr`** — o `herdr update` recusa em instalação Homebrew.
+
+O plugin popula os tokens `$limit` / `$context` no `[ui.sidebar.agents]` do `config.toml`. Sem sessão Claude/Codex viva num pane, os tokens ficam vazios — os hooks rodam (exit 0), mas não há o que medir.
+
+**Não instalar `0xGosu/herdr-auto-pilot`** — auto-prompta o agent no seu lugar ("Full-Self Prompting"). Colide com maker-checker e verification-first.
+
+### Rust instalado (`brew install rust`, cargo 1.97.1) — 6 plugins no total
+
+O `navigator` força `[[build]] cargo build --release` **mesmo publicando binário arm64** na release. Lição: *"tem release binária" ≠ "instala sem cargo"* — depende do manifest. O file-viewer tem script que resolve prebuilt-vs-source; o navigator não.
+
+| Plugin | ⭐ | Papel | Precisou de Rust? |
+|---|---|---|---|
+| `smarzban/herdr-file-viewer` | 179 | Árvore + conteúdo git-aware | não (prebuilt) |
+| `persiyanov/herdr-reviewr` | 152 | **Review do diff do agent**, comentário linha-a-linha, `s` manda pro input dele | **não** (prebuilt) |
+| `dcolinmorgan/herdr-remote` | 100 | Dashboard menu bar / celular | não (Python) |
+| `yuk1ty/herdr-spreader` | 41 | Layout de workspace via **YAML** (estilo tmuxinator) | **sim** |
+| `thanhdat77/herdr-navigator` | 16 | Fuzzy jump | **sim** |
+| `senna-lang/herdr-agent-usage` | 4 | Context meters + rate limits | não (Go) |
+
+**`reviewr` é o mais relevante pro fluxo multi-família:** o loop `/kimi:review` · `/glm:review` · `/grok:review` continua valendo pelo que ele é (famílias de treino distintas). O reviewr não substitui as vozes — substitui o **transporte** do feedback de volta pro agent, e é agnóstico de harness. Auto-abre em `worktree.created`.
+
+**`herdr-remote` tem 2 partes — só o plugin está instalado:**
+1. **Plugin relay** (event hook em `pane.agent_status_changed`) ✅ instalado
+2. **Herdi.app** (menu bar, zero config, sem relay/conta) — [download manual](https://github.com/dcolinmorgan/herdr-remote/releases/latest), arrastar pra Applications
+3. Para celular/cross-machine: `export HERDR_RELAY_TOKEN="$(openssl rand -hex 16)" && uv run relay/herdr_relay.py`
+
+**`spreader` está SEM keybinding de propósito** — o `apply` precisa de um `config.yaml` que ainda não existe. Ele é o candidato a aposentar `work.sh` (179 linhas) + `herdr-monitor-ensure.py` (164) — os **dois donos do layout** que causaram o bug do git-glance recriado em 32 workspaces. Quando o YAML existir, bindar em `prefix+shift+y`.
+
+> `shift+` livres hoje: **c k l m q s y z**
 
 ## 5. Hardening pós-`herdr update`
 
 O plist, o `config.toml` e os scripts são customizados à mão (não geridos pelo herdr) — um `herdr update` pode sobrescrevê-los.
 
-- **`herdr-doctor.sh`** (`--check` / `--fix` / `--save`): valida e reaplica config.toml, plist do server, scripts, LaunchAgents e a integração claude. Snapshots do estado bom em `~/Claude/scripts/herdr/expected/`. `--save` re-snapshota após mudança intencional.
+- **`herdr-doctor.sh`** (`--check` / `--fix` / `--save`): valida e reaplica config.toml, plist do server, os 7 scripts vivos e a integração claude. Snapshots do estado bom em `~/Claude/scripts/herdr/expected/`. `--save` re-snapshota após mudança intencional.
+  > ⚠️ **O doctor é um sistema imunológico — ele rejeita mudança que você não ensinar.** O `--fix` restaura o `config.toml` do snapshot e (até 20/07) fazia `launchctl bootstrap` dos LaunchAgents. Toda mudança intencional no config/plist exige `--save` depois, senão o próximo `herdr update` reverte via wrapper do `~/.zshrc`.
 - **Wrapper no `~/.zshrc`:** a function `herdr()` intercepta **só** `herdr update` — roda o update e, se ok, chama `herdr-doctor.sh --fix` sozinho. Qualquer outro subcomando passa direto (`command herdr`). Vale só em shells novos.
 
 ## Reversão
 
 - **hunk / git-glance:** restaurar o bloco git-glance **nos dois** — `work.sh` (workspaces novos) **e** `herdr-monitor-ensure.py` (enforcer: ratios `0.42`/`0.56`, `TARGETS` de 3 col, branch de 3 panes), via git history / `.bak-doctor`; depois `python3 herdr-monitor-ensure.py --all`. Remover o keybinding `prefix+shift+h` do config.toml; `herdr server reload-config`.
 - **Cockpit:** remover `prefix+shift+a` do config.toml + `herdr server reload-config`.
-- **Auto-sync / auto-reorder:** `launchctl bootout gui/$(id -u)/com.toto.herdr-sync-projects` (e `…herdr-auto-reorder`).
+- **Frota de 32 workspaces (desfazer a poda de 20/07):** restaurar os 3 scripts de `~/Claude-archive/_retired/scripts/` e os 2 plists de `~/Claude-archive/_retired/launchagents/` → `~/Library/LaunchAgents/`; `launchctl bootstrap gui/$(id -u) <plist>` nos dois; reintroduzir as refs no `herdr-doctor.sh` (lista de scripts + bloco LaunchAgents) e a linha do sort no `herdr-server-launch.sh`; `herdr-doctor.sh --save`. Backup do `session.json` de 32 workspaces em `~/Claude/scripts/herdr/backup-20260720-080922/`.
 - **Wrapper update:** remover o bloco `# >>> herdr update -> reaplica >>>` do `~/.zshrc`.
 - **Config/plist corrompidos:** `herdr-doctor.sh --fix` restaura do snapshot; `session.json.bak` restaura a ordem.
