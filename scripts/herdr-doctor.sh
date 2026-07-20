@@ -77,7 +77,8 @@ fi
 # --- 3. scripts referenciados (keybindings + automações) ---
 echo "[3] scripts"
 for s in work.sh herdr-cockpit-open.sh herdr-lazygit-open.sh herdr-sort-spaces.py \
-         herdr-server-launch.sh herdr-sync-projects.sh herdr-auto-reorder.sh; do
+         herdr-server-launch.sh herdr-sync-projects.sh herdr-auto-reorder.sh \
+         herdr-monitor-ensure.py herdr-monitor-watch.sh herdr-hunk-open.sh; do
   [[ -x "$BASE/$s" ]] && ok "$s" || bad "$s FALTANDO ou não-executável"
 done
 
