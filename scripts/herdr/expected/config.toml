@@ -21,11 +21,13 @@ directory = "~/.herdr/worktrees"
 # Nativos ocupados (NÃO rebindar): prefix+g / shift+g / alt+g (goto / new_worktree /
 # swap_pane) e shift+l. Por isso os custom usam letras livres: o / a / v / h.
 
+# `curated` (não `work` cru): respeita a allowlist ~/Claude/.herdr/spaces.
+# `work.sh` sem arg varre ~/Claude/Projetos/* e remontaria os 32 — desfazendo a poda.
 [[keys.command]]
 key = "prefix+shift+o"
 type = "shell"
-command = "bash ~/Claude/scripts/work.sh"
-description = "work cockpit (montar workspaces)"
+command = "bash ~/Claude/scripts/work.sh curated"
+description = "work cockpit (spaces curados via allowlist)"
 
 [[keys.command]]
 key = "prefix+shift+a"
