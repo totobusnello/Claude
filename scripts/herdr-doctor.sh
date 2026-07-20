@@ -100,8 +100,24 @@ if [[ "$MODE" == "fix" ]]; then
   "$HERDR" integration install claude >/dev/null 2>&1 && echo "       -> integration install claude reaplicado"
 fi
 
-# --- 5. wrapper do herdr update no zshrc (o gatilho do auto-fix) ---
-echo "[5] wrapper 'herdr update' (~/.zshrc)"
+# --- 5. plugins (Fase 2) ---
+# Plugins persistem no plugins.json (registry do herdr), não em snapshot nosso.
+# Este bloco só ALERTA se sumirem/desabilitarem — o --fix não reinstala sozinho
+# (reinstalar baixa código de terceiro; isso é decisão consciente, não auto-reparo).
+echo "[5] plugins"
+for p in herdr-file-viewer usagebar; do
+  line="$("$HERDR" plugin list 2>/dev/null | grep "^- $p ")"
+  if [[ -z "$line" ]]; then
+    bad "$p NÃO instalado — reinstalar à mão: herdr plugin install <owner>/<repo>"
+  elif [[ "$line" == *disabled* ]]; then
+    bad "$p instalado mas DESABILITADO — herdr plugin enable $p"
+  else
+    ok "$p"
+  fi
+done
+
+# --- 6. wrapper do herdr update no zshrc (o gatilho do auto-fix) ---
+echo "[6] wrapper 'herdr update' (~/.zshrc)"
 if grep -q 'herdr update -> reaplica' "$HOME/.zshrc" 2>/dev/null; then
   ok "function herdr() presente — roda doctor --fix após cada update"
 else

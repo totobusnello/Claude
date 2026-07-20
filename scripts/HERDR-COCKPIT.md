@@ -10,12 +10,19 @@ Construído 2026-06-22 · atualizado **2026-07-20** (Fase 1 da poda: frota 32→
 
 | Atalho | Abre | Papel |
 |---|---|---|
-| `prefix+shift+o` | `work.sh` | monta/foca workspaces |
+| `prefix+shift+o` | `work.sh curated` | monta/foca os spaces da allowlist |
 | `prefix+shift+a` | `herdr-cockpit-open.sh` | cockpit de agentes (split direita) |
 | `prefix+shift+v` | `herdr-lazygit-open.sh` | lazygit cheio (operar git) |
 | `prefix+shift+h` | `herdr-hunk-open.sh` | **hunk review** (diff do changeset) |
+| `prefix+shift+f` | plugin `herdr-file-viewer` | **file viewer** git-aware (split) |
+| `prefix+shift+e` | plugin `herdr-file-viewer` | file viewer em tab cheia |
+| `prefix+shift+u` | plugin `usagebar` | usage/rate limits por provider |
 
-Nativos ocupados (**não** rebindar): `prefix+g`/`shift+g`/`alt+g` (goto / new_worktree / swap_pane), `shift+l`. Por isso os custom usam letras livres (o/a/v/h).
+**Nativos ocupados — NÃO rebindar:** `prefix+shift+` **d/g/n/p/r/t/w/x** (`close_workspace` / `new_worktree` / `new_workspace` / … / **`rename_tab`=shift+t**) e `prefix+g`/`alt+g`/`shift+l`. Por isso os custom usam **o/a/v/h/f/e/u**.
+
+> ⚠️ `prefix+shift+t` parece livre e **não é** (`rename_tab`). Antes de criar bind novo:
+> `herdr --default-config | grep -oE '"prefix\+shift\+[a-z]"' | sort -u`
+> Livres hoje: **b, i, j, k, m, y, z**.
 
 ## 1. Layout de trabalho (`work.sh`)
 
@@ -90,6 +97,24 @@ herdr worktree remove --workspace wN     # git worktree remove; nunca deleta a b
 ```
 
 A raiz fica **fora de qualquer repo** de propósito — worktree dentro do repo (`.claude/worktrees/`) usa sparse-checkout e causa HEAD desync entre agents paralelos: a raiz dos 8 leaks de 2026-05-24. Ver a hard-rule em `~/Claude/CLAUDE.md`.
+
+## 4b. Plugins (Fase 2 — 2026-07-20, herdr 0.7.4)
+
+Até 20/07 havia **zero** plugins instalados e ~1.258 linhas de script custom fazendo o papel deles. Curadoria por **maturidade**, não por afinidade:
+
+| Plugin | Maturidade | Papel |
+|---|---|---|
+| `smarzban/herdr-file-viewer` | **173⭐**, v1.13.0, MIT, CI, binário assinado | Árvore + conteúdo git-aware, read-only: diffs, markdown renderizado, syntax highlight. **É o substituto sob demanda do git-glance fixo** removido em 19/07 |
+| `senna-lang/herdr-agent-usage` (`usagebar`) | 4⭐, Go, CI | Context meters + janelas de rate limit no sidebar. Lê fontes locais de **Claude** (`~/.claude.json`), **Codex** (`~/.codex/sessions/`) e **Grok** — 3 dos 4 harnesses |
+
+**`usagebar` exige herdr ≥ 0.7.4** (usa `[ui.sidebar.agents]`, que não existe na 0.7.3). Foi o motivo do upgrade 0.7.3→0.7.4. Instalação é **`brew upgrade herdr`** — o `herdr update` recusa em instalação Homebrew.
+
+O plugin popula os tokens `$limit` / `$context` no `[ui.sidebar.agents]` do `config.toml`. Sem sessão Claude/Codex viva num pane, os tokens ficam vazios — os hooks rodam (exit 0), mas não há o que medir.
+
+**Não instalar `0xGosu/herdr-auto-pilot`** — auto-prompta o agent no seu lugar ("Full-Self Prompting"). Colide com maker-checker e verification-first.
+
+### Pendente: `thanhdat77/herdr-navigator` (fuzzy jump) precisa de Rust
+Falhou o install: o manifest força `[[build]] cargo build --release` e não há `cargo` na máquina — **mesmo o repo publicando binário arm64 pré-compilado** na release (v0.3.3). Diferente do file-viewer, cujo script resolve prebuilt-vs-source sozinho. Para instalar: `brew install rust` (~1,3 GB) — destrava também os outros ~6 plugins Rust do ecossistema (leap, sidebar, board, deck-navigation).
 
 ## 5. Hardening pós-`herdr update`
 

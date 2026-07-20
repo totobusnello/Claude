@@ -8,6 +8,17 @@ show_agent_labels_on_pane_borders = true
 [ui.toast]
 delivery = "herdr"
 
+# Linhas do sidebar (recurso da 0.7.4). Os tokens $limit e $context são
+# preenchidos pelo plugin `usagebar` (herdr-agent-usage), que lê as fontes
+# locais de Claude (~/.claude.json), Codex (~/.codex/sessions/) e Grok.
+[ui.sidebar.agents]
+row_gap = 0
+rows = [
+  ["state_icon", "tab", "pane"],
+  ["agent", "$limit"],
+  ["$context"],
+]
+
 # ── Worktrees ─────────────────────────────────────────────────────────────────
 # Raiz FORA de qualquer repo. Isso é deliberado: worktrees dentro do repo
 # (ex: .claude/worktrees/) usam sparse-checkout e causam HEAD desync entre agents
@@ -46,3 +57,26 @@ key = "prefix+shift+h"
 type = "shell"
 command = "bash ~/Claude/scripts/herdr-hunk-open.sh"
 description = "hunk review (diff do changeset, sob demanda)"
+
+# ── Plugins (Fase 2, 2026-07-20) ──────────────────────────────────────────────
+# file-viewer: árvore + conteúdo git-aware, read-only. É o substituto sob demanda
+# do git-glance fixo removido em 19/07 — sem custar largura permanente.
+[[keys.command]]
+key = "prefix+shift+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer"
+description = "file viewer (split, git-aware)"
+
+# shift+e (Explorer), NÃO shift+t: prefix+shift+t é o rename_tab nativo.
+[[keys.command]]
+key = "prefix+shift+e"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-tab"
+description = "file viewer (tab cheia)"
+
+# agent-usage: pane com janelas de rate limit por provider.
+[[keys.command]]
+key = "prefix+shift+u"
+type = "plugin_action"
+command = "usagebar.open-limits"
+description = "usage/limits dos providers"
