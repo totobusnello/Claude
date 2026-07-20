@@ -105,7 +105,7 @@ fi
 # Este bloco só ALERTA se sumirem/desabilitarem — o --fix não reinstala sozinho
 # (reinstalar baixa código de terceiro; isso é decisão consciente, não auto-reparo).
 echo "[5] plugins"
-for p in herdr-file-viewer usagebar; do
+for p in herdr-file-viewer usagebar herdr-navigator; do
   line="$("$HERDR" plugin list 2>/dev/null | grep "^- $p ")"
   if [[ -z "$line" ]]; then
     bad "$p NÃO instalado — reinstalar à mão: herdr plugin install <owner>/<repo>"
