@@ -25,7 +25,7 @@ Escreva em português, mas mantenha SEMPRE em inglês os termos técnicos, coman
 | Tarefa | Modelo | Exemplos |
 |---|---|---|
 | Busca/lookup simples | `haiku` | `explore`, `*-low` |
-| Dev padrão | `sonnet` | `executor`, `frontend-agent`, `code-reviewer` |
+| Dev padrão | `sonnet` | `executor`, `designer`, `code-reviewer` |
 | Arquitetura/planning | `opus` | `architect`, `planner`, `analyst`, `critic` |
 
 **Regras de ouro:**
