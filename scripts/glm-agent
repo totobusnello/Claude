@@ -46,6 +46,18 @@ if [ -z "$KEY" ]; then
   exit 1
 fi
 
+# Guard de working tree (add 2026-07-21, apontado por revisão do GLM):
+# escrita liberada só é segura onde o diff é revisado antes do merge — i.e. um
+# worktree isolado. Rodar direto numa árvore com trabalho não commitado mistura
+# o que o agent fez com o que você fez. Avisa, não bloqueia: worktree recém-criado
+# pode ter artefatos de setup, e às vezes o tree sujo é intencional.
+if [ "$PERM_MODE" = "acceptEdits" ] && [ -n "$(git status --porcelain 2>/dev/null)" ]; then
+  echo "glm-agent: ⚠️  working tree com alterações não commitadas e escrita liberada." >&2
+  echo "           O diff do agent vai se misturar ao seu. Ctrl-C para abortar." >&2
+  echo "           (GLM_PERMISSION_MODE=default pede confirmação a cada edit)" >&2
+  sleep 3
+fi
+
 # Sem -p e sem --allowedTools: sessão interativa com o toolset completo.
 # O prompt (se houver) vai posicional — aqui não há flag variádica pra engolir.
 exec env \
