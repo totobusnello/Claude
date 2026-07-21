@@ -137,7 +137,7 @@ Entregue o comando pra engatar. Default pra "1 arquivo, 1 item por linha":
 Charter com itens de Check 2 → diga no hand-off COMO spawnar o checker separado (subagent
 fresh-context ou outro modelo); ScheduleWakeup sozinho não dá essa separação.
 
-Alternativas (mencione só se couber): `herdr` agent loop (paralelo + worktree de graça);
+Alternativas (mencione só se couber): Superset (paralelo + worktree por agent de graça);
 bash `while` + `claude -p` (isolamento por processo, Ralph clássico — ver skill
 `autonomous-loop/ralph` pra execução de tarefa de código).
 
