@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# grok-agent — Grok 4.5 (xAI) como CODING AGENT interativo, via harness Claude.
+#
+# Irmão write-capable do `grok`. A diferença é deliberada e importante:
+#
+#   grok        → `--bare -p --allowedTools "Read Grep Glob"` = voz ADVERSARIAL
+#                 one-shot, read-only, prompt por STDIN. Serve pra /grok:review,
+#                 /grok:challenge, /grok:ask. NÃO edita nada.
+#
+#   grok-agent  → `--bare` interativo, escrita liberada       = CODING AGENT
+#                 sessão persistente, edita arquivos, produz diff. É o que
+#                 orquestradores (Superset) precisam pra popular um worktree.
+#
+# Um agent read-only num worktree isolado não gera diff nenhum — esvazia a razão
+# de ser do worktree. Por isso os dois wrappers coexistem; não unifique.
+#
+# --bare continua isolando: pula plugin sync, hooks, auto-memory, CLAUDE.md e
+# keychain, e usa ESTRITAMENTE ANTHROPIC_API_KEY — não recursa o ecossistema da
+# sessão pai nem toca o OAuth do plano Max. A key vem de ~/.config/grok/token
+# (chmod 600); nunca fica no script nem no git.
+#
+# ⚠️ ESCRITA LIBERADA (`--permission-mode acceptEdits`, decisão de 2026-07-20).
+#    Seguro em git worktree isolado, onde o diff é revisado antes do merge.
+#    NÃO rodar direto numa árvore de trabalho com alterações não commitadas.
+#    Para pedir confirmação a cada edit: GROK_PERMISSION_MODE=default grok-agent
+#
+# ⚠️ Grok é pay-as-you-go por créditos no team xAI (não é plano mensal como o
+#    GLM Coding Plan). Sessão interativa longa consome mais que o one-shot.
+#
+# Uso:
+#   grok-agent                                    # sessão interativa no cwd
+#   grok-agent "implementa X"                     # abre já com a tarefa
+#   GROK_MODEL='grok-4.5-fast' grok-agent         # variante mais barata/rápida
+#   GROK_PERMISSION_MODE=default grok-agent       # volta a confirmar cada edit
+set -euo pipefail
+
+TOKEN_FILE="${GROK_TOKEN_FILE:-$HOME/.config/grok/token}"
+MODEL="${GROK_MODEL:-grok-4.5}"
+BASE_URL="${GROK_BASE_URL:-https://api.x.ai}"
+PERM_MODE="${GROK_PERMISSION_MODE:-acceptEdits}"
+
+if [ ! -r "$TOKEN_FILE" ]; then
+  echo "grok-agent: API key não encontrada em $TOKEN_FILE (gere no console xAI e salve com chmod 600)" >&2
+  exit 1
+fi
+KEY="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+if [ -z "$KEY" ]; then
+  echo "grok-agent: $TOKEN_FILE está vazio" >&2
+  exit 1
+fi
+
+# Sem -p e sem --allowedTools: sessão interativa com o toolset completo.
+exec env \
+  -u ANTHROPIC_MODEL -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u ENABLE_TOOL_SEARCH \
+  ANTHROPIC_BASE_URL="$BASE_URL" \
+  ANTHROPIC_API_KEY="$KEY" \
+  ANTHROPIC_AUTH_TOKEN="$KEY" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="$MODEL" \
+  claude --bare --model "$MODEL" --permission-mode "$PERM_MODE" "$@"

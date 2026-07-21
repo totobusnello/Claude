@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# glm-agent — GLM-5.2 (Zhipu / Z.ai) como CODING AGENT interativo, via harness Claude.
+#
+# Irmão write-capable do `glm`. A diferença é deliberada e importante:
+#
+#   glm        → `--bare -p --allowedTools "Read Grep Glob"`  = voz ADVERSARIAL
+#                one-shot, read-only, prompt por STDIN. Serve pra /glm:review,
+#                /glm:challenge, /glm:ask. NÃO edita nada.
+#
+#   glm-agent  → `--bare` interativo, escrita liberada                = CODING AGENT
+#                sessão persistente, edita arquivos, produz diff. É o que
+#                orquestradores (Superset) precisam pra popular um worktree.
+#
+# Um agent read-only num worktree isolado não gera diff nenhum — esvazia a razão
+# de ser do worktree. Por isso os dois wrappers coexistem; não unifique.
+#
+# --bare continua isolando: pula plugin sync, hooks, auto-memory, CLAUDE.md e
+# keychain, e usa ESTRITAMENTE ANTHROPIC_API_KEY — não recursa o ecossistema da
+# sessão pai nem toca o OAuth do plano Max. A key vem de ~/.config/glm/token
+# (chmod 600); nunca fica no script nem no git.
+#
+# ⚠️ ESCRITA LIBERADA (`--permission-mode acceptEdits`, decisão de 2026-07-20).
+#    Seguro em git worktree isolado, onde o diff é revisado antes do merge.
+#    NÃO rodar direto numa árvore de trabalho com alterações não commitadas.
+#    Para pedir confirmação a cada edit: GLM_PERMISSION_MODE=default glm-agent
+#
+# Uso:
+#   glm-agent                                   # sessão interativa no cwd
+#   glm-agent "implementa X"                    # abre já com a tarefa
+#   GLM_MODEL='glm-5.2[1m]' glm-agent           # opt-in p/ 1M de contexto
+#   GLM_PERMISSION_MODE=default glm-agent       # volta a confirmar cada edit
+set -euo pipefail
+
+TOKEN_FILE="${GLM_TOKEN_FILE:-$HOME/.config/glm/token}"
+MODEL="${GLM_MODEL:-glm-5.2}"
+BASE_URL="${GLM_BASE_URL:-https://api.z.ai/api/anthropic}"
+PERM_MODE="${GLM_PERMISSION_MODE:-acceptEdits}"
+
+if [ ! -r "$TOKEN_FILE" ]; then
+  echo "glm-agent: API key não encontrada em $TOKEN_FILE (gere no dashboard Z.ai e salve com chmod 600)" >&2
+  exit 1
+fi
+KEY="$(tr -d '[:space:]' < "$TOKEN_FILE")"
+if [ -z "$KEY" ]; then
+  echo "glm-agent: $TOKEN_FILE está vazio" >&2
+  exit 1
+fi
+
+# Sem -p e sem --allowedTools: sessão interativa com o toolset completo.
+# O prompt (se houver) vai posicional — aqui não há flag variádica pra engolir.
+exec env \
+  -u ANTHROPIC_MODEL -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u ENABLE_TOOL_SEARCH \
+  ANTHROPIC_BASE_URL="$BASE_URL" \
+  ANTHROPIC_API_KEY="$KEY" \
+  ANTHROPIC_AUTH_TOKEN="$KEY" \
+  ANTHROPIC_DEFAULT_OPUS_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_SONNET_MODEL="$MODEL" \
+  ANTHROPIC_DEFAULT_HAIKU_MODEL="glm-5.2" \
+  claude --bare --model "$MODEL" --permission-mode "$PERM_MODE" "$@"
