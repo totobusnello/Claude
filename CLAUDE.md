@@ -62,6 +62,34 @@ Memory: `[[multi-agent-branch-checkout-race]]` + `[[pre-commit-hook-blocks-non-m
 
 ---
 
+## PR & Versioning Policy
+
+> Objetivo: histórico legível e rastreável em todo repo, com atrito perto de zero. A eficiência vem de **automação** (squash + auto-merge + template), não de disciplina manual. Estabelecido 2026-07-23.
+
+**Tiering — nem toda mudança vira PR:**
+
+| Mudança | Rota |
+|---|---|
+| Typo, doc, config pessoal, `.remember`, memory | Commit direto na `main` |
+| Feature / fix / refactor com lógica | Branch → PR → **squash-merge** |
+| Multi-agent / paralelo no mesmo repo | Worktree → PR **sempre** (ver HARD RULE acima) |
+| Toca produção/cliente (Galapagos, Viridi live) | PR + review adversarial (GLM/Grok/Kimi) antes do merge |
+
+**Convenção:** Conventional Commits (`feat()/fix()/chore()/docs()/refactor()`) em TODOS os repos. É o **commit** que vira histórico — `git log --oneline` conta a história inteira. O PR é o container de contexto ("por quê") + gate de CI.
+
+**Defaults por repo:** squash-merge only, auto-merge on green, delete-branch-on-merge, PR template de 3 linhas (o quê / por quê / como testei). Aplicar com `scripts/setup-repo-pr-defaults.sh <owner/repo>`.
+
+**Cadência:** um PR por unidade de trabalho terminada. Nunca PR de 40 arquivos no fim da semana; nunca PR por micro-commit.
+
+**Ferramental (`scripts/`):**
+- `ship.sh "<msg>" [path...]` — branch → commit (`COMMIT_TO_NON_MAIN_OK=1`) → push → PR. `--merge` liga auto-merge squash on green; `--draft` abre draft. Add **seletivo**; recusa `add -A` cego se houver submódulo mexido.
+- `bump-submodules.sh` — audita os pointers de submódulo do umbrella; `--bump` reconcilia os que já estão pushados (`--push` empurra o commit se em `main`). Trabalho *dentro* de submódulo é do `ship`, rodado lá dentro.
+- `setup-repo-pr-defaults.sh <owner/repo>` — aplica squash-only + auto-merge + delete-on-merge + template a um repo (precisa admin no repo).
+
+**Submódulos (`~/Claude/Projetos/*`):** PR no submódulo primeiro (`cd Projetos/<x> && ship ...`, merge lá), **depois** bump do pointer no umbrella (`bump-submodules.sh --bump` ou o `sync-all-repos.sh` semanal). Nunca `git add Projetos/` cego.
+
+---
+
 ## Skills vs Agents
 
 - **Skills** ativam automaticamente por keyword (ver `docs/project-detection-guide.md` → Skill Activation Keywords)
